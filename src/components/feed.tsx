@@ -35,7 +35,13 @@ export function Feed() {
       setIsLoading(true)
       setError(null)
 
-      const { data, error: fetchError } = await supabase
+      // Try the Phase 4 query first (selects status + moderator_note and
+      // filters out removed posts). If the migration hasn't been applied
+      // yet those columns won't exist, so we transparently fall back to
+      // the old query.
+      let data: SupabasePostRow[] | null = null
+
+      const phase4 = await supabase
         .from("posts")
         .select(
           "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note"
@@ -43,13 +49,25 @@ export function Feed() {
         .neq("status", "removed")
         .order("created_at", { ascending: false })
 
-      if (fetchError) {
-        setError(fetchError.message)
-        setIsLoading(false)
-        return
+      if (!phase4.error) {
+        data = (phase4.data ?? []) as SupabasePostRow[]
+      } else {
+        const legacy = await supabase
+          .from("posts")
+          .select(
+            "id, created_at, image_url, caption, username, is_flagged, confidence_score"
+          )
+          .order("created_at", { ascending: false })
+
+        if (legacy.error) {
+          setError(legacy.error.message)
+          setIsLoading(false)
+          return
+        }
+        data = (legacy.data ?? []) as SupabasePostRow[]
       }
 
-      const mappedPosts: Post[] = (data as SupabasePostRow[]).map((row) => {
+      const mappedPosts: Post[] = data.map((row) => {
         const isFlagged = Boolean(row.is_flagged)
         const confidence = Math.round(Number(row.confidence_score ?? 0))
         const status = isFlagged
