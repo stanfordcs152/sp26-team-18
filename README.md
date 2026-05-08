@@ -7,12 +7,12 @@ for political disinformation, where a heauristic AI score and checks for a crypt
 data/information before they make their decision. 
 
 ## Tech Stack
-**Framework:** Next.js 16.2.6 (App Router, Turbopack), Typescript
-**UI:** Tailwind CSS, shadcn/ui, Radix UI, base-ui
-**Backend:** Supabase
-**Provenance Check:** @trustnxt/c2pa-ts (pure TS) running on Node serverless route
-**Deployment:** Vercel 
-**CI:** Github Actions (.github/workflows/ci.yml)
+**Framework:** Next.js 16.2.6 (App Router, Turbopack), Typescript \
+**UI:** Tailwind CSS, shadcn/ui, Radix UI, base-ui \
+**Backend:** Supabase \
+**Provenance Check:** @trustnxt/c2pa-ts (pure TS) running on Node serverless route \
+**Deployment:** Vercel \
+**CI:** Github Actions (.github/workflows/ci.yml) \
 
 ## Local Development
 Required env vars in env.local:
