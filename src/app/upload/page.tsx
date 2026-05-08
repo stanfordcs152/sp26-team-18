@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
+import { detectAi } from "@/lib/ai-detection"
 import type { C2paStatus } from "@/lib/types"
 
 export default function UploadPage() {
@@ -54,6 +55,13 @@ export default function UploadPage() {
     setStatusMsg("Checking Content Credentials...")
     const c2pa = await runC2paCheck(file)
 
+    setStatusMsg("Running AI detection...")
+    const ai = detectAi({
+      filename: file.name,
+      c2paStatus: c2pa.status,
+      isPolitical,
+    })
+
     setStatusMsg("Uploading image...")
     const fileExt = file.name.split(".").pop() ?? "jpg"
     const filePath = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
@@ -82,8 +90,8 @@ export default function UploadPage() {
       image_url: imageUrl,
       caption: caption.trim(),
       username: username.trim(),
-      is_flagged: false,
-      confidence_score: 0,
+      is_flagged: ai.isFlagged,
+      confidence_score: ai.confidenceScore,
       c2pa_status: c2pa.status,
       c2pa_metadata: c2pa.metadata,
       is_political: isPolitical,
@@ -94,8 +102,8 @@ export default function UploadPage() {
         image_url: imageUrl,
         caption: caption.trim(),
         username: username.trim(),
-        is_flagged: false,
-        confidence_score: 0,
+        is_flagged: ai.isFlagged,
+        confidence_score: ai.confidenceScore,
       })
       if (legacy.error) {
         setError(legacy.error.message)
