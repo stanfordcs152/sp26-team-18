@@ -43,7 +43,7 @@ We used Claude Code & Cursor to generate code for the frontend and backend of th
 ## Links
 
 **PRD:**
-**Website Deployment:** https://vercel.com/cs152-project/sp26-team-18/8H7fVMe3MSVBz7goVGHqLyzKiPcK
+**Website Deployment:** sp26-team-18-cgdz226op-cs152-project.vercel.app
 
 **Team:** 
     @caeleywoo
