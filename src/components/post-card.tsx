@@ -24,6 +24,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { AIDetectionBadge } from "@/components/ai-detection-badge"
+import { C2paBadge } from "@/components/c2pa-badge"
+import { Badge } from "@/components/ui/badge"
 import { ReportModal } from "@/components/report-modal"
 
 interface PostCardProps {
@@ -162,6 +164,25 @@ export function PostCard({ post }: PostCardProps) {
                   flags={media.aiDetection.flags}
                 />
               </div>
+
+              {/* C2PA Content Credentials badge */}
+              {post.c2paStatus && (
+                <div className="absolute top-2 left-2">
+                  <C2paBadge status={post.c2paStatus} />
+                </div>
+              )}
+
+              {/* Political content flag */}
+              {post.isPolitical && (
+                <div className="absolute bottom-2 left-2">
+                  <Badge
+                    variant="outline"
+                    className="bg-background/80 backdrop-blur text-xs"
+                  >
+                    Political
+                  </Badge>
+                </div>
+              )}
             </div>
           )}
 

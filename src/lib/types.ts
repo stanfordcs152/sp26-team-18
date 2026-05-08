@@ -26,6 +26,9 @@ export interface Media {
   aiDetection: AIDetectionResult
 }
 
+// Phase 3: C2PA Content Credentials check status
+export type C2paStatus = "verified" | "missing" | "invalid" | "no_image"
+
 export interface Post {
   id: string
   author: User
@@ -40,6 +43,9 @@ export interface Post {
   // Phase 4: moderation state. Optional so existing mock data still type-checks.
   status?: "visible" | "labeled" | "removed"
   moderatorNote?: string | null
+  // Phase 3 (retroactive): C2PA + political flag.
+  c2paStatus?: C2paStatus
+  isPolitical?: boolean
 }
 
 // Moderator-specific types

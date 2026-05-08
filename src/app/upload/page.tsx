@@ -6,14 +6,34 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
+import type { C2paStatus } from "@/lib/types"
 
 export default function UploadPage() {
   const router = useRouter()
   const [username, setUsername] = useState("")
   const [caption, setCaption] = useState("")
   const [file, setFile] = useState<File | null>(null)
+  const [isPolitical, setIsPolitical] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [statusMsg, setStatusMsg] = useState<string | null>(null)
+
+  const runC2paCheck = async (
+    f: File
+  ): Promise<{ status: C2paStatus; metadata: unknown }> => {
+    const buf = await f.arrayBuffer()
+    const res = await fetch("/api/c2pa-check", {
+      method: "POST",
+      headers: { "content-type": f.type || "application/octet-stream" },
+      body: buf,
+    })
+    if (!res.ok) {
+      // Treat any failure as missing — we don't want to block uploads on a
+      // c2pa-ts crash.
+      return { status: "missing", metadata: null }
+    }
+    return (await res.json()) as { status: C2paStatus; metadata: unknown }
+  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -31,6 +51,10 @@ export default function UploadPage() {
     setSubmitting(true)
     setError(null)
 
+    setStatusMsg("Checking Content Credentials...")
+    const c2pa = await runC2paCheck(file)
+
+    setStatusMsg("Uploading image...")
     const fileExt = file.name.split(".").pop() ?? "jpg"
     const filePath = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
 
@@ -41,6 +65,7 @@ export default function UploadPage() {
     if (uploadError) {
       setError(uploadError.message)
       setSubmitting(false)
+      setStatusMsg(null)
       return
     }
 
@@ -50,20 +75,37 @@ export default function UploadPage() {
 
     const imageUrl = publicUrlData.publicUrl
 
-    const { error: insertError } = await supabase.from("posts").insert({
+    setStatusMsg("Saving post...")
+    // Try with the Phase 3 columns first; if they don't exist yet the legacy
+    // insert still goes through.
+    const phase3Insert = await supabase.from("posts").insert({
       image_url: imageUrl,
       caption: caption.trim(),
       username: username.trim(),
       is_flagged: false,
       confidence_score: 0,
+      c2pa_status: c2pa.status,
+      c2pa_metadata: c2pa.metadata,
+      is_political: isPolitical,
     })
 
-    if (insertError) {
-      setError(insertError.message)
-      setSubmitting(false)
-      return
+    if (phase3Insert.error) {
+      const legacy = await supabase.from("posts").insert({
+        image_url: imageUrl,
+        caption: caption.trim(),
+        username: username.trim(),
+        is_flagged: false,
+        confidence_score: 0,
+      })
+      if (legacy.error) {
+        setError(legacy.error.message)
+        setSubmitting(false)
+        setStatusMsg(null)
+        return
+      }
     }
 
+    setStatusMsg(null)
     router.push("/")
     router.refresh()
   }
@@ -114,8 +156,30 @@ export default function UploadPage() {
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             required
           />
+          <p className="text-xs text-muted-foreground">
+            We&apos;ll check this image for Content Credentials (C2PA) on upload.
+          </p>
         </div>
 
+        <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 px-3 py-2.5">
+          <input
+            id="is-political"
+            type="checkbox"
+            checked={isPolitical}
+            onChange={(e) => setIsPolitical(e.target.checked)}
+            className="mt-0.5 size-4 rounded border-input accent-primary"
+          />
+          <label htmlFor="is-political" className="text-sm">
+            <span className="font-medium">This post is about politics</span>
+            <span className="block text-xs text-muted-foreground">
+              Helps moderators prioritize review of political AI content.
+            </span>
+          </label>
+        </div>
+
+        {statusMsg ? (
+          <p className="text-sm text-muted-foreground">{statusMsg}</p>
+        ) : null}
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
         <Button type="submit" className="w-full" disabled={submitting}>

@@ -16,6 +16,8 @@ type SupabasePostRow = {
   confidence_score: number
   status?: "visible" | "labeled" | "removed" | null
   moderator_note?: string | null
+  c2pa_status?: "verified" | "missing" | "invalid" | "no_image" | null
+  is_political?: boolean | null
 }
 
 export function Feed() {
@@ -35,36 +37,47 @@ export function Feed() {
       setIsLoading(true)
       setError(null)
 
-      // Try the Phase 4 query first (selects status + moderator_note and
-      // filters out removed posts). If the migration hasn't been applied
-      // yet those columns won't exist, so we transparently fall back to
-      // the old query.
+      // Try the most-recent schema first (Phase 3 + Phase 4 columns), then
+      // fall back to Phase 4 only, then to the legacy schema. Each fallback
+      // covers the case where a migration hasn't been applied yet.
       let data: SupabasePostRow[] | null = null
 
-      const phase4 = await supabase
+      const phase34 = await supabase
         .from("posts")
         .select(
-          "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note"
+          "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note, c2pa_status, is_political"
         )
         .neq("status", "removed")
         .order("created_at", { ascending: false })
 
-      if (!phase4.error) {
-        data = (phase4.data ?? []) as SupabasePostRow[]
+      if (!phase34.error) {
+        data = (phase34.data ?? []) as SupabasePostRow[]
       } else {
-        const legacy = await supabase
+        const phase4 = await supabase
           .from("posts")
           .select(
-            "id, created_at, image_url, caption, username, is_flagged, confidence_score"
+            "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note"
           )
+          .neq("status", "removed")
           .order("created_at", { ascending: false })
 
-        if (legacy.error) {
-          setError(legacy.error.message)
-          setIsLoading(false)
-          return
+        if (!phase4.error) {
+          data = (phase4.data ?? []) as SupabasePostRow[]
+        } else {
+          const legacy = await supabase
+            .from("posts")
+            .select(
+              "id, created_at, image_url, caption, username, is_flagged, confidence_score"
+            )
+            .order("created_at", { ascending: false })
+
+          if (legacy.error) {
+            setError(legacy.error.message)
+            setIsLoading(false)
+            return
+          }
+          data = (legacy.data ?? []) as SupabasePostRow[]
         }
-        data = (legacy.data ?? []) as SupabasePostRow[]
       }
 
       const mappedPosts: Post[] = data.map((row) => {
@@ -109,6 +122,8 @@ export function Feed() {
           isBookmarked: false,
           status: row.status ?? "visible",
           moderatorNote: row.moderator_note ?? null,
+          c2paStatus: row.c2pa_status ?? undefined,
+          isPolitical: row.is_political ?? false,
         }
       })
 
