@@ -19,7 +19,7 @@ Required env vars in env.local:
 * NEXT_PUBLIC_SUPABASE_URL
 * NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-Then, apply these mitigations in the following order:
+Then, apply these migrations in the following order:
 1. supabase/migrations/0002_phase4_reports_and_status.sql
 2. supabase/migrations/0003_phase3_c2pa_and_political.sql
 
