@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { AIDetectionBadge } from "@/components/ai-detection-badge"
+import { ReportModal } from "@/components/report-modal"
 
 interface PostCardProps {
   post: Post
@@ -43,6 +44,8 @@ export function PostCard({ post }: PostCardProps) {
   const [isLiked, setIsLiked] = useState(post.isLiked)
   const [isBookmarked, setIsBookmarked] = useState(post.isBookmarked)
   const [likes, setLikes] = useState(post.likes)
+  const [reportOpen, setReportOpen] = useState(false)
+  const isLabeled = post.status === "labeled"
 
   const handleLike = () => {
     setIsLiked(!isLiked)
@@ -98,7 +101,7 @@ export function PostCard({ post }: PostCardProps) {
                 <span className="sr-only">More options</span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setReportOpen(true)}>
                   <Flag className="size-4" />
                   Report content
                 </DropdownMenuItem>
@@ -109,6 +112,24 @@ export function PostCard({ post }: PostCardProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+
+          {/* Moderator label banner (Phase 4) */}
+          {isLabeled && (
+            <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+              <Flag className="size-3.5 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium">
+                  ⚠️ This post was flagged for potential AI-generated political
+                  content
+                </p>
+                {post.moderatorNote ? (
+                  <p className="mt-1 text-amber-700/80 dark:text-amber-300/80">
+                    Moderator note: {post.moderatorNote}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          )}
 
           {/* Post text */}
           <p className="mt-1 text-foreground whitespace-pre-wrap break-words">
@@ -198,6 +219,12 @@ export function PostCard({ post }: PostCardProps) {
           </div>
         </div>
       </div>
+
+      <ReportModal
+        postId={post.id}
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+      />
     </article>
   )
 }

@@ -14,6 +14,8 @@ type SupabasePostRow = {
   username: string
   is_flagged: boolean
   confidence_score: number
+  status?: "visible" | "labeled" | "removed" | null
+  moderator_note?: string | null
 }
 
 export function Feed() {
@@ -36,8 +38,9 @@ export function Feed() {
       const { data, error: fetchError } = await supabase
         .from("posts")
         .select(
-          "id, created_at, image_url, caption, username, is_flagged, confidence_score"
+          "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note"
         )
+        .neq("status", "removed")
         .order("created_at", { ascending: false })
 
       if (fetchError) {
@@ -86,6 +89,8 @@ export function Feed() {
           shares: 0,
           isLiked: false,
           isBookmarked: false,
+          status: row.status ?? "visible",
+          moderatorNote: row.moderator_note ?? null,
         }
       })
 

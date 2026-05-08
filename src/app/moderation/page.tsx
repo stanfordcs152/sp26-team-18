@@ -3,7 +3,7 @@ import { Shield, AlertTriangle, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { mockModerationQueue, mockModerationStats } from "@/lib/mock-data"
 import { ModerationStatsBar } from "@/components/moderation-stats"
-import { ModerationQueue } from "@/components/moderation-queue"
+import { ModerationQueueLive } from "@/components/moderation-queue-live"
 
 export const metadata = {
   title: "Moderation Dashboard - TruthGuard",
@@ -60,11 +60,8 @@ export default function ModerationPage() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Review Queue</h2>
-            <span className="text-sm text-muted-foreground">
-              {mockModerationQueue.length} items pending review
-            </span>
           </div>
-          <ModerationQueue items={mockModerationQueue} />
+          <ModerationQueueLive />
         </section>
       </main>
     </div>

@@ -37,10 +37,38 @@ export interface Post {
   shares: number
   isLiked: boolean
   isBookmarked: boolean
+  // Phase 4: moderation state. Optional so existing mock data still type-checks.
+  status?: "visible" | "labeled" | "removed"
+  moderatorNote?: string | null
 }
 
 // Moderator-specific types
 export type ModerationAction = "approve" | "remove" | "escalate" | "pending"
+
+// Phase 4: Reports + post moderation status
+export type PostStatus = "visible" | "labeled" | "removed"
+
+export type ReportReason = "ai_generated_political" | "other"
+export type ReportStatus = "open" | "resolved"
+export type ReportResolution = "no_action" | "labeled" | "removed"
+
+export interface Report {
+  id: string
+  postId: string
+  reporterUsername: string
+  reason: ReportReason
+  details: string | null
+  status: ReportStatus
+  resolution: ReportResolution | null
+  resolvedBy: string | null
+  createdAt: string
+  resolvedAt: string | null
+}
+
+export interface ReportWithPost extends Report {
+  post: Post
+  postStatus: PostStatus
+}
 
 export interface ModerationQueueItem {
   id: string
