@@ -17,7 +17,7 @@ data/information before they make their decision.
 ## Local Development
 Required env vars in env.local:
 * NEXT_PUBLIC_SUPABASE_URL
-* NEXT_PUBLIC_SUPABASE_ANON_KEY
+* NEXT_PUBLIC_SUPABASE_ANON_KEY 
 
 Then, apply these migrations in the following order:
 1. supabase/migrations/0002_phase4_reports_and_status.sql
