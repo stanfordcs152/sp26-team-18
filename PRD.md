@@ -104,31 +104,24 @@ Some metrics — especially qualitative ones like "victim feels heard" — are h
 
 ### Diagram
 
-Include a system diagram. Lightweight ways to do this:
+```mermaid
+flowchart LR
+  User[End User] --> UploadUI[Upload UI]
+  UploadUI --> Classification["Classification Layer<br/>(AWS Rekognition & OpenAI)"]
 
-- Hand-drawn on paper, scan, commit as PNG
-- [Excalidraw](https://excalidraw.com/) → export PNG
-- [tldraw](https://www.tldraw.com/) → export PNG
-- Mermaid in the Markdown itself (GitHub renders it):
+  %% Primary Classification Branches
+  Classification -->|Good Score| PublicUpload[Publicly Visible Post]
+  Classification -->|Bad Score| RestrictedUpload[Temporary Restricted Upload]
+  Classification -->|Bad Score| ModQueue[Moderator Queue]
 
-    ````md
-    ```mermaid
-    flowchart LR
-      User[End User] --> UploadUI[Upload UI]
-      UploadUI --> Classification["Classification Layer<br/>(AWS Rekognition & OpenAI)"]
+  %% Moderator Workflow
+  ModQueue --> ModUI[Moderator UI]
+  ModUI -->|Reviews| ModDecision{Moderator Decision}
 
-      %% Primary Classification Branches
-      Classification -->|Good Score| PublicUpload[Publicly Visible Post]
-      Classification -->|Bad Score| RestrictedUpload[Temporary Restricted Upload]
-      Classification -->|Bad Score| ModQueue[Moderator Queue]
-
-      %% Moderator Workflow
-      ModQueue --> ModUI[Moderator UI]
-      ModUI -->|Reviews| ModDecision{Moderator Decision}
-
-      %% Moderator Decision Branches
-      ModDecision -->|Valid| PublicUpload
-      ModDecision -->|Violates Policy| TakeDown[Take Down Post]
+  %% Moderator Decision Branches
+  ModDecision -->|Valid| PublicUpload
+  ModDecision -->|Violates Policy| TakeDown[Take Down Post]
+```
 
 ### Components
 
