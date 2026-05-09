@@ -11,12 +11,15 @@
 ## Team
 
 - **Team Number:** `18`
-- **Project Name:** `Your product / codename`
-- **One-line pitch:** _One sentence: what you are building and for whom._
-- **Abuse path:** `Human-abuser` **or** `AI-as-abuser` _(pick one)_
+- **Project Name:** `TruthGuard`
+- **One-line pitch:** _To ensure widespread harmful political deepfakes are off of our platform_
+- **Abuse path:** `Human-abuser`
 - **Team members:** Name (GitHub handle) — role _(e.g., PM, backend, frontend, ML, research)_
-  - Alex Example (@astamos) — PM
-  - ...
+  - Luis Cantoran (@lc0001coll) — Software
+  - Jonathan Ocampo (@jaunyy) - Research / PRD
+  - Caeley Woo (@caeleywoo) - Software
+  - Zareef Shafquat (@Zareef13) - Software
+  - Julia Lasiota (@jlasiota) - PRD
 - **Deployed URL:** `https://...` _(placeholder for Milestone 2; update once CI/CD is live)_
 - **Repository:** `https://github.com/<org>/<repo>`
 
@@ -126,48 +129,44 @@ flowchart LR
 - **Product UI** — _The Product UI is built with Next.js and Tailwind, allowing users to browse and upload photos from their gallery. It is hosted on Vercel, which makes it easier for us to handle upload requests and keep the frontend deployment simple._
 - **Mitigation Layer** — _The backend uses AWS Rekognition to detect whether someone in an image may be a politician. It combines those facial recognition flags with contextual analysis from the OpenAI API to generate an AI certainty score, which then routes the upload to one of three states: public, temporarily restricted, or sent to the moderator review queue._
 - **Moderator UI** — _The Moderator UI allows moderators to efficiently review images that were flagged by the mitigation layer. Right now, the moderator tab is password protected, but for Milestone 3 we plan to incorporate Supabase and proper authentication._
-- **Data store** — _A managed PostgreSQL database serves as the main relational system for our app. It stores user profiles, upload metadata, AI classification scores, and the current status of each item in the moderator queue. If an image has already been reviewed before, it is saved in the moderator cache so moderators do not have to classify the same image twice._
+- **Data store** — _A managed PostgreSQL database serves as the main relational system for our app. It stores user profiles, upload metadata, AI classification scores, and the current status of each item in the moderator queue. If an image has already been reviewed before, it is saved in the moderator cache so moderators do not have to classify the same image twice. This will also be implemented by milestone 3._
 - **External services** — _The main external services we use are AWS Rekognition, the OpenAI API, and Supabase. AWS helps with image and facial recognition, OpenAI helps with contextual analysis, and Supabase will support authentication and database-related functionality._
 - **CI/CD pipeline** — _GitHub Actions helps automate our development process. Whenever someone opens a pull request, it can run checks to make sure the code works properly and follows our project standards. Once the code is approved and merged into the main branch, it automatically helps deploy the updated frontend to Vercel and apply any needed backend or database changes, reducing the amount of manual work._
 
 ### Data flow
 
-Data Flow:
-    - Upload: 
-        - User uploads an image via the Frontend.
-    - Inference:
-        - The backend intercepts the upload and sends it to the Classification Service to detect AI signatures and known political figures.
-    - Quarantine & Labeling: 
-        - If flagged as an AI political figure, the Backend atomatically labels this as "Potential AI". The post's database status is set to visibility: restricted (visible only to direct connections/friends) and added to the Mod Queue.
-    - Moderator Review: 
-        - An T&S member uses the Moderator UI to review the queued image. They can either choose "Approve to Public", "Keep Restricted", or "Takedown."
+1. **Upload**  
+   The user uploads an image through the frontend.
+
+2. **Inference**  
+   The backend intercepts the upload and sends it to the classification service to detect AI-generated content and known political figures.
+
+3. **Quarantine & Labeling**  
+   If the image is flagged as a potential AI-generated political figure, the backend automatically labels it as **"Potential AI."** The post’s database status is set to **restricted**, meaning it is only visible to direct connections or friends. The image is then added to the moderator queue.
+
+4. **Moderator Review**  
+   A Trust & Safety team member reviews the queued image through the Moderator UI. They can choose to **Approve to Public**, **Keep Restricted**, or **Takedown** the post.
 
 ---
-
 ## 6. Data Sources and Test Sets
 
-### Training data (if any)
+### Training Data
 
-_Are you training a classifier? If so, what data are you using? Public dataset? Scraped? Synthetic? Document sourcing, licensing, and any ethical considerations._
+We are not going to be training our own classifier for this project. Instead, our system relies on external services such as AWS Rekognition and the OpenAI API to classify images and provide contextual analysis. As a result, we do not collect, scrape, or label data for model training.
 
-### Test sets for Milestone 3 evaluation
+The sets we use in milestone 3 will be to test our mitigation layer, not to train.
 
-You will need **two labeled sets** for Milestone 3:
+### Test Sets for Milestone 3 Evaluation
 
-- **Allow set** — benign examples that should pass through. Target size: ≥ 100.
-  - _Source: describe how you obtained or generated this._
-- **Unallow set** — abusive examples that must be caught. Target size: ≥ 100.
-  - _Source: describe._
-  - _For illegal or extremely harmful content, use stand-ins (e.g., photos of nude kittens instead of CSAM). Document the stand-in choice._
+For Milestone 3, we will create two labeled test sets: an **allow set** and an **unallow set**.
 
-### Public datasets worth considering
+- **Allow Set**  
+  This set will have at least 100 benign examples that should be allowed to pass through the system. These may include normal user-uploaded images, non-political public images, and AI-generated images that do not involve political figures.
 
-_(Delete this subsection once you've picked yours.)_
+- **Unallow Set**  
+  The unallow set will include at least 100 examples that should be flagged by the system which will focus on AI-generated or manipulated images involving political figures.
 
-- [HuggingFace Datasets](https://huggingface.co/datasets) — search for your abuse type
-- [Papers With Code → Datasets](https://paperswithcode.com/datasets)
-- [Stanford Digital Repository](https://searchworks.stanford.edu/) (via Stanford Libraries)
-- [The Journal of Online Trust and Safety](https://tsjournal.org/) often publishes linked datasets
+For ethical reasons, we will avoid using illegal, graphic, or extremely harmful content. Thus, we plan to test without extremely harmful content of political figures.
 
 ---
 
