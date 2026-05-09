@@ -64,16 +64,29 @@ export async function resolveReport(
         ? "removed"
         : "visible"
 
-  const { error: postErr } = await supabase
+  // .select() forces postgrest to return the updated rows so we can detect
+  // RLS-silent failures. Without this, a missing UPDATE policy on `posts`
+  // returns no error but updates 0 rows — the moderator UI thinks the post
+  // was removed while the feed keeps rendering it.
+  const { data: updatedPosts, error: postErr } = await supabase
     .from("posts")
     .update({
       status: newPostStatus,
       moderator_note: input.moderatorNote.trim(),
     })
     .eq("id", input.postId)
+    .select("id, status")
 
   if (postErr) {
     return { ok: false, error: `Post update failed: ${postErr.message}` }
+  }
+
+  if (!updatedPosts || updatedPosts.length === 0) {
+    return {
+      ok: false,
+      error:
+        "Post update affected 0 rows. Apply migration 0005_posts_moderation_policy.sql so the moderator client has UPDATE permission on `posts`.",
+    }
   }
 
   const { error: reportErr } = await supabase
