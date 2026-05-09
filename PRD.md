@@ -89,11 +89,12 @@ How will you know your system works? Be measurable. Pick a small number of real 
 
 | Metric | Target | How measured |
 |---|---|---|
-| True positive rate on the unallow test set | ≥ 0.85 | F1 on labeled held-out set of N examples |
-| False positive rate on the allow test set | ≤ 0.05 | Evaluated on labeled allow set |
-| Latency (p50) for classification | < 500 ms | Measured end-to-end in the deployed environment |
-| Cost per 1,000 classifications | < $X.YZ | Estimated from API billing / inference time |
-| Moderator time-to-decision | _e.g., median < 60 s_ | From moderator UI timestamps |
+| Recall | ≥ 0.85 | # of flagged deepfakes / # of total true deepfakes |
+| False Positive Rates | ≤ 0.05 | # of real images flagged as deepfakes / # total real images. |
+| Moderator Precision (True Positives) | >= 0.90 | # of flagged deepfakes / # total images sent to moderator |
+| Latency | < 5s | Average time from the user clicking "Upload" to the classification API returning a confidence score. |
+| User Reported Abuse | > 0.30 | (0.7) * (# Deepfake reports before) >= (# Deepfake reports after)  |
+| Shares and Posts | < 100 | # of views a political deepfake has before our moderation team gets to it. |
 
 Some metrics — especially qualitative ones like "victim feels heard" — are hard to quantify. For those, define how you will assess them (user study? structured review? TA feedback?).
 
@@ -112,27 +113,48 @@ Include a system diagram. Lightweight ways to do this:
 
     ```mermaid
     flowchart LR
-      User[End User] --> Product[Product UI]
-      Product --> Mitigation[Mitigation Layer]
-      Mitigation -->|allowed| Downstream[Downstream System]
-      Mitigation -->|flagged| ModQueue[Moderator Queue]
-      ModQueue --> Mod[Moderator UI]
+      User[End User] --> UploadUI[Upload UI]
+      UploadUI --> Classification[Classification Layer <br> (AWS Rekognition & OpenAI)]
+
+      %% Primary Classificiation Branches
+      Classification -->|Good Score| PublicU pload[Public Upload & Successful]
+      Classification -->|Bad Score| RestrictedUpload[Temporary Restricted Upload]
+      Classification -->|Bad Score| ModQueue[Moderator Queue]
+
+      %% Moderator Workflow
+      ModQueue --> ModUI[Moderator UI]
+      ModUI -->|Reviews| ModDecision{Moderator Decision}
+
+      %% Moderator Decision Branches
+      ModDecision -->|Valid| PublicUpload
+      ModDecision -->|Violates Policy| TakeDown[Take Down Post]
+
     ```
 
 ### Components
 
 For each box in your diagram, write 2–3 sentences:
 
-- **Product UI** — _what framework (Next.js, SvelteKit, Django, etc.), what it renders, where hosted_
-- **Mitigation Layer** — _where classifications happen; sync or async; which model(s)_
-- **Moderator UI** — _what framework; access control (how do you keep end users out of it?)_
-- **Data store** — _Postgres? SQLite? Firestore? What lives here?_
-- **External services** — _OpenAI API? HuggingFace Inference? Google Cloud Run? list them all_
-- **CI/CD pipeline** — _GitHub Actions? Cloud Build? what triggers deploy?_
+- **Product UI** — _The Product UI is built with Next.js and Tailwind, allowing users to browse and upload photos from their gallery. It is hosted on Vercel, which makes it easier for us to handle upload requests and keep the frontend deployment simple._
+- **Mitigation Layer** — _The backend uses AWS Rekognition to detect whether someone in an image may be a politician. It combines those facial recognition flags with contextual analysis from the OpenAI API to generate an AI certainty score, which then routes the upload to one of three states: public, temporarily restricted, or sent to the moderator review queue._
+- **Moderator UI** — _The Moderator UI allows moderators to efficiently review images that were flagged by the mitigation layer. Right now, the moderator tab is password protected, but for Milestone 3 we plan to incorporate Supabase and proper authentication._
+- **Data store** — _A managed PostgreSQL database serves as the main relational system for our app. It stores user profiles, upload metadata, AI classification scores, and the current status of each item in the moderator queue. If an image has already been reviewed before, it is saved in the moderator cache so moderators do not have to classify the same image twice._
+- **External services** — _The main external services we use are AWS Rekognition, the OpenAI API, and Supabase. AWS helps with image and facial recognition, OpenAI helps with contextual analysis, and Supabase will support authentication and database-related functionality._
+- **CI/CD pipeline** — _GitHub Actions helps automate our development process. Whenever someone opens a pull request, it can run checks to make sure the code works properly and follows our project standards. Once the code is approved and merged into the main branch, it automatically helps deploy the updated frontend to Vercel and apply any needed backend or database changes, reducing the amount of manual work._
 
 ### Data flow
 
 Narrate one request end-to-end: a user does X → a request hits Y → classifier returns Z → moderator sees W.
+
+Data Flow:
+    - Upload: 
+        - User uploads an image via the Frontend.
+    - Inference:
+        - The backend intercepts the upload and sends it to the Classification Service to detect AI signatures and known political figures.
+    - Quarantine & Labeling: 
+        - If flagged as an AI political figure, the Backend atomatically labels this as "Potential AI". The post's database status is set to visibility: restricted (visible only to direct connections/friends) and added to the Mod Queue.
+    - Moderator Review: 
+        - An T&S member uses the Moderator UI to review the queued image. They can either choose "Approve to Public", "Keep Restricted", or "Takedown."
 
 ---
 
@@ -169,10 +191,12 @@ For each risk, state the risk, likelihood (Low / Medium / High), impact, and how
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| _Classifier over-blocks benign content, frustrating users_ | _M_ | _H_ | _Measure FP rate on allow set; tune threshold; add appeal flow in moderator UI_ |
-| _Cost of LLM inference exceeds budget_ | _M_ | _M_ | _Route only uncertain cases to LLM; cache; use cheaper model for first pass_ |
+| _The classifier has a chance of taking too long_, frustrating users_ | _M_ | _H_ | _Use an existing lightweight classification model_ |
+| _Moderators cannot reach the post in timely manner_ | _H_ | _M_ | _Try to cache existing images so the moderators doesn't classify the same image twice_ |
 | _Scraped dataset contains PII_ | _L_ | _H_ | _Review before commit; never push raw to public repo; use synthetic examples if in doubt_ |
-| _(Add 2–4 more specific to your project.)_ | | | |
+| _Users purposely flood AI images to slow the moderator work down_ | _L_ | _H_ | _Restrict the posts per user depending on their account age (how long ago was this account made?)_ | 
+| _False postives may drift poltics off of our social platform hindering low funded campaigns and underpresenting certain poltical figures_ | _M_ | _L_ | _Ensure that our false positive rate stays below our threshold to avoid discouraging campaigns from moving off the platform_ |
+
 
 Call out at least one **ethical risk** and one **technical risk** explicitly.
 
@@ -209,10 +233,11 @@ Write the Model Safety Spec as if it were a policy document the harmful model's 
 
 _List questions you haven't resolved yet. These are OK to have in a PRD — better to flag them than to pretend they don't exist._
 
-- _Do we build authentication or skip it for M2?_
-- _Is scraping from platform X allowed under their ToS?_
-- _Which LLM do we use as the adjudicator — cost vs. quality tradeoff needs testing._
-
+- _Implement crowdsource reports instead of independently checking every photo_
+- _How can we avoid against AI deepfake videos? AI voice recordings?_
+- _How might we implement a cacheing system_
+- _How can we train / detect to make this specific to politicians?_
+- _How else can we decrease our latency?_
 ---
 
 ## 10. Milestones and Timeline
@@ -221,13 +246,12 @@ Rough week-by-week plan from now through Milestone 3. Keep it realistic — slac
 
 | Week of | Target |
 |---|---|
-| _April 21_ | Repo set up, CI/CD green, skeleton Product UI deployed |
-| _April 28_ | Moderator UI stub, manual moderation flow working end-to-end |
-| _May 5_ | Polish, video, Milestone 2 submitted (May 8) |
-| _May 12_ | First-pass classifier trained/deployed, labeled test sets underway |
-| _May 19_ | All three detection approaches (ML, LLM, hybrid) running on test sets |
-| _May 26_ | Evaluation analysis, poster draft, rehearsal |
+| _May 8_ | Finish PRD & Submit Video |
+| _May 15_ | Have wokring classifier and have image transfering onto the Moderator UI |
+| _May 22_ | Poster draft and Metric Comparisons |
+| _May 30_ | Poster Final and rehearsal |
 | _June 2_ | Poster session 5–7 PM CoDa Sunken Courtyard; final code on `main` by 11:59 PM |
+
 
 ---
 
@@ -237,10 +261,10 @@ _Keep this current through Milestone 3. Honest and specific beats vague and defe
 
 Example entries:
 
-- _Claude Code: scaffolded the Next.js app; wrote initial Cloud Run deploy config; drafted unit tests for the moderator API._
-- _Cursor: used by Jane for day-to-day editing; Tom prefers plain VS Code._
-- _ChatGPT: used by Priya to debug a CORS error and to brainstorm adversarial prompts for the harmful model._
-- _We reviewed all AI-generated code in PR review; no unreviewed AI output is in `main`._
+- _Claude Code: Used by Luis and Zareef to generate initial moderator and user UI. Also used by Zareef to generate scoring funciton of images._
+- _OpenAI: Used by Zareef to write a classification function to give us an AI detection score via prompt._
+- _Gemini: Used by Jonathan to brainstorm the pipeline to determine whether or not we should train our own model or see what Open AI would offer._
+
 
 ---
 
