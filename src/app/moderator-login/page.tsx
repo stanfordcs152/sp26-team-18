@@ -1,13 +1,12 @@
 "use client"
 
 import { Suspense, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 function LoginForm() {
-  const router = useRouter()
   const params = useSearchParams()
   const redirect = params.get("redirect") || "/moderation"
   const initialError =
@@ -31,8 +30,11 @@ function LoginForm() {
     })
 
     if (res.ok) {
-      router.push(redirect)
-      router.refresh()
+      // Hard navigation so the freshly-set session cookie is sent on the
+      // next request and the proxy gate sees it. router.push() does a soft
+      // RSC navigation that, if the proxy bounces it back here, leaves the
+      // form mounted with `submitting` stuck at true.
+      window.location.assign(redirect)
       return
     }
 
