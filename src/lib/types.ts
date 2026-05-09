@@ -29,6 +29,54 @@ export interface Media {
 // Phase 3: C2PA Content Credentials check status
 export type C2paStatus = "verified" | "missing" | "invalid" | "no_image"
 
+// Phase 5: AI image-classifier output (mirrors runAnalysisPipeline return type
+// in src/lib/analyzers/pipeline.ts). Stored on posts.analysis as jsonb.
+export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
+
+export interface PostAnalysis {
+  provenance: {
+    verified: boolean
+    present: boolean
+  }
+  vision: {
+    visibleText: string
+    publicFigures: string[]
+    publicFigureConfidence: number
+    appearsAIGenerated: boolean
+    syntheticMediaConfidence: number
+    politicalContext: boolean
+    politicalContextConfidence: number
+    possibleKnownManipulation: boolean
+    misinformationRisk: RiskLevel
+    reasoning: string
+  }
+  ocr: {
+    text: string
+    hasText: boolean
+    matchedKeywords: string[]
+  }
+  ai: {
+    aiProbability: number
+    model: string
+    flagged: boolean
+    indicators: string[]
+  }
+  politicians: {
+    detected: string[]
+    confidence: number
+  }
+  manipulationSignals: {
+    possibleKnownManipulation: boolean
+    politicalContext: boolean
+    politicalContextConfidence: number
+  }
+  risk: {
+    score: number
+    level: RiskLevel
+    reasons: string[]
+  }
+}
+
 export interface Post {
   id: string
   author: User

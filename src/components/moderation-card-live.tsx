@@ -20,9 +20,11 @@ import { Input } from "@/components/ui/input"
 import { resolveReport } from "@/lib/moderation-actions"
 import type {
   Post,
+  PostAnalysis,
   ReportReason,
   ReportResolution,
   PostStatus,
+  RiskLevel,
 } from "@/lib/types"
 
 export interface LiveQueueItem {
@@ -38,6 +40,18 @@ export interface LiveQueueItem {
   }[]
   newestReportAt: string
   oldestReportAt: string
+  // Phase 5: AI image-classifier result, persisted on `posts.analysis`.
+  // Null on legacy posts uploaded before migration 0004.
+  analysis: PostAnalysis | null
+  riskScore: number | null
+  riskLevel: RiskLevel | null
+}
+
+const RISK_BADGE_CLASS: Record<RiskLevel, string> = {
+  LOW: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+  MEDIUM: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+  HIGH: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+  CRITICAL: "bg-red-500/10 text-red-500 border-red-500/20",
 }
 
 interface ModerationCardLiveProps {
@@ -85,6 +99,7 @@ export function ModerationCardLive({
   onResolved,
 }: ModerationCardLiveProps) {
   const [expanded, setExpanded] = useState(false)
+  const [reasoningExpanded, setReasoningExpanded] = useState(false)
   const [pendingAction, setPendingAction] = useState<ReportResolution | null>(
     null
   )
@@ -281,6 +296,130 @@ export function ModerationCardLive({
             ))}
           </ul>
         )}
+
+        {/* AI analysis */}
+        <div className="rounded-md border border-border bg-background p-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium">AI analysis</div>
+            {item.riskLevel ? (
+              <Badge
+                variant="outline"
+                className={cn("text-xs", RISK_BADGE_CLASS[item.riskLevel])}
+              >
+                {item.riskLevel} risk
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs">
+                unavailable
+              </Badge>
+            )}
+          </div>
+
+          {item.analysis ? (
+            <>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <p className="text-muted-foreground">Confidence</p>
+                  <p className="font-semibold text-foreground">
+                    {item.riskScore !== null
+                      ? `${Math.round(item.riskScore * 100)}%`
+                      : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">
+                    AI generation likelihood
+                  </p>
+                  <p className="font-semibold text-foreground">
+                    {Math.round(item.analysis.ai.aiProbability * 100)}%
+                  </p>
+                </div>
+              </div>
+
+              {item.analysis.manipulationSignals
+                .possibleKnownManipulation && (
+                <div className="flex items-center gap-1.5 text-xs font-medium text-red-500">
+                  <AlertTriangle className="size-3.5" />
+                  Possible known manipulation pattern
+                </div>
+              )}
+
+              {item.analysis.politicians.detected.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">
+                    Public figures detected (
+                    {Math.round(item.analysis.politicians.confidence * 100)}%)
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {item.analysis.politicians.detected.map((name) => (
+                      <Badge
+                        key={name}
+                        variant="secondary"
+                        className="text-xs"
+                      >
+                        {name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {item.analysis.ocr.matchedKeywords.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">
+                    Election keywords found
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {item.analysis.ocr.matchedKeywords.map((kw) => (
+                      <Badge key={kw} variant="secondary" className="text-xs">
+                        {kw}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {item.analysis.risk.reasons.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Risk reasons</p>
+                  <ul className="list-disc pl-5 space-y-0.5 text-xs text-foreground">
+                    {item.analysis.risk.reasons.map((reason, i) => (
+                      <li key={i}>{reason}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {item.analysis.vision.reasoning && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">
+                    Vision reasoning
+                  </p>
+                  <p
+                    className={cn(
+                      "text-xs text-foreground whitespace-pre-wrap",
+                      !reasoningExpanded && "line-clamp-4"
+                    )}
+                  >
+                    {item.analysis.vision.reasoning}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setReasoningExpanded((v) => !v)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    {reasoningExpanded ? "Show less" : "Show more"}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Analysis unavailable. This post predates migration 0004 or was
+              uploaded before the classifier was wired up.
+            </p>
+          )}
+        </div>
 
         {/* Review panel */}
         <div className="rounded-md border border-border bg-background p-3 space-y-3">

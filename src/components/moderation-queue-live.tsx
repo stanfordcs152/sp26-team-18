@@ -10,10 +10,13 @@ import {
 } from "@/components/moderation-card-live"
 import { mockModerationQueue } from "@/lib/mock-data"
 import type {
+  ModerationStats,
   Post,
+  PostAnalysis,
   PostStatus,
   ReportReason,
 } from "@/lib/types"
+import type { DashboardCounters } from "@/components/moderation-dashboard"
 
 type ReportRow = {
   id: string
@@ -34,6 +37,10 @@ type PostRow = {
   confidence_score: number | null
   status: PostStatus | null
   moderator_note: string | null
+  // Phase 5 (migration 0004) — may be null on legacy posts.
+  analysis?: PostAnalysis | null
+  risk_score?: number | null
+  risk_level?: string | null
 }
 
 const FALLBACK_AVATAR =
@@ -85,7 +92,20 @@ function rowToPost(row: PostRow): Post {
   }
 }
 
-export function ModerationQueueLive() {
+interface Props {
+  /**
+   * Called whenever the queue refetches. Lets a parent dashboard surface
+   * top-level counters and stat tiles without re-fetching itself.
+   */
+  onStats?: (stats: ModerationStats, counters: DashboardCounters) => void
+}
+
+const POSTS_SELECT_FULL =
+  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note, analysis, risk_score, risk_level"
+const POSTS_SELECT_LEGACY =
+  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note"
+
+export function ModerationQueueLive({ onStats }: Props = {}) {
   const [items, setItems] = useState<LiveQueueItem[]>([])
   // When Supabase isn't configured we render the mock fallback immediately,
   // so initial loading is only true when we actually intend to fetch.
@@ -121,17 +141,40 @@ export function ModerationQueueLive() {
         if (!cancelled) {
           setItems([])
           setLoading(false)
+          onStats?.(
+            {
+              pending: 0,
+              reviewedToday: 0,
+              removedToday: 0,
+              escalated: 0,
+              avgReviewTime: "—",
+            },
+            { pending: 0, highRisk: 0, approvedToday: 0, escalated: 0 }
+          )
         }
         return
       }
 
       const postIds = Array.from(new Set(reports.map((r) => r.post_id)))
-      const { data: postData, error: postErr } = await supabase!
+
+      // Try the full select first; if migration 0004 hasn't run yet, fall
+      // back to the legacy column set so the queue still renders.
+      let postData: PostRow[] | null = null
+      let postErr: { message: string } | null = null
+      const fullRes = await supabase!
         .from("posts")
-        .select(
-          "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note"
-        )
+        .select(POSTS_SELECT_FULL)
         .in("id", postIds)
+      if (fullRes.error) {
+        const legacyRes = await supabase!
+          .from("posts")
+          .select(POSTS_SELECT_LEGACY)
+          .in("id", postIds)
+        postData = (legacyRes.data ?? null) as PostRow[] | null
+        postErr = legacyRes.error
+      } else {
+        postData = (fullRes.data ?? null) as PostRow[] | null
+      }
 
       if (postErr) {
         if (!cancelled) {
@@ -169,6 +212,9 @@ export function ModerationQueueLive() {
             existing.oldestReportAt = r.created_at
           }
         } else {
+          const analysis = (postRow.analysis ?? null) as PostAnalysis | null
+          const riskLevel =
+            (postRow.risk_level as LiveQueueItem["riskLevel"]) ?? null
           grouped.set(r.post_id, {
             groupKey: r.post_id,
             post: rowToPost(postRow),
@@ -176,6 +222,9 @@ export function ModerationQueueLive() {
             reports: [reportEntry],
             newestReportAt: r.created_at,
             oldestReportAt: r.created_at,
+            analysis,
+            riskScore: postRow.risk_score ?? null,
+            riskLevel,
           })
         }
       }
@@ -184,9 +233,54 @@ export function ModerationQueueLive() {
         a.newestReportAt < b.newestReportAt ? 1 : -1
       )
 
+      // Derive dashboard counters + stats from the live queue.
+      const highRisk = sorted.filter(
+        (it) => it.riskLevel === "HIGH" || it.riskLevel === "CRITICAL"
+      ).length
+      const escalated = sorted.filter(
+        (it) => it.riskLevel === "CRITICAL"
+      ).length
+
+      // Cheap "today" counters, scoped to resolved reports + removed posts in
+      // the last 24h. Failures here are non-fatal — we just default to 0.
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+      let reviewedToday = 0
+      let removedToday = 0
+      const resolvedRes = await supabase!
+        .from("reports")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "resolved")
+        .gte("resolved_at", since)
+      if (typeof resolvedRes.count === "number") {
+        reviewedToday = resolvedRes.count
+      }
+      const removedRes = await supabase!
+        .from("posts")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "removed")
+        .gte("created_at", since)
+      if (typeof removedRes.count === "number") {
+        removedToday = removedRes.count
+      }
+
+      const stats: ModerationStats = {
+        pending: sorted.length,
+        reviewedToday,
+        removedToday,
+        escalated,
+        avgReviewTime: "—",
+      }
+      const counters: DashboardCounters = {
+        pending: sorted.length,
+        highRisk,
+        approvedToday: Math.max(0, reviewedToday - removedToday),
+        escalated,
+      }
+
       if (!cancelled) {
         setItems(sorted)
         setLoading(false)
+        onStats?.(stats, counters)
       }
     }
 
@@ -194,6 +288,9 @@ export function ModerationQueueLive() {
     return () => {
       cancelled = true
     }
+    // The fetch only runs once on mount; the parent already wraps `onStats`
+    // in `useCallback`, so a missing-dep warning here would be misleading.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const markResolved = (postId: string) => {
