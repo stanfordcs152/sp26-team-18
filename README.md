@@ -1,57 +1,55 @@
-# sp26-team-18
-CS 152 Spring 2026 project repository for Team 18 — **VeriFeed / TruthGuard**, a Trust & Safety MVP for detecting AI-generated political disinformation.
+# sp26-team-18 — CS 152 Spring 2026 Project - TruthGuard(WIP)
 
-## Local development
+##
+This project aims at targeting AI-generated political disinformation on online social platforms, mainly in the form of images. Our
+approach towards preventing this on our platform includes detection, provenance, and a moderation queue. Users can report images
+for political disinformation, where a heauristic AI score and checks for a cryptographic signature provide moderators with more 
+data/information before they make their decision. 
 
-```bash
-npm install
-npm run dev    # http://localhost:3000
-npm test       # vitest
-npm run lint
-npm run build
-```
+## Tech Stack
+**Framework:** Next.js 16.2.6 (App Router, Turbopack), Typescript \
+**UI:** Tailwind CSS, shadcn/ui, Radix UI, base-ui \
+**Backend:** Supabase, OpenAI, AWS \
+**Provenance Check:** @trustnxt/c2pa-ts (pure TS) running on Node serverless route \
+**Deployment:** Vercel \
+**CI:** Github Actions (.github/workflows/ci.yml) \
 
-## Required environment variables
+## Local Development
+Required env vars in env.local:
+* NEXT_PUBLIC_SUPABASE_URL
+* NEXT_PUBLIC_SUPABASE_ANON_KEY 
 
-Set these in `.env.local` (never commit). All are required for full functionality.
+Then, apply these migrations in the following order:
+1. supabase/migrations/0002_phase4_reports_and_status.sql
+2. supabase/migrations/0003_phase3_c2pa_and_political.sql
 
-### Supabase (client + storage)
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+Commands:
+* npm install
+* npm run dev -> http://localhost:3000
+* npm run lint
+* npm run build
+* npm test
 
-### AI image classifier (called from `/api/analyze`)
-- `OPENAI_API_KEY` — used by the OCR + Vision steps
-- `AWS_REGION` — typically `us-east-1`
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
+## Deployment / CI
+CI is located at .github/workflows/ci.yml, which:
+* Runs on push/PR to main
+* Uses Node 20, npm ci, runs npm test -- --passWithNoTests
+* Auto-deploys to Vercel on push-to-main using VERCEL_TOKEN secret
 
-### Moderator access gate
-- `MODERATOR_PASSWORD` — shared secret. Anyone with it can access the dashboard.
-- `MODERATOR_SESSION_SECRET` — random 32-byte hex (e.g. `openssl rand -hex 32`). Used to HMAC-sign session cookies.
+## AI Usage Statement
 
-## Database migrations
+We used Claude Code & Cursor to generate code for the frontend and backend of the webapp along with the scaffolding of the app. 
+AI-generated code was reviewed inside of pull requests along with being tested when possible to prevent errors going into main. 
+We also used Claude Code to generate tests.
 
-Apply in order via the Supabase Dashboard SQL Editor:
+## Links
 
-1. `supabase/migrations/0002_phase4_reports_and_status.sql`
-2. `supabase/migrations/0003_phase3_c2pa_political.sql`
-3. `supabase/migrations/0004_analysis_and_risk.sql`
+**PRD:** https://github.com/stanfordcs152/sp26-team-18/blob/cleanupFixes/docs/PRD.md
+**Website Deployment:** sp26-team-18-cgdz226op-cs152-project.vercel.app
 
-The moderation queue gracefully falls back to the legacy column set if 0004 hasn't been applied, so partial migration won't break the demo.
-
-## Moderator access
-
-The `/moderation/*` routes are gated by a single shared password (`MODERATOR_PASSWORD`). On successful login an HMAC-signed cookie is set for 8 hours; the Next.js `proxy.ts` checks it on every request to a moderation route.
-
-This is intentionally a **shared-secret demo gate**, not per-moderator auth. The moderator's free-text username on each resolution is self-attested. A real deployment should switch to Supabase Auth or a similar provider with per-user audit trails.
-
-To sign in:
-1. Visit `/moderation` while signed out — you'll be redirected to `/moderator-login`.
-2. Enter the shared `MODERATOR_PASSWORD`.
-3. Use the **Sign out** button in the dashboard header to clear the cookie.
-
-## Known limitations
-
-- Server-side enforcement of report resolutions still relies on Supabase RLS rather than the moderator session, so the password gate only protects the UI.
-- `avgReviewTime` in the dashboard is a placeholder until an audit log table is added.
-- The image classifier instantiates its OpenAI client at module load, so `OPENAI_API_KEY` must be present even at build time. Use a non-empty placeholder if you only need to type-check.
+**Team:** 
+    @caeleywoo
+    @Jaunyy
+    @Luis C
+    @Zareef13
+    @jlasiota
