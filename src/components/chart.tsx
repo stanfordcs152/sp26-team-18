@@ -104,6 +104,7 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
+/* eslint-disable @typescript-eslint/no-explicit-any -- recharts payload shapes are loosely typed */
 type ChartTooltipContentProps = React.ComponentProps<'div'> & {
   active?: boolean
   payload?: Array<any>
@@ -124,6 +125,7 @@ type ChartTooltipContentProps = React.ComponentProps<'div'> & {
   labelKey?: string
   labelClassName?: string
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 function ChartTooltipContent({
   active,
@@ -271,6 +273,7 @@ function ChartLegendContent({
   verticalAlign = 'bottom',
   nameKey,
 }: React.ComponentProps<'div'> & {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- recharts payload shape
     payload?: Array<any>
     verticalAlign?: 'top' | 'bottom' | 'middle'
     hideIcon?: boolean
