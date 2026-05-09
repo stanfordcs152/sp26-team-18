@@ -36,7 +36,7 @@ CI is located at .github/workflows/ci.yml, which:
 * Uses Node 20, npm ci, runs npm test -- --passWithNoTests
 * Auto-deploys to Vercel on push-to-main using VERCEL_TOKEN secret
 
-## AI Use Statement
+## AI Usage Statement
 
 We used Claude Code & Cursor to generate code for the frontend and backend of the webapp along with the scaffolding of the app. 
 AI-generated code was reviewed inside of pull requests along with being tested when possible to prevent errors going into main. 
