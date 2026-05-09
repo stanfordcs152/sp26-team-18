@@ -1,9 +1,7 @@
 import Link from "next/link"
-import { Shield, AlertTriangle, ArrowLeft } from "lucide-react"
+import { Shield, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { mockModerationQueue, mockModerationStats } from "@/lib/mock-data"
-import { ModerationStatsBar } from "@/components/moderation-stats"
-import { ModerationQueue } from "@/components/moderation-queue"
+import { ModerationDashboard } from "@/components/moderation-dashboard"
 
 export const metadata = {
   title: "Moderation Dashboard - TruthGuard",
@@ -11,10 +9,6 @@ export const metadata = {
 }
 
 export default function ModerationPage() {
-  const criticalCount = mockModerationQueue.filter(
-    (i) => i.priority === "critical"
-  ).length
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -38,34 +32,17 @@ export default function ModerationPage() {
                 </div>
               </div>
             </div>
-            {criticalCount > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 text-red-500 border border-red-500/20">
-                <AlertTriangle className="size-4" />
-                <span className="text-sm font-medium">
-                  {criticalCount} critical item{criticalCount > 1 ? "s" : ""} pending
-                </span>
-              </div>
-            )}
+            <form action="/api/moderator/logout" method="post">
+              <Button variant="ghost" size="sm" type="submit">
+                Sign out
+              </Button>
+            </form>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-4xl">
-        {/* Stats */}
-        <section className="mb-8">
-          <ModerationStatsBar stats={mockModerationStats} />
-        </section>
-
-        {/* Queue */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Review Queue</h2>
-            <span className="text-sm text-muted-foreground">
-              {mockModerationQueue.length} items pending review
-            </span>
-          </div>
-          <ModerationQueue items={mockModerationQueue} />
-        </section>
+        <ModerationDashboard />
       </main>
     </div>
   )

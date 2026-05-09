@@ -14,7 +14,7 @@ interface ModerationQueueProps {
 
 export function ModerationQueue({ items }: ModerationQueueProps) {
   const [filter, setFilter] = useState<PriorityFilter>("all")
-  const [actionedItems, setActionedItems] = useState<Set<string>>(new Set())
+  const [, setActionedItems] = useState<Set<string>>(new Set())
 
   const filteredItems = useMemo(() => {
     let filtered = items

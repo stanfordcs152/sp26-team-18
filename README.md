@@ -9,7 +9,7 @@ data/information before they make their decision.
 ## Tech Stack
 **Framework:** Next.js 16.2.6 (App Router, Turbopack), Typescript \
 **UI:** Tailwind CSS, shadcn/ui, Radix UI, base-ui \
-**Backend:** Supabase \
+**Backend:** Supabase, OpenAI, AWS \
 **Provenance Check:** @trustnxt/c2pa-ts (pure TS) running on Node serverless route \
 **Deployment:** Vercel \
 **CI:** Github Actions (.github/workflows/ci.yml) \
@@ -44,7 +44,7 @@ We also used Claude Code to generate tests.
 
 ## Links
 
-**PRD:**
+**PRD:** https://github.com/stanfordcs152/sp26-team-18/blob/cleanupFixes/docs/PRD.md
 **Website Deployment:** sp26-team-18-cgdz226op-cs152-project.vercel.app
 
 **Team:** 

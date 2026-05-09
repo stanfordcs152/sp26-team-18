@@ -14,6 +14,10 @@ type SupabasePostRow = {
   username: string
   is_flagged: boolean
   confidence_score: number
+  status?: "visible" | "labeled" | "removed" | null
+  moderator_note?: string | null
+  c2pa_status?: "verified" | "missing" | "invalid" | "no_image" | null
+  is_political?: boolean | null
 }
 
 export function Feed() {
@@ -33,20 +37,55 @@ export function Feed() {
       setIsLoading(true)
       setError(null)
 
-      const { data, error: fetchError } = await supabase
+      // Try the most-recent schema first (Phase 3 + Phase 4 columns), then
+      // fall back to Phase 4 only, then to the legacy schema. Each fallback
+      // covers the case where a migration hasn't been applied yet.
+      let data: SupabasePostRow[] | null = null
+
+      const phase34 = await supabase
         .from("posts")
         .select(
-          "id, created_at, image_url, caption, username, is_flagged, confidence_score"
+          "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note, c2pa_status, is_political"
         )
+        .neq("status", "removed")
         .order("created_at", { ascending: false })
 
-      if (fetchError) {
-        setError(fetchError.message)
-        setIsLoading(false)
-        return
+      if (!phase34.error) {
+        data = (phase34.data ?? []) as SupabasePostRow[]
+      } else {
+        const phase4 = await supabase
+          .from("posts")
+          .select(
+            "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note"
+          )
+          .neq("status", "removed")
+          .order("created_at", { ascending: false })
+
+        if (!phase4.error) {
+          data = (phase4.data ?? []) as SupabasePostRow[]
+        } else {
+          const legacy = await supabase
+            .from("posts")
+            .select(
+              "id, created_at, image_url, caption, username, is_flagged, confidence_score"
+            )
+            .order("created_at", { ascending: false })
+
+          if (legacy.error) {
+            setError(legacy.error.message)
+            setIsLoading(false)
+            return
+          }
+          data = (legacy.data ?? []) as SupabasePostRow[]
+        }
       }
 
-      const mappedPosts: Post[] = (data as SupabasePostRow[]).map((row) => {
+      // Defensive: drop removed posts on the client too. The legacy fallback
+      // query above doesn't filter on status, so without this a partially
+      // migrated DB would still surface moderator-removed posts.
+      const visibleRows = data.filter((row) => row.status !== "removed")
+
+      const mappedPosts: Post[] = visibleRows.map((row) => {
         const isFlagged = Boolean(row.is_flagged)
         const confidence = Math.round(Number(row.confidence_score ?? 0))
         const status = isFlagged
@@ -86,6 +125,10 @@ export function Feed() {
           shares: 0,
           isLiked: false,
           isBookmarked: false,
+          status: row.status ?? "visible",
+          moderatorNote: row.moderator_note ?? null,
+          c2paStatus: row.c2pa_status ?? undefined,
+          isPolitical: row.is_political ?? false,
         }
       })
 
