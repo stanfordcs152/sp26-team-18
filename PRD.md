@@ -111,13 +111,14 @@ Include a system diagram. Lightweight ways to do this:
 - [tldraw](https://www.tldraw.com/) → export PNG
 - Mermaid in the Markdown itself (GitHub renders it):
 
+    ````md
     ```mermaid
     flowchart LR
       User[End User] --> UploadUI[Upload UI]
-      UploadUI --> Classification[Classification Layer <br> (AWS Rekognition & OpenAI)]
+      UploadUI --> Classification["Classification Layer<br/>(AWS Rekognition & OpenAI)"]
 
-      %% Primary Classificiation Branches
-      Classification -->|Good Score| PublicU pload[Public Upload & Successful]
+      %% Primary Classification Branches
+      Classification -->|Good Score| PublicUpload[Publicly Visible Post]
       Classification -->|Bad Score| RestrictedUpload[Temporary Restricted Upload]
       Classification -->|Bad Score| ModQueue[Moderator Queue]
 
@@ -128,8 +129,6 @@ Include a system diagram. Lightweight ways to do this:
       %% Moderator Decision Branches
       ModDecision -->|Valid| PublicUpload
       ModDecision -->|Violates Policy| TakeDown[Take Down Post]
-
-    ```
 
 ### Components
 
