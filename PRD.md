@@ -85,7 +85,6 @@ Tondo, L. (2026, May 5). 'Think before sharing,' Giorgia Meloni says as AI-made 
 
 ## 4. Success Metrics
 
-How will you know your system works? Be measurable. Pick a small number of real metrics, not a wishlist. For each, state a target and how you will measure it.
 
 | Metric | Target | How measured |
 |---|---|---|
@@ -96,7 +95,6 @@ How will you know your system works? Be measurable. Pick a small number of real 
 | User Reported Abuse | > 0.30 | (0.7) * (# Deepfake reports before) >= (# Deepfake reports after)  |
 | Shares and Posts | < 100 | # of views a political deepfake has before our moderation team gets to it. |
 
-Some metrics — especially qualitative ones like "victim feels heard" — are hard to quantify. For those, define how you will assess them (user study? structured review? TA feedback?).
 
 ---
 
@@ -125,8 +123,6 @@ flowchart LR
 
 ### Components
 
-For each box in your diagram, write 2–3 sentences:
-
 - **Product UI** — _The Product UI is built with Next.js and Tailwind, allowing users to browse and upload photos from their gallery. It is hosted on Vercel, which makes it easier for us to handle upload requests and keep the frontend deployment simple._
 - **Mitigation Layer** — _The backend uses AWS Rekognition to detect whether someone in an image may be a politician. It combines those facial recognition flags with contextual analysis from the OpenAI API to generate an AI certainty score, which then routes the upload to one of three states: public, temporarily restricted, or sent to the moderator review queue._
 - **Moderator UI** — _The Moderator UI allows moderators to efficiently review images that were flagged by the mitigation layer. Right now, the moderator tab is password protected, but for Milestone 3 we plan to incorporate Supabase and proper authentication._
@@ -135,8 +131,6 @@ For each box in your diagram, write 2–3 sentences:
 - **CI/CD pipeline** — _GitHub Actions helps automate our development process. Whenever someone opens a pull request, it can run checks to make sure the code works properly and follows our project standards. Once the code is approved and merged into the main branch, it automatically helps deploy the updated frontend to Vercel and apply any needed backend or database changes, reducing the amount of manual work._
 
 ### Data flow
-
-Narrate one request end-to-end: a user does X → a request hits Y → classifier returns Z → moderator sees W.
 
 Data Flow:
     - Upload: 
@@ -190,40 +184,10 @@ For each risk, state the risk, likelihood (Low / Medium / High), impact, and how
 | _False postives may drift poltics off of our social platform hindering low funded campaigns and underpresenting certain poltical figures_ | _M_ | _L_ | _Ensure that our false positive rate stays below our threshold to avoid discouraging campaigns from moving off the platform_ |
 
 
-Call out at least one **ethical risk** and one **technical risk** explicitly.
-
----
-
-## 8. Model Safety Spec _(AI-as-abuser teams only — delete this section if you are on the human-abuser path)_
-
-Teams whose project protects users from a harmful AI model (rather than from other humans) must fill this out. This is the AI-as-abuser counterpart to the "Policy Language" deliverable human-abuser teams produce.
-
-### The harmful model
-
-- **Source:** _e.g., `failspy/Llama-3-8B-Instruct-abliterated` from HuggingFace, or Llama-3-8B-Instruct with a custom system prompt._
-- **How you run it:** _Ollama locally? Google Cloud GPU VM? HuggingFace Inference Endpoints? llama.cpp?_
-- **What harmful behavior you are eliciting:** _Be specific. "Gives medical dosing advice without any safety caveats to a user posing as a teen" or "agrees to role-play as a romantic partner with a minor" — something concrete enough that you can test for it._
-
-### What your system disallows
-
-Write the Model Safety Spec as if it were a policy document the harmful model's operators would be required to comply with. Under 400 words, plain language. Things to include:
-
-- Categories of output that are always disallowed (with short definitions)
-- Categories that are allowed with modifications (e.g., "medical information is allowed if accompanied by 'consult a doctor'")
-- The behavior your mitigation will take on each category (block, rewrite, warn, route to moderator, log)
-- Edge cases the policy explicitly does or does not cover
-
-### Interface between harmful model, mitigation, and user
-
-- _Where does the mitigation sit in the request path? (Pre-generation prompt filter? Post-generation content filter? Both?)_
-- _What happens when mitigation fires? User sees what?_
-- _What gets logged for the moderator?_
-
 ---
 
 ## 9. Open Questions
 
-_List questions you haven't resolved yet. These are OK to have in a PRD — better to flag them than to pretend they don't exist._
 
 - _Implement crowdsource reports instead of independently checking every photo_
 - _How can we avoid against AI deepfake videos? AI voice recordings?_
@@ -233,8 +197,6 @@ _List questions you haven't resolved yet. These are OK to have in a PRD — bett
 ---
 
 ## 10. Milestones and Timeline
-
-Rough week-by-week plan from now through Milestone 3. Keep it realistic — slack is good.
 
 | Week of | Target |
 |---|---|
@@ -248,10 +210,6 @@ Rough week-by-week plan from now through Milestone 3. Keep it realistic — slac
 ---
 
 ## 11. AI Use Statement
-
-_Keep this current through Milestone 3. Honest and specific beats vague and defensive._
-
-Example entries:
 
 - _Claude Code: Used by Luis and Zareef to generate initial moderator and user UI. Also used by Zareef to generate scoring funciton of images._
 - _OpenAI: Used by Zareef to write a classification function to give us an AI detection score via prompt._
