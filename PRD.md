@@ -23,10 +23,23 @@
 ---
 
 ## 1. Problem Statement
+We seek to mitigate the exploit of AI-generated images, posted onto social media platforms, as potential tools of political disinformation. AI tools are widely available to a range of potential actors—from government-linked networks to individual operaitves—to create images of real political figures saying or doing things they never did (Insikt Group, 2024). AI-generated fake imagery is an effective and cheap way to spread disinformation. The frequency of the attacks is difficult to gauge, but the scale of the problem is accelerating rapidly. Politically motivated deepfake incidents in Q1 2025 alone nearly matched the total recorded across all of 2024 (Surfshark, 2025). Victims of this abuse span multiple categories: (1) political figures, whose likeness is misappropriated (with women being disproportionately targeted), (2) ordinary citizens weaponized as props for pushing certain political narratives, (3) the general public, whose trust in institutions and political representatives can be adversely affected by exposure to such AI-generated content. Research confirms that negative effect as 60% of viewers in one study believed a labeled political deepfake was real, and 10% reported they would not vote for the targeted politician as a direct result (Momeni, 2025). It is difficult to directly mitigate the AI-generated content before the distribution stage, as this would need addressing at the generational stage of various AI models, both commercial and hosted locally. This means that the victims exposed to fake AI-imagery will be affected by the content when it goes viral, which is why it needs to be labeled as synthetically-generated media.
 
-_One or two paragraphs describing the abuse you are solving. Who is harmed, how, and how often. Cite at least two sources from your Milestone 1 research (media coverage, academic papers, policy reports, legal documents, or talks). Be specific: "AI chatbot used to groom minors on a Character.AI-style platform" is a problem; "harmful AI" is not._
 
-**Why this matters now:** _One paragraph: what's changed in the last 1–3 years that makes this urgent._
+Insikt Group. (2024). Targets, objectives, and emerging tactics: Political deepfakes. Recorded Future.
+https://www.recordedfuture.com/research/targets-objectives-emerging-tactics-political-deepfakes
+Momeni, M. (2025). Artificial intelligence and political deepfakes: Shaping citizen perceptions through misinformation. Global Media and Communication, 20(1).
+https://journals.sagepub.com/doi/10.1177/09732586241277335
+Surfshark. (2025). Deepfake statistics 2025: How frequently are celebrities targeted? https://surfshark.com/research/study/deepfake-statistics
+
+
+**Why this matters now:** 
+This is a pressing issue, given the increased capability of AI models to release more hyperrealistic images. The urgency is compounded by the increasing accessibility of image generating softwares that lower the technical entry barrier for potential malicious actors. In mid-2025, Google launched an image-editor, Nano Banana. It went viral, attracting about 23 million users who transformed over 500 million images in the first two weeks of Nano Banana’s launch. All thanks to the easy usage of the platform as “to get the perfect picture, you simply pop an image into Gemini and tell it what you’d like to change” (Hart, 2025). More recently, just this past month, OpenAI released its newest image generator, ChatGPT Images 2.0. which “can generate more than one image from a single prompt, like an entire study booklet, as well as output text, including in non-English languages like Chinese and Hindi” (Rogers, 2026). This shows that the ability to generate hyperrealistic pictures of individuals, such as political leaders, in situations that had never taken place is eerily within anyone’s reach. This can lead to spread of disinformation, precipitated by such fake AI-generated images circulating on social media platforms, that can lead to eroding trust in political institutions, politicians, and democratic processes. These concerns are timely, as according to last year’s data, about half of U.S. adults (53%) say they at least sometimes get news from social media (Pew Research Center, 2025). Political figures themselves have called attention to the issue recently. For example, Italian PM, Giorgia Meloni, purposefully shared AI-generated pictures of herself in lingerie to warn the public that “AI-generated images were an increasingly dangerous tool capable of misleading and harming individuals” (Tondo, 2026).
+
+Hart, R. (2025, September 15). Here's why usage of Gemini's Nano Banana image editor is growing. The Verge. https://www.theverge.com/news/778106/google-gemini-nano-banana-image-editor
+Pew Research Center. (2025, September 25). Social media and news fact sheet. https://www.pewresearch.org/journalism/fact-sheet/social-media-and-news-fact-sheet/
+Rogers, R. (2026, April 21). OpenAI beefs up ChatGPT's image generation model. Wired. https://www.wired.com/story/openai-beefs-up-chatgpts-image-generation-model/
+Tondo, L. (2026, May 5). 'Think before sharing,' Giorgia Meloni says as AI-made lingerie image of her goes viral. The Guardian. https://www.theguardian.com/world/2026/may/05/giorgia-meloni-ai-generated-lingerie-image-deepfake
 
 ---
 
@@ -34,18 +47,18 @@ _One or two paragraphs describing the abuse you are solving. Who is harmed, how,
 
 ### Who are the users of this product?
 
-- **Primary:** _e.g., end users of the platform; children who use the chatbot; authors whose content is moderated_
-- **Secondary:** _e.g., moderators on the trust & safety team_
-- **Tertiary (if applicable):** _e.g., platform operators, law enforcement, researchers_
+- **Primary:** users of the platform (both the consumers and the creators of the image content)
+- **Secondary:** trust & safety moderators responsible for content review on social media platforms
+- **Tertiary (if applicable):** politicians, political organizations, and other individuals whose likeness might be misappropriated
 
 ### User stories
 
-Write 3–6 concrete user stories in the form "As a _role_, I want to _capability_ so that _outcome_."
+1.As a platform of the user, I want to know whether the political content I come across on the platform is reliable, so I want it to be automatically labeled before sharing or forming opinions.
+2.As a trust & safety moderator, I want an automated detection queue that flags suspect AI-generated political images for review so that I can prioritize enforcement actions before content goes viral
+3.As a trust & safety moderator, I want confidence scores assigned to the flagged content so that I can make faster and better-documented decisions.
+4.As a social media platform, I want a transparent and consistently enforced label system so that I can maintain trust in my product and reduce regulatory and reputational risk.
+5.As a politician, I want a rapid-response reporting channel for synthetic images misusing my likeness so that I can request expedited review before the content causes measurable reputational or electoral harm.
 
-- _As an end user, I want to report a message I received so that a moderator can review it._
-- _As a moderator, I want to see a queue of flagged messages ranked by severity so that I can triage them efficiently._
-- _As a platform admin, I want to see per-day abuse rates broken down by category so that I can report on platform health._
-- _(Add 2–3 more.)_
 
 ---
 
@@ -53,17 +66,20 @@ Write 3–6 concrete user stories in the form "As a _role_, I want to _capabilit
 
 ### In scope for Milestone 2
 
-- _Bullet list of what the M2 MVP will do._
-- _Keep it small — an MVP that works end-to-end beats a half-built maximal system._
+- Introduce a moderator dashboard
+- Create a function providing a confidence level to indicate whether the uploaded image is AI-generated
+
 
 ### In scope for Milestone 3
 
-- _What you will add for the final._
-- _Automated classification belongs here._
+- Fine tune the model to improve the AI detection confidence
+- Narrow the scope of the function to provide the AI-generation confidence levels only on relevant, politically-focused posts rather than the all posts on the platform 
 
 ### Non-goals
 
-- _Explicitly list things you are not doing, especially things a reader might assume you'd do. Example: "We are not building iOS/Android apps; web only." or "We are not building user authentication beyond a simple email field — auth is out of scope."_
+- This product does not act as a censoring tool. Flagging of the AI-generated content will not constitute grounds for removal nor demotion, unless the content breaches any of the rules specified in relevant community guidelines of the platform.
+- The product does not explain why the image might be incorrect nor seeks to provide any further context. It lets the viewers make their own judgment of whether the content they are seeing is authentic or not.
+
 
 ---
 
