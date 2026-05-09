@@ -142,6 +142,7 @@ export function PostCard({ post }: PostCardProps) {
           {media && (
             <div className="mt-3 relative rounded-xl overflow-hidden border border-border">
               <div className="relative aspect-video">
+                {/* eslint-disable-next-line @next/next/no-img-element -- using <img> for arbitrary remote URLs without next/image domain config */}
                 <img
                   src={media.thumbnailUrl || media.url}
                   alt={media.altText || "Post media"}
