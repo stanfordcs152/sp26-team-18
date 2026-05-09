@@ -1,6 +1,4 @@
 import OpenAI from "openai";
-import fs from "fs";
-import path from "path";
 import { detectCelebrities } from "./celebrity";
 
 const client = new OpenAI({
@@ -20,14 +18,12 @@ export type VisionAnalysisResult = {
   reasoning: string;
 };
 
-export async function extractImageText(): Promise<VisionAnalysisResult> {
+export async function extractImageText(
+  imageBuffer: Buffer
+): Promise<VisionAnalysisResult> {
   console.log("OpenAI Vision analysis started");
 
   try {
-    const imagePath = path.join(process.cwd(), "public", "test-image.jpg");
-
-    const imageBuffer = fs.readFileSync(imagePath);
-
     const base64Image = imageBuffer.toString("base64");
 
     const celebrityMatches = await detectCelebrities(imageBuffer);

@@ -2,13 +2,13 @@ import { extractImageText } from "./ocr";
 import { buildAIDetectionResult } from "./detector";
 import { calculateRisk } from "./risk";
 
-export async function runAnalysisPipeline() {
+export async function runAnalysisPipeline(imageBuffer: Buffer) {
   const provenance = {
     verified: false,
     present: false,
   };
 
-  const vision = await extractImageText();
+  const vision = await extractImageText(imageBuffer);
 
   const electionKeywords = [
     "election",
@@ -54,6 +54,7 @@ export async function runAnalysisPipeline() {
     ocr,
     ai,
     politicians,
+    manipulationSignals,
     reportCount: 3,
   });
 
