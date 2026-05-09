@@ -10,7 +10,7 @@
 
 ## Team
 
-- **Team Number:** `XX`
+- **Team Number:** `18`
 - **Project Name:** `Your product / codename`
 - **One-line pitch:** _One sentence: what you are building and for whom._
 - **Abuse path:** `Human-abuser` **or** `AI-as-abuser` _(pick one)_
