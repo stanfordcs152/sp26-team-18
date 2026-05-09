@@ -14,6 +14,10 @@ export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showModerationWarning, setShowModerationWarning] = useState(false)
+  const [pendingModeration, setPendingModeration] = useState<any>(null)
+  const [pendingImageUrl, setPendingImageUrl] = useState("")
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -30,6 +34,7 @@ export default function UploadPage() {
 
     setSubmitting(true)
     setError(null)
+    setIsAnalyzing(true)
 
     const fileExt = file.name.split(".").pop() ?? "jpg"
     const filePath = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
@@ -50,20 +55,54 @@ export default function UploadPage() {
 
     const imageUrl = publicUrlData.publicUrl
 
+    const analysisFormData = new FormData()
+    analysisFormData.append("image", file)
+
+    const analysisResponse = await fetch("/api/analyze", {
+      method: "POST",
+      body: analysisFormData,
+    })
+
+    const analysisData = await analysisResponse.json()
+
+    if (!analysisResponse.ok || !analysisData.success) {
+      setError("Failed to analyze uploaded image.")
+      setSubmitting(false)
+      setIsAnalyzing(false)
+      return
+    }
+
+    const moderationAnalysis = analysisData.analysis
+
+    console.log("MODERATION ANALYSIS:", moderationAnalysis)
+
+    const shouldWarn =
+      moderationAnalysis.risk.level === "HIGH" ||
+      moderationAnalysis.manipulationSignals?.possibleKnownManipulation
+
+    if (shouldWarn) {
+      setPendingModeration(moderationAnalysis)
+      setPendingImageUrl(imageUrl)
+      setShowModerationWarning(true)
+      setSubmitting(false)
+      setIsAnalyzing(false)
+      return
+    }
+
     const { error: insertError } = await supabase.from("posts").insert({
       image_url: imageUrl,
       caption: caption.trim(),
       username: username.trim(),
-      is_flagged: false,
-      confidence_score: 0,
     })
 
     if (insertError) {
       setError(insertError.message)
       setSubmitting(false)
+      setIsAnalyzing(false)
       return
     }
 
+    setIsAnalyzing(false)
     router.push("/")
     router.refresh()
   }
@@ -118,10 +157,115 @@ export default function UploadPage() {
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-        <Button type="submit" className="w-full" disabled={submitting}>
-          {submitting ? "Uploading..." : "Upload Post"}
+        <Button type="submit" className="w-full" disabled={submitting || isAnalyzing}>
+          {isAnalyzing
+            ? "Analyzing content..."
+            : submitting
+              ? "Uploading..."
+              : "Upload Post"}
         </Button>
       </form>
+
+      {showModerationWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4">
+          <div className="w-full max-w-lg rounded-xl border border-red-500 bg-black p-6 text-white shadow-2xl">
+            <h2 className="mb-4 text-2xl font-bold text-red-400">
+              Post Requires Additional Review
+            </h2>
+
+            <p className="mb-4 text-gray-300">
+              Our integrity systems detected signals commonly associated with
+              manipulated political or public-figure content.
+            </p>
+
+            <div className="mb-4 rounded-lg bg-red-950/40 p-4 text-red-200">
+              This post may contain misleading, synthetic, or reputationally harmful
+              media involving an influential individual. To help protect platform
+              authenticity and public trust, this upload may require additional
+              moderation review before becoming publicly visible.
+            </div>
+
+            <p className="mb-6 text-gray-400">
+              You can still continue with the upload, but the content may be flagged,
+              limited in distribution, or held for manual review.
+            </p>
+
+            {pendingImageUrl && (
+              <img
+                src={pendingImageUrl}
+                alt="Upload preview"
+                className="mb-4 max-h-64 w-full rounded-lg object-cover"
+              />
+            )}
+
+            {pendingModeration && (
+              <div className="mb-4 rounded-lg border border-yellow-500/30 bg-yellow-950/20 p-4 text-sm text-yellow-100">
+                <p className="font-semibold text-yellow-300">
+                  Moderation Confidence
+                </p>
+
+                <p className="mt-1">
+                  Risk Level: {pendingModeration.risk.level}
+                </p>
+
+                <p>
+                  Confidence Score: {(pendingModeration.risk.score * 100).toFixed(0)}%
+                </p>
+
+                <p className="mt-3 font-semibold text-yellow-300">
+                  Detection Reasoning
+                </p>
+
+                <p className="mt-1 text-yellow-100/90">
+                  {pendingModeration.vision?.reasoning}
+                </p>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setShowModerationWarning(false)
+                }}
+              >
+                Cancel Upload
+              </Button>
+
+              <Button
+                type="button"
+                className="flex-1 bg-red-600 hover:bg-red-700"
+                onClick={async () => {
+                  if (!supabase || !pendingModeration) return
+
+                  const { error: insertError } = await supabase
+                    .from("posts")
+                    .insert({
+                      image_url: pendingImageUrl,
+                      caption: caption.trim(),
+                      username: username.trim(),
+                    })
+
+                  if (insertError) {
+                    setError(insertError.message)
+                    return
+                  }
+
+                  setShowModerationWarning(false)
+                  setIsAnalyzing(false)
+
+                  router.push("/")
+                  router.refresh()
+                }}
+              >
+                Submit for Review
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
