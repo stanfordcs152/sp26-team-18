@@ -6,18 +6,66 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
+import type { PostAnalysis } from "@/lib/types"
 
 export default function UploadPage() {
   const router = useRouter()
   const [username, setUsername] = useState("")
   const [caption, setCaption] = useState("")
   const [file, setFile] = useState<File | null>(null)
+  const [isPolitical, setIsPolitical] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showModerationWarning, setShowModerationWarning] = useState(false)
-  const [pendingModeration, setPendingModeration] = useState<any>(null)
+  const [pendingModeration, setPendingModeration] = useState<PostAnalysis | null>(
+    null
+  )
   const [pendingImageUrl, setPendingImageUrl] = useState("")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+
+  // Build the row payload that gets inserted into `posts`. Used by both the
+  // direct (no-warning) path and the "Submit for Review" path so they stay
+  // in sync.
+  const buildPostRow = (
+    imageUrl: string,
+    analysis: PostAnalysis | null
+  ) => {
+    const isFlagged = analysis
+      ? analysis.risk.level === "HIGH" ||
+        analysis.risk.level === "CRITICAL" ||
+        analysis.manipulationSignals?.possibleKnownManipulation === true
+      : false
+
+    return {
+      image_url: imageUrl,
+      caption: caption.trim(),
+      username: username.trim(),
+      is_political: isPolitical,
+      is_flagged: isFlagged,
+      confidence_score: analysis ? Math.round(analysis.risk.score * 100) : 0,
+      analysis,
+      risk_score: analysis ? analysis.risk.score : null,
+      risk_level: analysis ? analysis.risk.level : null,
+    }
+  }
+
+  // Insert with graceful degradation: if the DB hasn't had migration 0004
+  // applied yet, drop the new columns and retry. Keeps the demo working
+  // against partially-migrated databases.
+  const insertPost = async (row: ReturnType<typeof buildPostRow>) => {
+    if (!supabase) return { error: { message: "Supabase not configured" } }
+    const full = await supabase.from("posts").insert(row)
+    if (!full.error) return full
+
+    const legacy = await supabase.from("posts").insert({
+      image_url: row.image_url,
+      caption: row.caption,
+      username: row.username,
+      is_flagged: row.is_flagged,
+      confidence_score: row.confidence_score,
+    })
+    return legacy
+  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -46,6 +94,7 @@ export default function UploadPage() {
     if (uploadError) {
       setError(uploadError.message)
       setSubmitting(false)
+      setIsAnalyzing(false)
       return
     }
 
@@ -72,13 +121,12 @@ export default function UploadPage() {
       return
     }
 
-    const moderationAnalysis = analysisData.analysis
-
-    console.log("MODERATION ANALYSIS:", moderationAnalysis)
+    const moderationAnalysis = analysisData.analysis as PostAnalysis
 
     const shouldWarn =
       moderationAnalysis.risk.level === "HIGH" ||
-      moderationAnalysis.manipulationSignals?.possibleKnownManipulation
+      moderationAnalysis.risk.level === "CRITICAL" ||
+      moderationAnalysis.manipulationSignals?.possibleKnownManipulation === true
 
     if (shouldWarn) {
       setPendingModeration(moderationAnalysis)
@@ -89,11 +137,9 @@ export default function UploadPage() {
       return
     }
 
-    const { error: insertError } = await supabase.from("posts").insert({
-      image_url: imageUrl,
-      caption: caption.trim(),
-      username: username.trim(),
-    })
+    const { error: insertError } = await insertPost(
+      buildPostRow(imageUrl, moderationAnalysis)
+    )
 
     if (insertError) {
       setError(insertError.message)
@@ -103,6 +149,25 @@ export default function UploadPage() {
     }
 
     setIsAnalyzing(false)
+    router.push("/")
+    router.refresh()
+  }
+
+  const handleSubmitForReview = async () => {
+    if (!supabase || !pendingModeration) return
+
+    const { error: insertError } = await insertPost(
+      buildPostRow(pendingImageUrl, pendingModeration)
+    )
+
+    if (insertError) {
+      setError(insertError.message)
+      return
+    }
+
+    setShowModerationWarning(false)
+    setIsAnalyzing(false)
+
     router.push("/")
     router.refresh()
   }
@@ -153,6 +218,26 @@ export default function UploadPage() {
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             required
           />
+          <p className="text-xs text-muted-foreground">
+            We&apos;ll run an AI image classifier on upload to detect synthetic
+            political media.
+          </p>
+        </div>
+
+        <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 px-3 py-2.5">
+          <input
+            id="is-political"
+            type="checkbox"
+            checked={isPolitical}
+            onChange={(e) => setIsPolitical(e.target.checked)}
+            className="mt-0.5 size-4 rounded border-input accent-primary"
+          />
+          <label htmlFor="is-political" className="text-sm">
+            <span className="font-medium">This post is about politics</span>
+            <span className="block text-xs text-muted-foreground">
+              Helps moderators prioritize review of political AI content.
+            </span>
+          </label>
         </div>
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -191,6 +276,7 @@ export default function UploadPage() {
             </p>
 
             {pendingImageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={pendingImageUrl}
                 alt="Upload preview"
@@ -200,22 +286,14 @@ export default function UploadPage() {
 
             {pendingModeration && (
               <div className="mb-4 rounded-lg border border-yellow-500/30 bg-yellow-950/20 p-4 text-sm text-yellow-100">
-                <p className="font-semibold text-yellow-300">
-                  Moderation Confidence
-                </p>
-
-                <p className="mt-1">
-                  Risk Level: {pendingModeration.risk.level}
-                </p>
-
+                <p className="font-semibold text-yellow-300">Moderation Confidence</p>
+                <p className="mt-1">Risk Level: {pendingModeration.risk.level}</p>
                 <p>
                   Confidence Score: {(pendingModeration.risk.score * 100).toFixed(0)}%
                 </p>
-
                 <p className="mt-3 font-semibold text-yellow-300">
                   Detection Reasoning
                 </p>
-
                 <p className="mt-1 text-yellow-100/90">
                   {pendingModeration.vision?.reasoning}
                 </p>
@@ -237,28 +315,7 @@ export default function UploadPage() {
               <Button
                 type="button"
                 className="flex-1 bg-red-600 hover:bg-red-700"
-                onClick={async () => {
-                  if (!supabase || !pendingModeration) return
-
-                  const { error: insertError } = await supabase
-                    .from("posts")
-                    .insert({
-                      image_url: pendingImageUrl,
-                      caption: caption.trim(),
-                      username: username.trim(),
-                    })
-
-                  if (insertError) {
-                    setError(insertError.message)
-                    return
-                  }
-
-                  setShowModerationWarning(false)
-                  setIsAnalyzing(false)
-
-                  router.push("/")
-                  router.refresh()
-                }}
+                onClick={handleSubmitForReview}
               >
                 Submit for Review
               </Button>
