@@ -80,7 +80,12 @@ export function Feed() {
         }
       }
 
-      const mappedPosts: Post[] = data.map((row) => {
+      // Defensive: drop removed posts on the client too. The legacy fallback
+      // query above doesn't filter on status, so without this a partially
+      // migrated DB would still surface moderator-removed posts.
+      const visibleRows = data.filter((row) => row.status !== "removed")
+
+      const mappedPosts: Post[] = visibleRows.map((row) => {
         const isFlagged = Boolean(row.is_flagged)
         const confidence = Math.round(Number(row.confidence_score ?? 0))
         const status = isFlagged
