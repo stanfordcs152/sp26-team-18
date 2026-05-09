@@ -19,9 +19,9 @@
   - Jonathan Ocampo (@jaunyy) - Research / PRD
   - Caeley Woo (@caeleywoo) - Software
   - Zareef Shafquat (@Zareef13) - Software
-  - Julia Lasiota (@jlasiota) - PRD
+  - Julia Lasiota (@jlasiota) - Research / PRD
 - **Deployed URL:** `https://...` _(placeholder for Milestone 2; update once CI/CD is live)_
-- **Repository:** `https://github.com/<org>/<repo>`
+- **Repository:** `https://github.com/stanfordcs152/sp26-team-18`
 
 ---
 
@@ -129,7 +129,7 @@ flowchart LR
 - **Product UI** — _The Product UI is built with Next.js and Tailwind, allowing users to browse and upload photos from their gallery. It is hosted on Vercel, which makes it easier for us to handle upload requests and keep the frontend deployment simple._
 - **Mitigation Layer** — _The backend uses AWS Rekognition to detect whether someone in an image may be a politician. It combines those facial recognition flags with contextual analysis from the OpenAI API to generate an AI certainty score, which then routes the upload to one of three states: public, temporarily restricted, or sent to the moderator review queue._
 - **Moderator UI** — _The Moderator UI allows moderators to efficiently review images that were flagged by the mitigation layer. Right now, the moderator tab is password protected, but for Milestone 3 we plan to incorporate Supabase and proper authentication._
-- **Data store** — _A managed PostgreSQL database serves as the main relational system for our app. It stores user profiles, upload metadata, AI classification scores, and the current status of each item in the moderator queue. If an image has already been reviewed before, it is saved in the moderator cache so moderators do not have to classify the same image twice. This will also be implemented by milestone 3._
+- **Data store** — _A managed PostgreSQL database will serve to store user profiles, upload metadata, AI classification scores, and the current status of each item in the moderator queue. If an image has already been reviewed before, it is saved in the moderator cache so moderators do not have to classify the same image twice. This will also be implemented by milestone 3._
 - **External services** — _The main external services we use are AWS Rekognition, the OpenAI API, and Supabase. AWS helps with image and facial recognition, OpenAI helps with contextual analysis, and Supabase will support authentication and database-related functionality._
 - **CI/CD pipeline** — _GitHub Actions helps automate our development process. Whenever someone opens a pull request, it can run checks to make sure the code works properly and follows our project standards. Once the code is approved and merged into the main branch, it automatically helps deploy the updated frontend to Vercel and apply any needed backend or database changes, reducing the amount of manual work._
 
