@@ -23,16 +23,17 @@ export const EVAL_CONFIG = {
 
   /**
    * Free LLM provider for llm + hybrid approaches:
-   * - caption: text-only Ollama on OpenFake manifest prompts (default, no GPU vision)
-   * - ollama-vision: local vision model (needs working GPU/VRAM)
-   * - gemini: Google AI Studio free tier (set GEMINI_API_KEY)
+   * - rules: OpenFake metadata + caption keywords (default — no installs)
+   * - caption: text-only Ollama on manifest prompts
+   * - ollama-vision: local vision (needs GPU)
+   * - gemini: Google AI Studio free tier (GEMINI_API_KEY)
    */
-  freeLlmProvider: (process.env.EVAL_LLM_PROVIDER ?? "caption") as FreeLlmProvider,
-  ollamaTextModel: process.env.OLLAMA_TEXT_MODEL ?? "llama3.2:1b",
+  freeLlmProvider: (process.env.EVAL_LLM_PROVIDER ?? "rules") as FreeLlmProvider,
+  ollamaTextModel: process.env.OLLAMA_TEXT_MODEL ?? "phi3:mini",
   geminiModel: process.env.GEMINI_MODEL ?? "gemini-2.0-flash",
 } as const;
 
-export type FreeLlmProvider = "caption" | "ollama-vision" | "gemini";
+export type FreeLlmProvider = "rules" | "caption" | "ollama-vision" | "gemini";
 
 export function isFreeEvalMode(): boolean {
   return (

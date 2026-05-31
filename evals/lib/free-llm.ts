@@ -1,9 +1,10 @@
 /**
  * Routes free LLM classification to the configured provider.
- * Default: caption (text-only Ollama) — reliable when vision models crash (GGML_ASSERT).
+ * Default: rules — no Ollama or API keys (OpenFake metadata + captions).
  */
 import { EVAL_CONFIG, type FreeLlmProvider } from "../config";
 import { classifyCaptionOllama } from "./caption-llm";
+import { classifyCaptionRules } from "./caption-rules";
 import { extractImageTextOllama } from "./ollama-vision";
 import type { VisionAnalysisResult } from "./vision-result";
 
@@ -15,6 +16,10 @@ export async function classifyWithFreeLlm(
   const provider = EVAL_CONFIG.freeLlmProvider;
 
   switch (provider) {
+    case "rules": {
+      const vision = classifyCaptionRules(manifestNotes, filename);
+      return { vision, provider, model: "openfake-metadata-rules" };
+    }
     case "caption": {
       const vision = await classifyCaptionOllama(manifestNotes, filename);
       return { vision, provider, model: EVAL_CONFIG.ollamaTextModel };
@@ -76,8 +81,10 @@ async function classifyGemini(
 
 export function describeFreeLlmProvider(): string {
   switch (EVAL_CONFIG.freeLlmProvider) {
+    case "rules":
+      return "OpenFake metadata + caption rules (no Ollama, no API keys)";
     case "caption":
-      return `caption LLM via Ollama text (${EVAL_CONFIG.ollamaTextModel}) — uses OpenFake prompts from manifest`;
+      return `caption LLM via Ollama text (${EVAL_CONFIG.ollamaTextModel})`;
     case "ollama-vision":
       return `Ollama vision (${EVAL_CONFIG.ollamaVisionModel})`;
     case "gemini":

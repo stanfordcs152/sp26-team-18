@@ -206,7 +206,8 @@ async function main() {
       (opts.approach === "all" ||
         opts.approach === "llm" ||
         opts.approach === "hybrid") &&
-      EVAL_CONFIG.freeLlmProvider !== "gemini";
+      (EVAL_CONFIG.freeLlmProvider === "caption" ||
+        EVAL_CONFIG.freeLlmProvider === "ollama-vision");
 
     if (needsOllama) {
       const { checkOllamaAvailable } = await import("./lib/ollama-vision");

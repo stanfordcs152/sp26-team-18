@@ -105,40 +105,39 @@ Appends rows prefixed with `dfe2024-` (does not remove OpenFake samples).
 
 ## 5. Validate and run classifiers
 
-### Free mode (recommended — $0 API cost)
+### Free mode (recommended — $0, no Ollama required)
 
-Uses **local Ollama** — default is **text-only LLM on OpenFake captions** (no GPU vision; avoids GGML crashes).
+**Default:** metadata + caption **rules** classifier on OpenFake manifest fields (`model=`, `prompt=`). No installs, no API keys.
 
 ```bash
-# 1. Install Ollama: https://ollama.com
-ollama pull llama3.2:1b
-# 2. Ensure Ollama is running (app or `ollama serve`)
-
 npm run eval -- --dry-run
-npm run eval:free -- --limit 5       # smoke test
-npm run eval:free                    # full run, USD/1k = 0
+npm run eval:free -- --limit 5
+npm run eval:free
 ```
 
-**LLM provider** (`EVAL_LLM_PROVIDER`, default `caption`):
+**LLM provider** (`EVAL_LLM_PROVIDER`, default `rules`):
 
-| Value | What it does |
+| Value | Requirements |
 |-------|----------------|
-| `caption` | **Default.** Ollama text model reads OpenFake `prompt=` from manifest notes — no vision/GPU |
-| `ollama-vision` | Local vision (moondream/llava) — only if your GPU supports it |
-| `gemini` | Google AI Studio free tier — set `GEMINI_API_KEY` |
+| `rules` | **Nothing.** Uses OpenFake generator/source metadata + caption keywords |
+| `gemini` | Free [Google AI Studio](https://aistudio.google.com/apikey) key → `$env:GEMINI_API_KEY="..."` |
+| `caption` | Ollama + text model, e.g. `ollama pull phi3:mini` |
+| `ollama-vision` | Ollama + vision model (often fails on laptops — GGML errors) |
 
 ```powershell
-# Optional: try vision again if GPU works
-$env:EVAL_LLM_PROVIDER = "ollama-vision"
-ollama pull moondream
+# Optional: real cloud LLM with vision (free tier, no credit card usually)
+$env:EVAL_LLM_PROVIDER = "gemini"
+$env:GEMINI_API_KEY = "your-key-from-aistudio"
 npm run eval:free -- --limit 5 --approach llm
 ```
+
+For your poster, label the default `llm` approach as **"metadata + caption text classifier"** (traditional NLP-style) and `hybrid` as heuristic + that text layer.
 
 | Approach | Free stack |
 |----------|------------|
 | `heuristic` | C2PA + filename + election keywords from manifest `notes` |
-| `llm` | Caption LLM (default) or vision / Gemini per table above |
-| `hybrid` | Heuristic first, LLM on uncertain cases |
+| `llm` | Metadata/caption rules (default) or Gemini/Ollama if configured |
+| `hybrid` | Heuristic first, text classifier on uncertain cases |
 
 ### Paid mode (OpenAI + AWS)
 
