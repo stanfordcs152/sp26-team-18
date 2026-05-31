@@ -111,15 +111,18 @@ Uses **local Ollama** for vision instead of OpenAI, and **C2PA + rules** instead
 
 ```bash
 # 1. Install Ollama: https://ollama.com
-ollama pull llava
+ollama pull moondream
+# moondream is lighter than llava and avoids GGML VRAM crashes on laptops.
+# Alternative: ollama pull llava  (set OLLAMA_VISION_MODEL=llava)
+
 # 2. Ensure Ollama is running (app or `ollama serve`)
 
 npm run eval -- --dry-run
-npm run eval:free -- --limit 5       # smoke test
-npm run eval:free                    # full run, USD/1k = 0
+npm run eval:free -- --limit 5       # smoke test (concurrency=1, images resized to 512px)
+npm run eval:free                    # full run
 ```
 
-Optional env: `OLLAMA_VISION_MODEL=llava` (default), `OLLAMA_BASE_URL=http://127.0.0.1:11434`.
+Optional env: `OLLAMA_VISION_MODEL=moondream`, `OLLAMA_MAX_IMAGE_SIDE=512`, `OLLAMA_BASE_URL`.
 
 | Approach | Free stack |
 |----------|------------|

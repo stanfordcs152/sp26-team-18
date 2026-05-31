@@ -15,7 +15,11 @@ export const EVAL_CONFIG = {
 
   /** Free mode: local Ollama vision (https://ollama.com). */
   ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434",
-  ollamaVisionModel: process.env.OLLAMA_VISION_MODEL ?? "llava",
+  /** moondream is lighter than llava on consumer GPUs; override with OLLAMA_VISION_MODEL. */
+  ollamaVisionModel: process.env.OLLAMA_VISION_MODEL ?? "moondream",
+  ollamaMaxImageSide: Number(process.env.OLLAMA_MAX_IMAGE_SIDE ?? "512"),
+  ollamaMaxRetries: Number(process.env.OLLAMA_MAX_RETRIES ?? "3"),
+  ollamaRequestTimeoutMs: Number(process.env.OLLAMA_REQUEST_TIMEOUT_MS ?? "120000"),
 } as const;
 
 export function isFreeEvalMode(): boolean {
