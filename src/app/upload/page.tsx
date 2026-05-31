@@ -106,6 +106,7 @@ export default function UploadPage() {
 
     const analysisFormData = new FormData()
     analysisFormData.append("image", file)
+    analysisFormData.append("username", username.trim())
 
     const analysisResponse = await fetch("/api/analyze", {
       method: "POST",
@@ -113,6 +114,16 @@ export default function UploadPage() {
     })
 
     const analysisData = await analysisResponse.json()
+
+    // Account-age upload throttle (HTTP 429). Surface the server's message.
+    if (analysisResponse.status === 429) {
+      setError(
+        analysisData.error ?? "Upload limit reached. Please try again later."
+      )
+      setSubmitting(false)
+      setIsAnalyzing(false)
+      return
+    }
 
     if (!analysisResponse.ok || !analysisData.success) {
       setError("Failed to analyze uploaded image.")
