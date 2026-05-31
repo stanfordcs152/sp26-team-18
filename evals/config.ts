@@ -19,7 +19,12 @@ export const EVAL_CONFIG = {
    * - gemini: Google AI Studio free tier (hosted LLM — satisfies milestone LLM row)
    */
   freeLlmProvider: (process.env.EVAL_LLM_PROVIDER ?? "rules") as FreeLlmProvider,
-  geminiModel: process.env.GEMINI_MODEL ?? "gemini-2.0-flash",
+  /** flash-lite has separate free-tier quota; flash often shows limit:0 on new keys. */
+  geminiModel: process.env.GEMINI_MODEL ?? "gemini-2.0-flash-lite",
+  /** Text-only uses captions/metadata — much lower quota use (default on). Set EVAL_GEMINI_TEXT_ONLY=0 for vision. */
+  geminiTextOnly: process.env.EVAL_GEMINI_TEXT_ONLY !== "0",
+  geminiDelayMs: Number(process.env.EVAL_GEMINI_DELAY_MS ?? "6500"),
+  geminiMaxRetries: Number(process.env.EVAL_GEMINI_MAX_RETRIES ?? "5"),
 } as const;
 
 export type FreeLlmProvider = "rules" | "gemini";

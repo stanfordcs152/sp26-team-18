@@ -126,6 +126,19 @@ npm run eval:free
 
 Get a free key: https://aistudio.google.com/apikey
 
+Add to **`.env.local`** (repo root):
+
+```env
+EVAL_LLM_PROVIDER=gemini
+GEMINI_API_KEY=your-key-here
+GEMINI_MODEL=gemini-2.0-flash-lite
+EVAL_GEMINI_TEXT_ONLY=1
+```
+
+`EVAL_GEMINI_TEXT_ONLY=1` (default) sends **captions + metadata only** — hosted LLM, much easier on free-tier quotas than 200 vision calls. Set `EVAL_GEMINI_TEXT_ONLY=0` only if your account has vision quota.
+
+**If you see 429 / quota errors:** wait a minute and retry; the runner auto-retries with backoff. Use `flash-lite`, keep text-only on, and run with `--limit 5` first. A full 200-image run may need to be spread over multiple sessions on free tier.
+
 ### Free mode ($0)
 
 **Quick dev run** (rules only — not the LLM row for the report):
