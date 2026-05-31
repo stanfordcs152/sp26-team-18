@@ -70,6 +70,9 @@ export interface PostAnalysis {
     politicalContext: boolean
     politicalContextConfidence: number
   }
+  // Derived political-scope flag (see POLITICAL_CONTEXT_CONFIDENCE_THRESHOLD in
+  // src/lib/analyzers/pipeline.ts). Persisted to posts.is_political.
+  isPolitical: boolean
   risk: {
     score: number
     level: RiskLevel

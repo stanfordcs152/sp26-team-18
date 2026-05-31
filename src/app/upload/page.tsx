@@ -40,7 +40,10 @@ export default function UploadPage() {
       image_url: imageUrl,
       caption: caption.trim(),
       username: username.trim(),
-      is_political: isPolitical,
+      // Political scope is true if the uploader flagged it OR analysis detected
+      // confident political context (analysis.isPolitical, derived in the
+      // pipeline from politicalContextConfidence).
+      is_political: isPolitical || (analysis?.isPolitical ?? false),
       is_flagged: isFlagged,
       confidence_score: analysis ? Math.round(analysis.risk.score * 100) : 0,
       analysis,
@@ -61,6 +64,7 @@ export default function UploadPage() {
       image_url: row.image_url,
       caption: row.caption,
       username: row.username,
+      is_political: row.is_political,
       is_flagged: row.is_flagged,
       confidence_score: row.confidence_score,
     })

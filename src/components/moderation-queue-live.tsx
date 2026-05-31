@@ -34,6 +34,7 @@ type PostRow = {
   caption: string | null
   username: string
   is_flagged: boolean
+  is_political: boolean | null
   confidence_score: number | null
   status: PostStatus | null
   moderator_note: string | null
@@ -101,9 +102,9 @@ interface Props {
 }
 
 const POSTS_SELECT_FULL =
-  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note, analysis, risk_score, risk_level"
+  "id, created_at, image_url, caption, username, is_flagged, is_political, confidence_score, status, moderator_note, analysis, risk_score, risk_level"
 const POSTS_SELECT_LEGACY =
-  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note"
+  "id, created_at, image_url, caption, username, is_flagged, is_political, confidence_score, status, moderator_note"
 
 export function ModerationQueueLive({ onStats }: Props = {}) {
   const [items, setItems] = useState<LiveQueueItem[]>([])
@@ -159,17 +160,21 @@ export function ModerationQueueLive({ onStats }: Props = {}) {
 
       // Try the full select first; if migration 0004 hasn't run yet, fall
       // back to the legacy column set so the queue still renders.
+      // Only political posts are routed into the moderation queue — non-political
+      // AI images are filtered out here at the source (is_political, migration 0003).
       let postData: PostRow[] | null = null
       let postErr: { message: string } | null = null
       const fullRes = await supabase!
         .from("posts")
         .select(POSTS_SELECT_FULL)
         .in("id", postIds)
+        .eq("is_political", true)
       if (fullRes.error) {
         const legacyRes = await supabase!
           .from("posts")
           .select(POSTS_SELECT_LEGACY)
           .in("id", postIds)
+          .eq("is_political", true)
         postData = (legacyRes.data ?? null) as PostRow[] | null
         postErr = legacyRes.error
       } else {

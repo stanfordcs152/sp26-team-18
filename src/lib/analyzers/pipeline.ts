@@ -2,6 +2,11 @@ import { extractImageText } from "./ocr";
 import { buildAIDetectionResult } from "./detector";
 import { calculateRisk } from "./risk";
 
+// Minimum confidence required to treat detected political context as the
+// authoritative `posts.is_political` signal. The single source of truth for
+// scoping political content into moderation — tune here only.
+export const POLITICAL_CONTEXT_CONFIDENCE_THRESHOLD = 0.6;
+
 export async function runAnalysisPipeline(imageBuffer: Buffer) {
   const provenance = {
     verified: false,
@@ -49,6 +54,12 @@ export async function runAnalysisPipeline(imageBuffer: Buffer) {
     politicalContextConfidence: vision.politicalContextConfidence,
   };
 
+  // Authoritative political-scope flag persisted to posts.is_political and used
+  // to gate the moderation queue. Only confident political context counts.
+  const isPolitical =
+    vision.politicalContext &&
+    vision.politicalContextConfidence > POLITICAL_CONTEXT_CONFIDENCE_THRESHOLD;
+
   const risk = calculateRisk({
     provenance,
     ocr,
@@ -65,6 +76,7 @@ export async function runAnalysisPipeline(imageBuffer: Buffer) {
     ai,
     politicians,
     manipulationSignals,
+    isPolitical,
     risk,
   };
 }
