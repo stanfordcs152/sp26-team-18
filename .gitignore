@@ -12,6 +12,7 @@
 credentials/
 # testing
 /coverage
+/evals/results/*.json
 
 # next.js
 /.next/
