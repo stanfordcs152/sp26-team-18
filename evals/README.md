@@ -1,60 +1,130 @@
 # Classifier evaluation (Milestone 3 — Part 2)
 
-TruthGuard evaluates **AI-generated political disinformation in images**. Everything for this milestone lives under `evals/` so it can ship on branch `eval-classifier` without touching app routes.
+TruthGuard evaluates **AI-generated political disinformation in images**. All milestone assets live under `evals/` on branch `eval-classifier`.
+
+## Dataset strategy
+
+| Source | Role | Political focus | Access |
+|--------|------|-----------------|--------|
+| **[OpenFake](https://huggingface.co/datasets/ComplexDataLab/OpenFake)** | **Primary** — allow + unallow | Built for politically salient real vs synthetic | Hugging Face, open |
+| **[Deepfake-Eval-2024](https://huggingface.co/datasets/nuriachandra/Deepfake-Eval-2024)** | Optional supplement | In-the-wild 2024 social deepfakes | HF gated |
+| FaceForensics++ / Celeb-DF | **Not used** | Celebrity face-swaps, not political memes/news | — |
+
+**Label mapping (both primary scripts):**
+
+| Dataset label | Eval set | Meaning for TruthGuard |
+|---------------|----------|-------------------------|
+| `real` | `allow/` | Authentic media — should **not** be flagged |
+| `fake` | `unallow/` | Synthetic media — should be **caught** |
+
+Citations and BibTeX: [`evals/datasets/SOURCES.md`](datasets/SOURCES.md).
 
 ## Layout
 
 ```
 evals/
-  config.ts              # thresholds (tune before full runs)
-  run.ts                 # CLI entrypoint
-  lib/                   # metrics, classifiers, manifest loader
+  config.ts                 # classifier thresholds
+  run.ts                    # metrics runner
+  lib/                      # classifiers, metrics
   allow/
-    manifest.jsonl       # one JSON object per line
-    images/              # benign images (add yours here)
+    manifest.jsonl
+    images/                 # populated by setup scripts
   unallow/
     manifest.jsonl
-    images/              # should-be-caught images
-  results/               # JSON output (gitignored)
+    images/
+  scripts/
+    setup_openfake.py       # primary downloader
+    setup_deepfake_eval_2024.py
+    requirements.txt
+  datasets/SOURCES.md
+  results/                  # run output (gitignored *.json)
 ```
 
-## Manifest format
+## 1. Install Python deps (one time)
 
-One JSON object per line in `allow/manifest.jsonl` or `unallow/manifest.jsonl`:
+```bash
+pip install -r evals/scripts/requirements.txt
+```
+
+Requires Python 3.10+ and enough disk space for streamed image samples (not the full 3.4 TB corpus).
+
+## 2. Download OpenFake samples
+
+Default: **100 real → allow**, **100 fake → unallow** from `core/validation` (reproducible with `--seed 42`):
+
+```bash
+npm run eval:setup-openfake
+```
+
+Options:
+
+```bash
+# Preview without downloading
+npm run eval:setup-openfake -- --dry-run
+
+# Milestone minimum
+npm run eval:setup-openfake -- --per-set 100
+
+# Add in-the-wild Reddit test images (25 per class)
+npm run eval:setup-openfake -- --per-set 100 --reddit-per-set 25
+
+# Use train split (larger stream) or OOD test split
+npm run eval:setup-openfake -- --split train --per-set 100
+
+# Re-download: remove prior openfake-* files first
+npm run eval:setup-openfake -- --clear --per-set 100
+```
+
+Images are saved as JPEG under `evals/allow/images/` and `evals/unallow/images/`. Manifest rows use ids like `openfake-core-validation-allow-0001` with `source` set to the OpenFake citation.
+
+## 3. Optional: Deepfake-Eval-2024 supplement
+
+1. Request access on [Hugging Face](https://huggingface.co/datasets/nuriachandra/Deepfake-Eval-2024).
+2. `huggingface-cli login` (or set `HF_TOKEN`).
+3. Run:
+
+```bash
+npm run eval:setup-deepfake-eval -- --per-set 25
+```
+
+Appends rows prefixed with `dfe2024-` (does not remove OpenFake samples).
+
+## 4. Validate and run classifiers
+
+```bash
+npm run eval -- --dry-run          # check manifests + paths
+npm run eval -- --limit 5          # API smoke test
+npm run eval                       # heuristic + LLM + hybrid
+```
+
+Requires `.env.local` with `OPENAI_API_KEY` and AWS credentials for live runs.
+
+Results land in `evals/results/` and print a summary table (precision, recall, F1, confusion matrix, latency, estimated USD/1k).
+
+Tune thresholds in `evals/config.ts` before your final poster numbers.
+
+## Committing images to git
+
+The milestone asks for labeled examples in the repo. After setup:
+
+- ~100 JPEGs per set is typically hundreds of MB — acceptable for git or use **Git LFS** if your team prefers.
+- Minimum for grading: manifests + reproducible `npm run eval:setup-openfake` command with pinned `--seed`.
+- Hugging Face cache (optional): set `HF_HOME=evals/.cache` to keep downloads inside `evals/` (gitignored).
+
+## Manifest format (manual rows)
 
 ```json
-{"id":"allow-001","path":"images/photo-001.jpg","label":"allow","source":"Wikimedia Commons","notes":"Vacation photo"}
+{"id":"allow-001","path":"images/photo-001.jpg","label":"allow","source":"OpenFake ...","notes":"model=laion"}
 ```
 
-- `path` — relative to the manifest file (preferred: `images/...`)
-- `source` — citation or how you collected it (for the report)
+One JSON object per line. `path` is relative to the manifest file.
 
-## Three approaches
+## Three detection approaches
 
 | ID | Stack |
 |----|--------|
-| `heuristic` | C2PA + `detectAi` + AWS Rekognition celebrities + `calculateRisk` |
+| `heuristic` | C2PA + `detectAi` + AWS Rekognition + `calculateRisk` |
 | `llm` | OpenAI Vision (`extractImageText`) |
-| `hybrid` | Heuristic fast-path; LLM on uncertain band / celebrity / invalid C2PA |
+| `hybrid` | Heuristic fast-path; LLM on uncertain / celebrity / invalid C2PA |
 
-Ground truth: `unallow` = positive (should flag). Metrics pool allow + unallow together.
-
-## Commands
-
-From repo root (requires `.env.local` with `OPENAI_API_KEY` and `AWS_*` for live runs):
-
-```bash
-npm install
-npm run eval -- --dry-run          # validate manifests only
-npm run eval -- --limit 5          # smoke test
-npm run eval                       # all three approaches
-npm run eval -- --approach hybrid
-```
-
-Results: `evals/results/<timestamp>-<approach>.json` plus a Markdown table in the terminal.
-
-Cost assumptions: `evals/lib/cost.ts` (override with `EVAL_REKOGNITION_USD_PER_IMAGE`, `EVAL_OPENAI_VISION_USD_PER_IMAGE`).
-
-## Next step: datasets
-
-Replace the demo rows in each manifest with **≥ 100** examples per set. Put files in `allow/images/` and `unallow/images/`, then run `--dry-run` to verify paths before spending on APIs.
+Ground truth positive class = `unallow` (should flag).
