@@ -4,10 +4,12 @@
  *   npm run eval -- --dry-run
  *   npm run eval -- --limit 5
  *   npm run eval -- --approach hybrid
+ *   npm run eval:free              # no OpenAI / AWS charges (local Ollama for vision)
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { EVAL_CONFIG, isFreeEvalMode } from "./config";
 import { estimateCostUsdPer1000 } from "./lib/cost";
 import { resolveImagePath, validateManifests } from "./lib/manifest";
 import {
@@ -31,6 +33,7 @@ const UNALLOW_MANIFEST = path.join(REPO_ROOT, "evals/unallow/manifest.jsonl");
 function parseArgs(argv: string[]) {
   const opts = {
     dryRun: false,
+    free: false,
     limit: Infinity,
     approach: "all" as ApproachId | "all",
     concurrency: 2,
@@ -39,6 +42,7 @@ function parseArgs(argv: string[]) {
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--dry-run") opts.dryRun = true;
+    else if (arg === "--free") opts.free = true;
     else if (arg === "--limit") opts.limit = Number(argv[++i]);
     else if (arg === "--approach") opts.approach = argv[++i] as ApproachId | "all";
     else if (arg === "--concurrency") opts.concurrency = Number(argv[++i]);
@@ -49,7 +53,8 @@ function parseArgs(argv: string[]) {
 
 type ClassifyFn = (
   buf: Buffer,
-  filename: string
+  filename: string,
+  manifestNotes?: string
 ) => Promise<{
   flagged: boolean;
   latencyMs: number;
@@ -57,13 +62,23 @@ type ClassifyFn = (
   meta?: Record<string, unknown>;
 }>;
 
-async function loadApproaches(): Promise<Record<ApproachId, ClassifyFn>> {
+async function loadApproaches(free: boolean): Promise<Record<ApproachId, ClassifyFn>> {
+  if (free) {
+    const { classifyHeuristicFree, classifyHybridFree, classifyLlmFree } =
+      await import("./lib/classifiers-free");
+    return {
+      heuristic: classifyHeuristicFree,
+      llm: classifyLlmFree,
+      hybrid: classifyHybridFree,
+    };
+  }
+
   const { classifyHeuristic, classifyHybrid, classifyLlm } = await import(
     "./lib/classifiers"
   );
   return {
     heuristic: classifyHeuristic,
-    llm: (buf) => classifyLlm(buf),
+    llm: (buf, _name, _notes) => classifyLlm(buf),
     hybrid: classifyHybrid,
   };
 }
@@ -73,7 +88,8 @@ async function runApproach(
   examples: ManifestRow[],
   manifestPathByLabel: Record<"allow" | "unallow", string>,
   concurrency: number,
-  approaches: Record<ApproachId, ClassifyFn>
+  approaches: Record<ApproachId, ClassifyFn>,
+  freeMode: boolean
 ): Promise<{ results: ExampleResult[]; stats: ApproachRunStats }> {
   const classify = approaches[approach];
   const results: ExampleResult[] = [];
@@ -87,7 +103,7 @@ async function runApproach(
       const absPath = resolveImagePath(REPO_ROOT, manifestPath, row.path);
       const buf = await readFile(absPath);
       const filename = path.basename(absPath);
-      const prediction = await classify(buf, filename);
+      const prediction = await classify(buf, filename, row.notes);
       results.push({ id: row.id, label: row.label, path: row.path, prediction });
     }
   }
@@ -116,10 +132,14 @@ async function runApproach(
     f1: f1Score(confusion),
     confusion,
     latencyMs: latencyStats(latencies),
-    costUsdPer1000: estimateCostUsdPer1000(approach, {
-      totalExamples: results.length,
-      llmCalls,
-    }),
+    costUsdPer1000: estimateCostUsdPer1000(
+      approach,
+      {
+        totalExamples: results.length,
+        llmCalls,
+      },
+      freeMode
+    ),
     llmCalls,
   };
 
@@ -170,13 +190,43 @@ async function main() {
     );
   }
 
+  const freeMode = opts.free || isFreeEvalMode();
+
   if (opts.dryRun) {
     console.log("\nDry run — manifests valid, no API calls.");
-    return;
   }
 
-  if (!process.env.OPENAI_API_KEY) {
-    console.warn("OPENAI_API_KEY is not set; LLM and hybrid approaches will fail.");
+  if (!opts.dryRun && freeMode) {
+    console.log("\n*** FREE eval mode — no OpenAI or AWS charges ***");
+    console.log(
+      `    Vision: Ollama @ ${EVAL_CONFIG.ollamaBaseUrl} (model: ${EVAL_CONFIG.ollamaVisionModel})`
+    );
+    console.log("    Heuristic: C2PA + filename + prompt keywords only\n");
+
+    const needsOllama =
+      opts.approach === "all" ||
+      opts.approach === "llm" ||
+      opts.approach === "hybrid";
+    if (needsOllama) {
+      const { checkOllamaAvailable } = await import("./lib/ollama-vision");
+      const ok = await checkOllamaAvailable();
+      if (!ok) {
+        console.error(
+          "Ollama is not reachable. Install from https://ollama.com then run:\n" +
+            `  ollama pull ${EVAL_CONFIG.ollamaVisionModel}\n` +
+            "  ollama serve   (if not already running)"
+        );
+        process.exit(1);
+      }
+    }
+  } else if (!opts.dryRun && !process.env.OPENAI_API_KEY) {
+    console.warn(
+      "OPENAI_API_KEY is not set; LLM and hybrid will fail. Use: npm run eval:free"
+    );
+  }
+
+  if (opts.dryRun) {
+    return;
   }
 
   const selected: ApproachId[] =
@@ -184,7 +234,7 @@ async function main() {
       ? ["heuristic", "llm", "hybrid"]
       : [opts.approach];
 
-  const approaches = await loadApproaches();
+  const approaches = await loadApproaches(freeMode);
 
   const manifestPathByLabel = {
     allow: ALLOW_MANIFEST,
@@ -201,7 +251,8 @@ async function main() {
       all,
       manifestPathByLabel,
       opts.concurrency,
-      approaches
+      approaches,
+      freeMode
     );
     summary.push(stats);
 

@@ -105,13 +105,37 @@ Appends rows prefixed with `dfe2024-` (does not remove OpenFake samples).
 
 ## 5. Validate and run classifiers
 
+### Free mode (recommended — $0 API cost)
+
+Uses **local Ollama** for vision instead of OpenAI, and **C2PA + rules** instead of AWS Rekognition.
+
 ```bash
-npm run eval -- --dry-run          # check manifests + paths
-npm run eval -- --limit 5          # API smoke test
-npm run eval                       # heuristic + LLM + hybrid
+# 1. Install Ollama: https://ollama.com
+ollama pull llava
+# 2. Ensure Ollama is running (app or `ollama serve`)
+
+npm run eval -- --dry-run
+npm run eval:free -- --limit 5       # smoke test
+npm run eval:free                    # full run, USD/1k = 0
 ```
 
-Requires `.env.local` with `OPENAI_API_KEY` and AWS credentials for live runs.
+Optional env: `OLLAMA_VISION_MODEL=llava` (default), `OLLAMA_BASE_URL=http://127.0.0.1:11434`.
+
+| Approach | Free stack |
+|----------|------------|
+| `heuristic` | C2PA + filename + election keywords from manifest `notes` |
+| `llm` | Ollama vision (local) |
+| `hybrid` | Heuristic first, Ollama on uncertain cases |
+
+### Paid mode (OpenAI + AWS)
+
+```bash
+npm run eval -- --dry-run
+npm run eval -- --limit 5
+npm run eval
+```
+
+Requires `.env.local` with `OPENAI_API_KEY` and AWS credentials.
 
 Results land in `evals/results/` and print a summary table (precision, recall, F1, confusion matrix, latency, estimated USD/1k).
 

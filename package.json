@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "eval": "tsx --env-file=.env.local evals/run.ts",
+    "eval:free": "tsx evals/run.ts --free",
     "eval:setup-openfake": "python evals/scripts/setup_openfake.py",
     "eval:setup-deepfake-eval": "python evals/scripts/setup_deepfake_eval_2024.py"
   },

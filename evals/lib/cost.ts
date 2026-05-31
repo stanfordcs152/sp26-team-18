@@ -1,3 +1,4 @@
+import { isFreeEvalMode } from "../config";
 import type { ApproachId } from "./types";
 
 /** Override via env when you have real billing numbers for the poster. */
@@ -13,8 +14,11 @@ export const PRICING = {
 
 export function estimateCostUsdPer1000(
   approach: ApproachId,
-  stats: { totalExamples: number; llmCalls: number }
+  stats: { totalExamples: number; llmCalls: number },
+  freeMode = isFreeEvalMode()
 ): number {
+  if (freeMode) return 0;
+
   const n = stats.totalExamples;
   if (n === 0) return 0;
 
