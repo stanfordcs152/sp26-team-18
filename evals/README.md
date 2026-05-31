@@ -107,28 +107,38 @@ Appends rows prefixed with `dfe2024-` (does not remove OpenFake samples).
 
 ### Free mode (recommended — $0 API cost)
 
-Uses **local Ollama** for vision instead of OpenAI, and **C2PA + rules** instead of AWS Rekognition.
+Uses **local Ollama** — default is **text-only LLM on OpenFake captions** (no GPU vision; avoids GGML crashes).
 
 ```bash
 # 1. Install Ollama: https://ollama.com
-ollama pull moondream
-# moondream is lighter than llava and avoids GGML VRAM crashes on laptops.
-# Alternative: ollama pull llava  (set OLLAMA_VISION_MODEL=llava)
-
+ollama pull llama3.2:1b
 # 2. Ensure Ollama is running (app or `ollama serve`)
 
 npm run eval -- --dry-run
-npm run eval:free -- --limit 5       # smoke test (concurrency=1, images resized to 512px)
-npm run eval:free                    # full run
+npm run eval:free -- --limit 5       # smoke test
+npm run eval:free                    # full run, USD/1k = 0
 ```
 
-Optional env: `OLLAMA_VISION_MODEL=moondream`, `OLLAMA_MAX_IMAGE_SIDE=512`, `OLLAMA_BASE_URL`.
+**LLM provider** (`EVAL_LLM_PROVIDER`, default `caption`):
+
+| Value | What it does |
+|-------|----------------|
+| `caption` | **Default.** Ollama text model reads OpenFake `prompt=` from manifest notes — no vision/GPU |
+| `ollama-vision` | Local vision (moondream/llava) — only if your GPU supports it |
+| `gemini` | Google AI Studio free tier — set `GEMINI_API_KEY` |
+
+```powershell
+# Optional: try vision again if GPU works
+$env:EVAL_LLM_PROVIDER = "ollama-vision"
+ollama pull moondream
+npm run eval:free -- --limit 5 --approach llm
+```
 
 | Approach | Free stack |
 |----------|------------|
 | `heuristic` | C2PA + filename + election keywords from manifest `notes` |
-| `llm` | Ollama vision (local) |
-| `hybrid` | Heuristic first, Ollama on uncertain cases |
+| `llm` | Caption LLM (default) or vision / Gemini per table above |
+| `hybrid` | Heuristic first, LLM on uncertain cases |
 
 ### Paid mode (OpenAI + AWS)
 

@@ -10,6 +10,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { EVAL_CONFIG, isFreeEvalMode } from "./config";
+import { describeFreeLlmProvider } from "./lib/free-llm";
 import { estimateCostUsdPer1000 } from "./lib/cost";
 import { resolveImagePath, validateManifests } from "./lib/manifest";
 import {
@@ -198,26 +199,39 @@ async function main() {
 
   if (!opts.dryRun && freeMode) {
     console.log("\n*** FREE eval mode — no OpenAI or AWS charges ***");
-    console.log(
-      `    Vision: Ollama @ ${EVAL_CONFIG.ollamaBaseUrl} (model: ${EVAL_CONFIG.ollamaVisionModel})`
-    );
+    console.log(`    LLM: ${describeFreeLlmProvider()}`);
     console.log("    Heuristic: C2PA + filename + prompt keywords only\n");
 
     const needsOllama =
-      opts.approach === "all" ||
-      opts.approach === "llm" ||
-      opts.approach === "hybrid";
+      (opts.approach === "all" ||
+        opts.approach === "llm" ||
+        opts.approach === "hybrid") &&
+      EVAL_CONFIG.freeLlmProvider !== "gemini";
+
     if (needsOllama) {
       const { checkOllamaAvailable } = await import("./lib/ollama-vision");
       const ok = await checkOllamaAvailable();
       if (!ok) {
+        const model =
+          EVAL_CONFIG.freeLlmProvider === "caption"
+            ? EVAL_CONFIG.ollamaTextModel
+            : EVAL_CONFIG.ollamaVisionModel;
         console.error(
           "Ollama is not reachable. Install from https://ollama.com then run:\n" +
-            `  ollama pull ${EVAL_CONFIG.ollamaVisionModel}\n` +
+            `  ollama pull ${model}\n` +
             "  ollama serve   (if not already running)"
         );
         process.exit(1);
       }
+    }
+
+    if (
+      EVAL_CONFIG.freeLlmProvider === "gemini" &&
+      !process.env.GEMINI_API_KEY &&
+      (opts.approach === "all" || opts.approach === "llm" || opts.approach === "hybrid")
+    ) {
+      console.error("GEMINI_API_KEY is required for EVAL_LLM_PROVIDER=gemini");
+      process.exit(1);
     }
   } else if (!opts.dryRun && !process.env.OPENAI_API_KEY) {
     console.warn(

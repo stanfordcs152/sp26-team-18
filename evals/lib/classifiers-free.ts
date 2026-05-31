@@ -1,18 +1,13 @@
 /**
  * Zero-API-cost classifiers for milestone evals.
- * - heuristic: C2PA + filename heuristics + rule risk (optional prompt keywords from manifest notes)
- * - llm: Ollama vision (local)
- * - hybrid: heuristic first, Ollama on uncertain band
  */
 
 import { EVAL_CONFIG } from "../config";
 import { detectAi } from "@/lib/ai-detection";
 import { calculateRisk, type RiskLevel } from "@/lib/analyzers/risk";
 import { checkC2pa } from "./c2pa-check";
-import {
-  extractImageTextOllama,
-  type VisionAnalysisResult,
-} from "./ollama-vision";
+import { classifyWithFreeLlm } from "./free-llm";
+import { visionShouldFlag } from "./vision-result";
 import type { ClassifierPrediction } from "./types";
 
 const ELECTION_KEYWORDS = [
@@ -29,17 +24,6 @@ const ELECTION_KEYWORDS = [
 
 function isFlagRiskLevel(level: RiskLevel) {
   return (EVAL_CONFIG.flagRiskLevels as readonly string[]).includes(level);
-}
-
-function visionShouldFlag(vision: VisionAnalysisResult) {
-  if (vision.misinformationRisk === "HIGH" || vision.misinformationRisk === "CRITICAL") {
-    return true;
-  }
-  return (
-    vision.appearsAIGenerated &&
-    vision.politicalContext &&
-    vision.publicFigures.length > 0
-  );
 }
 
 function matchedElectionKeywords(text: string) {
@@ -70,7 +54,6 @@ async function heuristicSignalsFree(
   return { c2pa, ai, risk, matchedKeywords };
 }
 
-/** Free traditional path: C2PA + filename + keyword hints from manifest (no AWS). */
 export async function classifyHeuristicFree(
   imageBuffer: Buffer,
   filename: string,
@@ -103,14 +86,17 @@ export async function classifyHeuristicFree(
   };
 }
 
-/** Free LLM path: Ollama vision (local). */
 export async function classifyLlmFree(
   imageBuffer: Buffer,
-  _filename?: string,
-  _manifestNotes?: string
+  filename = "image.jpg",
+  manifestNotes?: string
 ): Promise<ClassifierPrediction> {
   const start = performance.now();
-  const vision = await extractImageTextOllama(imageBuffer);
+  const { vision, provider, model } = await classifyWithFreeLlm(
+    imageBuffer,
+    filename,
+    manifestNotes
+  );
 
   return {
     flagged: visionShouldFlag(vision),
@@ -118,8 +104,8 @@ export async function classifyLlmFree(
     usedLlm: true,
     meta: {
       mode: "free",
-      provider: "ollama",
-      model: EVAL_CONFIG.ollamaVisionModel,
+      provider,
+      model,
       misinformationRisk: vision.misinformationRisk,
       appearsAIGenerated: vision.appearsAIGenerated,
       politicalContext: vision.politicalContext,
@@ -127,7 +113,6 @@ export async function classifyLlmFree(
   };
 }
 
-/** Free hybrid: C2PA/heuristic first, Ollama only when uncertain. */
 export async function classifyHybridFree(
   imageBuffer: Buffer,
   filename: string,
@@ -176,7 +161,11 @@ export async function classifyHybridFree(
     };
   }
 
-  const vision = await extractImageTextOllama(imageBuffer);
+  const { vision, provider, model } = await classifyWithFreeLlm(
+    imageBuffer,
+    filename,
+    manifestNotes
+  );
 
   return {
     flagged: visionShouldFlag(vision),
@@ -184,8 +173,9 @@ export async function classifyHybridFree(
     usedLlm: true,
     meta: {
       mode: "free",
-      route: "ollama-adjudication",
-      model: EVAL_CONFIG.ollamaVisionModel,
+      route: "llm-adjudication",
+      provider,
+      model,
       heuristicRiskScore: signals.risk.score,
       misinformationRisk: vision.misinformationRisk,
     },

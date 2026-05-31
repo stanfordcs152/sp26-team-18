@@ -20,7 +20,19 @@ export const EVAL_CONFIG = {
   ollamaMaxImageSide: Number(process.env.OLLAMA_MAX_IMAGE_SIDE ?? "512"),
   ollamaMaxRetries: Number(process.env.OLLAMA_MAX_RETRIES ?? "3"),
   ollamaRequestTimeoutMs: Number(process.env.OLLAMA_REQUEST_TIMEOUT_MS ?? "120000"),
+
+  /**
+   * Free LLM provider for llm + hybrid approaches:
+   * - caption: text-only Ollama on OpenFake manifest prompts (default, no GPU vision)
+   * - ollama-vision: local vision model (needs working GPU/VRAM)
+   * - gemini: Google AI Studio free tier (set GEMINI_API_KEY)
+   */
+  freeLlmProvider: (process.env.EVAL_LLM_PROVIDER ?? "caption") as FreeLlmProvider,
+  ollamaTextModel: process.env.OLLAMA_TEXT_MODEL ?? "llama3.2:1b",
+  geminiModel: process.env.GEMINI_MODEL ?? "gemini-2.0-flash",
 } as const;
+
+export type FreeLlmProvider = "caption" | "ollama-vision" | "gemini";
 
 export function isFreeEvalMode(): boolean {
   return (

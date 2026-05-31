@@ -1,24 +1,13 @@
 /**
  * Free local vision classifier via Ollama (no OpenAI / AWS charges).
- * Install: https://ollama.com
- * Recommended: `ollama pull moondream` (lighter than llava on laptops).
+ * Use EVAL_LLM_PROVIDER=ollama-vision to enable. Requires working GPU/VRAM.
  */
 
 import { EVAL_CONFIG } from "../config";
 import { prepareImageForOllama } from "./prepare-image";
+import type { VisionAnalysisResult } from "./vision-result";
 
-export type VisionAnalysisResult = {
-  visibleText: string;
-  publicFigures: string[];
-  publicFigureConfidence: number;
-  appearsAIGenerated: boolean;
-  syntheticMediaConfidence: number;
-  politicalContext: boolean;
-  politicalContextConfidence: number;
-  possibleKnownManipulation: boolean;
-  misinformationRisk: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
-  reasoning: string;
-};
+export type { VisionAnalysisResult } from "./vision-result";
 
 const SYSTEM_PROMPT =
   "You are a political disinformation image analyst. Return ONLY valid JSON, no markdown.";
@@ -56,7 +45,35 @@ export async function checkOllamaAvailable(): Promise<boolean> {
   }
 }
 
-async function callOllama(imageBuffer: Buffer): Promise<VisionAnalysisResult> {
+async function callOllamaGenerate(imageBuffer: Buffer): Promise<VisionAnalysisResult> {
+  const base64 = imageBuffer.toString("base64");
+  const res = await fetch(`${EVAL_CONFIG.ollamaBaseUrl}/api/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(EVAL_CONFIG.ollamaRequestTimeoutMs),
+    body: JSON.stringify({
+      model: EVAL_CONFIG.ollamaVisionModel,
+      prompt: USER_PROMPT,
+      images: [base64],
+      stream: false,
+      format: "json",
+      keep_alive: 0,
+      options: { num_ctx: 4096 },
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `Ollama vision failed (${res.status}): ${body}. Try: ollama pull ${EVAL_CONFIG.ollamaVisionModel}`
+    );
+  }
+
+  const data = (await res.json()) as { response?: string };
+  return JSON.parse(data.response ?? "{}") as VisionAnalysisResult;
+}
+
+async function callOllamaChat(imageBuffer: Buffer): Promise<VisionAnalysisResult> {
   const base64 = imageBuffer.toString("base64");
   const res = await fetch(`${EVAL_CONFIG.ollamaBaseUrl}/api/chat`, {
     method: "POST",
@@ -66,28 +83,22 @@ async function callOllama(imageBuffer: Buffer): Promise<VisionAnalysisResult> {
       model: EVAL_CONFIG.ollamaVisionModel,
       stream: false,
       format: "json",
+      keep_alive: 0,
       options: { num_ctx: 4096 },
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: USER_PROMPT,
-          images: [base64],
-        },
+        { role: "user", content: USER_PROMPT, images: [base64] },
       ],
     }),
   });
 
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(
-      `Ollama request failed (${res.status}): ${body}. Try: ollama pull ${EVAL_CONFIG.ollamaVisionModel}`
-    );
+    throw new Error(`Ollama vision failed (${res.status}): ${body}`);
   }
 
   const data = (await res.json()) as { message?: { content?: string } };
-  const content = data.message?.content ?? "{}";
-  return JSON.parse(content) as VisionAnalysisResult;
+  return JSON.parse(data.message?.content ?? "{}") as VisionAnalysisResult;
 }
 
 export async function extractImageTextOllama(
@@ -99,7 +110,11 @@ export async function extractImageTextOllama(
 
   for (let attempt = 0; attempt < EVAL_CONFIG.ollamaMaxRetries; attempt++) {
     try {
-      return await callOllama(prepared);
+      try {
+        return await callOllamaGenerate(prepared);
+      } catch {
+        return await callOllamaChat(prepared);
+      }
     } catch (err) {
       lastError = err;
       const msg = err instanceof Error ? err.message : String(err);
@@ -109,9 +124,7 @@ export async function extractImageTextOllama(
         msg.includes("GGML") ||
         msg.includes("timeout");
 
-      if (!retryable || attempt === EVAL_CONFIG.ollamaMaxRetries - 1) {
-        break;
-      }
+      if (!retryable || attempt === EVAL_CONFIG.ollamaMaxRetries - 1) break;
 
       const smaller = Math.max(256, Math.floor(maxSide / (attempt + 2)));
       console.warn(
@@ -122,7 +135,5 @@ export async function extractImageTextOllama(
     }
   }
 
-  throw lastError instanceof Error
-    ? lastError
-    : new Error(String(lastError));
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
