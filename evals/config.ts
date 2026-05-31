@@ -25,6 +25,8 @@ export const EVAL_CONFIG = {
   geminiTextOnly: process.env.EVAL_GEMINI_TEXT_ONLY !== "0",
   geminiDelayMs: Number(process.env.EVAL_GEMINI_DELAY_MS ?? "6500"),
   geminiMaxRetries: Number(process.env.EVAL_GEMINI_MAX_RETRIES ?? "5"),
+  /** When Gemini returns 429/limit:0, use rules so the eval run completes. */
+  geminiFallbackRules: process.env.EVAL_GEMINI_FALLBACK_RULES !== "0",
 } as const;
 
 export type FreeLlmProvider = "rules" | "gemini";

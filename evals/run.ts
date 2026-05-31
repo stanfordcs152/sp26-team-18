@@ -204,6 +204,22 @@ async function main() {
 
     if (
       EVAL_CONFIG.freeLlmProvider === "gemini" &&
+      process.env.GEMINI_API_KEY &&
+      (opts.approach === "all" || opts.approach === "llm" || opts.approach === "hybrid")
+    ) {
+      const { probeGeminiQuota } = await import("./lib/free-llm");
+      const probe = await probeGeminiQuota();
+      if (probe === "blocked" && EVAL_CONFIG.geminiFallbackRules) {
+        console.warn(
+          "Gemini probe failed (no free-tier quota on this key). Will use rules fallback for llm/hybrid.\n"
+        );
+      } else if (probe === "ok") {
+        console.log("Gemini quota probe: OK\n");
+      }
+    }
+
+    if (
+      EVAL_CONFIG.freeLlmProvider === "gemini" &&
       !process.env.GEMINI_API_KEY &&
       (opts.approach === "all" || opts.approach === "llm" || opts.approach === "hybrid")
     ) {

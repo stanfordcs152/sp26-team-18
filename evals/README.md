@@ -137,7 +137,16 @@ EVAL_GEMINI_TEXT_ONLY=1
 
 `EVAL_GEMINI_TEXT_ONLY=1` (default) sends **captions + metadata only** — hosted LLM, much easier on free-tier quotas than 200 vision calls. Set `EVAL_GEMINI_TEXT_ONLY=0` only if your account has vision quota.
 
-**If you see 429 / quota errors:** wait a minute and retry; the runner auto-retries with backoff. Use `flash-lite`, keep text-only on, and run with `--limit 5` first. A full 200-image run may need to be spread over multiple sessions on free tier.
+**If you see 429 with `limit: 0`:** your Google project has **no free API quota** (not just slow-down). The eval runner will **auto-fallback to rules** so you can finish. To get real Gemini LLM numbers: enable billing on the Cloud project linked to AI Studio, or create a new API key/project, or use `npm run eval -- --limit 20` with OpenAI if your team has credits.
+
+**Simplest path right now** — remove Gemini from `.env.local` and use rules only:
+
+```env
+# EVAL_LLM_PROVIDER=gemini   ← comment out or delete these
+# GEMINI_API_KEY=...
+```
+
+Then `npm run eval:free` runs heuristic + rules-based llm/hybrid with no API calls.
 
 ### Free mode ($0)
 
