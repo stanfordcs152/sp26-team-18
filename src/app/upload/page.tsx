@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
 import type { PostAnalysis } from "@/lib/types"
+import { shouldFlagAnalysis } from "@/lib/analyzers/flag"
 
 export default function UploadPage() {
   const router = useRouter()
@@ -30,11 +31,7 @@ export default function UploadPage() {
     imageUrl: string,
     analysis: PostAnalysis | null
   ) => {
-    const isFlagged = analysis
-      ? analysis.risk.level === "HIGH" ||
-        analysis.risk.level === "CRITICAL" ||
-        analysis.manipulationSignals?.possibleKnownManipulation === true
-      : false
+    const isFlagged = analysis ? shouldFlagAnalysis(analysis) : false
 
     return {
       image_url: imageUrl,
@@ -123,10 +120,7 @@ export default function UploadPage() {
 
     const moderationAnalysis = analysisData.analysis as PostAnalysis
 
-    const shouldWarn =
-      moderationAnalysis.risk.level === "HIGH" ||
-      moderationAnalysis.risk.level === "CRITICAL" ||
-      moderationAnalysis.manipulationSignals?.possibleKnownManipulation === true
+    const shouldWarn = shouldFlagAnalysis(moderationAnalysis)
 
     if (shouldWarn) {
       setPendingModeration(moderationAnalysis)

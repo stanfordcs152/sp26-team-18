@@ -1,150 +1,36 @@
 /**
- * Free LLM / text classification for llm + hybrid approaches.
- * Default: rules (OpenFake metadata). Optional: Gemini free tier.
+ * Hosted LLM for free-mode llm + hybrid approaches (Anthropic Claude).
  */
-import { EVAL_CONFIG, type FreeLlmProvider } from "../config";
-import { classifyCaptionRules } from "./caption-rules";
+import { EVAL_CONFIG } from "../config";
 import type { VisionAnalysisResult } from "./vision-result";
 import { extractCaptionFromNotes } from "./vision-result";
 
-let lastGeminiCallMs = 0;
-/** Set when API returns free-tier limit:0 — skip further Gemini calls this run. */
-let geminiQuotaBlocked = false;
-let geminiFallbackWarned = false;
+let lastClaudeCallMs = 0;
+
+type ClaudeContent =
+  | { type: "text"; text: string }
+  | {
+      type: "image";
+      source: { type: "base64"; media_type: string; data: string };
+    };
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function isZeroQuotaError(body: string): boolean {
-  return body.includes("limit: 0") || body.includes('"limit":0');
-}
-
-function rulesFallbackResult(manifestNotes?: string, filename?: string) {
-  const vision = classifyCaptionRules(manifestNotes, filename);
-  return {
-    vision,
-    provider: "rules" as const,
-    model: "openfake-metadata-rules (gemini-unavailable)",
-  };
-}
-
-function warnGeminiFallbackOnce() {
-  if (geminiFallbackWarned) return;
-  geminiFallbackWarned = true;
-  console.warn(
-    "\n*** Gemini free tier unavailable (limit: 0 on this API key/project). ***\n" +
-      "    Falling back to metadata rules for llm + hybrid this run.\n" +
-      "    Fixes to try later:\n" +
-      "      - Enable billing on the Google Cloud project (still free within limits)\n" +
-      "      - Create a new key at https://aistudio.google.com/apikey\n" +
-      "      - Remove EVAL_LLM_PROVIDER=gemini from .env.local to use rules only\n" +
-      "      - Or run a small paid eval: npm run eval -- --limit 20 (OpenAI)\n"
-  );
-}
-
-async function throttleGemini() {
-  const delay = EVAL_CONFIG.geminiDelayMs;
+async function throttleClaude() {
+  const delay = EVAL_CONFIG.claudeDelayMs;
   const now = Date.now();
-  const wait = lastGeminiCallMs + delay - now;
+  const wait = lastClaudeCallMs + delay - now;
   if (wait > 0) await sleep(wait);
-  lastGeminiCallMs = Date.now();
+  lastClaudeCallMs = Date.now();
 }
 
-function parseRetryDelaySeconds(errorBody: string): number | null {
-  try {
-    const json = JSON.parse(errorBody) as {
-      error?: {
-        details?: { retryDelay?: string }[];
-        message?: string;
-      };
-    };
-    for (const d of json.error?.details ?? []) {
-      if (d.retryDelay) {
-        const sec = parseFloat(d.retryDelay.replace("s", ""));
-        if (!Number.isNaN(sec) && sec >= 1) return sec;
-      }
-    }
-    const m = json.error?.message?.match(/retry in ([\d.]+)s/i);
-    if (m) {
-      const sec = parseFloat(m[1]);
-      if (sec >= 1) return sec;
-    }
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
-
-/** Call once before a full eval to detect limit:0 without burning retries per image. */
-export async function probeGeminiQuota(): Promise<"ok" | "blocked" | "missing"> {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) return "missing";
-
-  try {
-    await callGeminiApi(key, [
-      {
-        text: 'Return JSON only: {"status":"ok","misinformationRisk":"LOW","appearsAIGenerated":false,"politicalContext":false,"publicFigures":[],"publicFigureConfidence":0,"syntheticMediaConfidence":0,"politicalContextConfidence":0,"possibleKnownManipulation":false,"visibleText":"","reasoning":"probe"}',
-      },
-    ]);
-    return "ok";
-  } catch (err) {
-    const body = (err as { body?: string }).body ?? "";
-    const status = (err as { status?: number }).status;
-    if (status === 429 && isZeroQuotaError(body)) {
-      geminiQuotaBlocked = true;
-      return "blocked";
-    }
-    if (status === 429) {
-      geminiQuotaBlocked = true;
-      return "blocked";
-    }
-    throw err;
-  }
-}
-
-export async function classifyWithFreeLlm(
-  imageBuffer: Buffer,
-  filename: string,
-  manifestNotes?: string
-): Promise<{ vision: VisionAnalysisResult; provider: FreeLlmProvider; model: string }> {
-  const provider = EVAL_CONFIG.freeLlmProvider;
-
-  switch (provider) {
-    case "rules": {
-      const vision = classifyCaptionRules(manifestNotes, filename);
-      return { vision, provider, model: "openfake-metadata-rules" };
-    }
-    case "gemini": {
-      if (geminiQuotaBlocked && EVAL_CONFIG.geminiFallbackRules) {
-        return rulesFallbackResult(manifestNotes, filename);
-      }
-
-      try {
-        const vision = await classifyGemini(imageBuffer, filename, manifestNotes);
-        const mode = EVAL_CONFIG.geminiTextOnly ? "text" : "vision";
-        return { vision, provider, model: `${EVAL_CONFIG.geminiModel} (${mode})` };
-      } catch (err) {
-        const body = (err as { body?: string }).body ?? String(err);
-        const status = (err as { status?: number }).status;
-        if (
-          EVAL_CONFIG.geminiFallbackRules &&
-          (status === 429 || isZeroQuotaError(body))
-        ) {
-          geminiQuotaBlocked = true;
-          warnGeminiFallbackOnce();
-          return rulesFallbackResult(manifestNotes, filename);
-        }
-        throw err;
-      }
-    }
-    default:
-      throw new Error(`Unknown EVAL_LLM_PROVIDER: ${provider}`);
-  }
-}
-
-function buildGeminiPrompt(filename: string, manifestNotes?: string, textOnly = false) {
+function buildClassifierPrompt(filename: string, manifestNotes?: string, textOnly = false) {
   const caption = extractCaptionFromNotes(manifestNotes, filename);
+  const jsonFields =
+    "visibleText, publicFigures, publicFigureConfidence, appearsAIGenerated, syntheticMediaConfidence, politicalContext, politicalContextConfidence, possibleKnownManipulation, misinformationRisk (LOW|MEDIUM|HIGH|CRITICAL), reasoning";
+
   if (textOnly) {
     return `You are a Trust & Safety classifier for political image disinformation. You receive metadata about a social image post (not the image itself).
 
@@ -152,101 +38,97 @@ Filename: ${filename}
 Caption / visible text: ${caption || "(none)"}
 Dataset metadata: ${manifestNotes ?? ""}
 
-Decide moderation risk for AI-generated political disinformation. Return ONLY JSON with fields: visibleText, publicFigures, publicFigureConfidence, appearsAIGenerated, syntheticMediaConfidence, politicalContext, politicalContextConfidence, possibleKnownManipulation, misinformationRisk (LOW|MEDIUM|HIGH|CRITICAL), reasoning.`;
+Decide moderation risk for AI-generated political disinformation. Return ONLY JSON with fields: ${jsonFields}.`;
   }
-  return `You are a Trust & Safety classifier for political image disinformation. Analyze the image and metadata. Filename: ${filename}. Dataset notes: ${manifestNotes ?? ""}. Caption hint: ${caption}. Return ONLY JSON with fields: visibleText, publicFigures, publicFigureConfidence, appearsAIGenerated, syntheticMediaConfidence, politicalContext, politicalContextConfidence, possibleKnownManipulation, misinformationRisk (LOW|MEDIUM|HIGH|CRITICAL), reasoning.`;
+
+  return `You are a Trust & Safety classifier for political image disinformation. Analyze the image and metadata.
+
+Filename: ${filename}
+Dataset notes: ${manifestNotes ?? ""}
+Caption hint: ${caption || "(none)"}
+
+Return ONLY JSON with fields: ${jsonFields}.`;
 }
 
-async function callGeminiApi(
-  key: string,
-  parts: { text?: string; inline_data?: { mime_type: string; data: string } }[]
-): Promise<VisionAnalysisResult> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${EVAL_CONFIG.geminiModel}:generateContent?key=${key}`;
+function parseJsonFromModelText(text: string): VisionAnalysisResult {
+  const trimmed = text.trim();
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+  const jsonText = fenced?.[1]?.trim() ?? trimmed;
+  return JSON.parse(jsonText) as VisionAnalysisResult;
+}
 
-  const res = await fetch(url, {
+async function callClaudeApi(content: ClaudeContent[]): Promise<VisionAnalysisResult> {
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) {
+    throw new Error("ANTHROPIC_API_KEY is required for npm run eval:free");
+  }
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": key,
+      "anthropic-version": "2023-06-01",
+    },
     body: JSON.stringify({
-      contents: [{ parts }],
-      generationConfig: { responseMimeType: "application/json" },
+      model: EVAL_CONFIG.claudeModel,
+      max_tokens: 1024,
+      messages: [{ role: "user", content }],
     }),
   });
 
   const body = await res.text();
   if (!res.ok) {
-    const err = new Error(`Gemini failed (${res.status}): ${body}`) as Error & {
-      status?: number;
-      body?: string;
-    };
-    err.status = res.status;
-    err.body = body;
-    throw err;
+    throw new Error(`Claude failed (${res.status}): ${body}`);
   }
 
   const data = JSON.parse(body) as {
-    candidates?: { content?: { parts?: { text?: string }[] } }[];
+    content?: { type: string; text?: string }[];
   };
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
-  return JSON.parse(text) as VisionAnalysisResult;
+  const text = data.content?.find((part) => part.type === "text")?.text ?? "{}";
+  return parseJsonFromModelText(text);
 }
 
-async function classifyGemini(
+async function classifyClaude(
   imageBuffer: Buffer,
   filename: string,
   manifestNotes?: string
 ): Promise<VisionAnalysisResult> {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) {
-    throw new Error("GEMINI_API_KEY is required for EVAL_LLM_PROVIDER=gemini");
-  }
+  const textOnly = EVAL_CONFIG.claudeTextOnly;
+  const prompt = buildClassifierPrompt(filename, manifestNotes, textOnly);
 
-  const textOnly = EVAL_CONFIG.geminiTextOnly;
-  const prompt = buildGeminiPrompt(filename, manifestNotes, textOnly);
-  const parts: { text?: string; inline_data?: { mime_type: string; data: string } }[] =
-    [{ text: prompt }];
+  await throttleClaude();
 
+  const content: ClaudeContent[] = [{ type: "text", text: prompt }];
   if (!textOnly) {
-    parts.push({
-      inline_data: { mime_type: "image/jpeg", data: imageBuffer.toString("base64") },
+    content.push({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: "image/jpeg",
+        data: imageBuffer.toString("base64"),
+      },
     });
   }
 
-  let lastError: unknown;
+  return callClaudeApi(content);
+}
 
-  for (let attempt = 0; attempt < EVAL_CONFIG.geminiMaxRetries; attempt++) {
-    await throttleGemini();
-    try {
-      return await callGeminiApi(key, parts);
-    } catch (err) {
-      lastError = err;
-      const status = (err as { status?: number }).status;
-      const body = (err as { body?: string }).body ?? String(err);
-
-      if (isZeroQuotaError(body)) break;
-
-      if (status !== 429 || attempt === EVAL_CONFIG.geminiMaxRetries - 1) break;
-
-      const retrySec = parseRetryDelaySeconds(body) ?? 15 * (attempt + 1);
-      console.warn(
-        `  Gemini rate limit — waiting ${Math.ceil(retrySec)}s (attempt ${attempt + 2}/${EVAL_CONFIG.geminiMaxRetries})...`
-      );
-      await sleep(retrySec * 1000);
-    }
-  }
-
-  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+export async function classifyWithFreeLlm(
+  imageBuffer: Buffer,
+  filename: string,
+  manifestNotes?: string
+): Promise<{ vision: VisionAnalysisResult; provider: "claude"; model: string }> {
+  const vision = await classifyClaude(imageBuffer, filename, manifestNotes);
+  const mode = EVAL_CONFIG.claudeTextOnly ? "text" : "vision";
+  return {
+    vision,
+    provider: "claude",
+    model: `${EVAL_CONFIG.claudeModel} (${mode})`,
+  };
 }
 
 export function describeFreeLlmProvider(): string {
-  if (geminiQuotaBlocked && EVAL_CONFIG.freeLlmProvider === "gemini") {
-    return "rules fallback (Gemini quota unavailable)";
-  }
-  switch (EVAL_CONFIG.freeLlmProvider) {
-    case "rules":
-      return "OpenFake metadata + caption rules (text classifier, not a hosted LLM)";
-    case "gemini": {
-      const mode = EVAL_CONFIG.geminiTextOnly ? "text/caption" : "vision";
-      return `Gemini hosted LLM (${EVAL_CONFIG.geminiModel}, ${mode})`;
-    }
-  }
+  const mode = EVAL_CONFIG.claudeTextOnly ? "text/caption" : "vision";
+  return `Claude hosted LLM (${EVAL_CONFIG.claudeModel}, ${mode})`;
 }

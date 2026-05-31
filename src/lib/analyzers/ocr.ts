@@ -21,14 +21,10 @@ export type VisionAnalysisResult = {
 export async function extractImageText(
   imageBuffer: Buffer
 ): Promise<VisionAnalysisResult> {
-  console.log("OpenAI Vision analysis started");
-
   try {
     const base64Image = imageBuffer.toString("base64");
 
     const celebrityMatches = await detectCelebrities(imageBuffer);
-
-    console.log("AWS CELEBRITY MATCHES:", celebrityMatches);
 
     const response = await client.chat.completions.create({
       model: "gpt-4.1",
@@ -93,11 +89,9 @@ Rules:
 
     const parsed = JSON.parse(content) as VisionAnalysisResult;
 
-    console.log("OPENAI VISION SUCCESS:", parsed);
-
     return parsed;
   } catch (error) {
-    console.error("OPENAI VISION ERROR:", error);
+    console.error("OpenAI Vision analysis failed:", error);
 
     throw error;
   }

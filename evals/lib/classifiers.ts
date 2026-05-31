@@ -1,24 +1,16 @@
 import { EVAL_CONFIG } from "../config";
 import { detectAi } from "@/lib/ai-detection";
 import { detectCelebrities } from "@/lib/analyzers/celebrity";
+import { shouldFlagAnalysis } from "@/lib/analyzers/flag";
 import { extractImageText } from "@/lib/analyzers/ocr";
+import { runAnalysisPipeline } from "@/lib/analyzers/pipeline";
 import { calculateRisk, type RiskLevel } from "@/lib/analyzers/risk";
 import { checkC2pa } from "./c2pa-check";
 import type { ClassifierPrediction } from "./types";
+import { visionShouldFlag } from "./vision-result";
 
 function isFlagRiskLevel(level: RiskLevel) {
   return (EVAL_CONFIG.flagRiskLevels as readonly string[]).includes(level);
-}
-
-function visionShouldFlag(vision: Awaited<ReturnType<typeof extractImageText>>) {
-  if (vision.misinformationRisk === "HIGH" || vision.misinformationRisk === "CRITICAL") {
-    return true;
-  }
-  return (
-    vision.appearsAIGenerated &&
-    vision.politicalContext &&
-    vision.publicFigures.length > 0
-  );
 }
 
 async function heuristicSignals(imageBuffer: Buffer, filename: string) {
@@ -72,6 +64,33 @@ export async function classifyHeuristic(
       riskScore: risk.score,
       aiScore: ai.confidenceScore,
       hasPoliticalFigure,
+    },
+  };
+}
+
+/** Production upload pipeline: runAnalysisPipeline + upload flag rule. */
+export async function classifyProduction(
+  imageBuffer: Buffer
+): Promise<ClassifierPrediction> {
+  const start = performance.now();
+  const analysis = await runAnalysisPipeline(imageBuffer);
+
+  return {
+    flagged: shouldFlagAnalysis(analysis),
+    latencyMs: performance.now() - start,
+    usedLlm: true,
+    meta: {
+      riskLevel: analysis.risk.level,
+      riskScore: analysis.risk.score,
+      riskReasons: analysis.risk.reasons,
+      possibleKnownManipulation:
+        analysis.manipulationSignals.possibleKnownManipulation,
+      misinformationRisk: analysis.vision.misinformationRisk,
+      appearsAIGenerated: analysis.vision.appearsAIGenerated,
+      politicalContext: analysis.vision.politicalContext,
+      publicFigures: analysis.vision.publicFigures,
+      matchedKeywords: analysis.ocr.matchedKeywords,
+      reasoning: analysis.vision.reasoning,
     },
   };
 }

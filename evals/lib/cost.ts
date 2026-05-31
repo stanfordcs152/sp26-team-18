@@ -31,6 +31,7 @@ export function estimateCostUsdPer1000(
       perImage = rek + PRICING.c2paLocalPerImageUsd;
       break;
     case "llm":
+    case "production":
       perImage = rek + llm;
       break;
     case "hybrid": {

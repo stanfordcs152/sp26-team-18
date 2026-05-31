@@ -112,45 +112,21 @@ The assignment asks for **three** detection strategies:
 | Milestone requirement | Your implementation | Satisfied? |
 |----------------------|---------------------|------------|
 | **Traditional / cheap classifier** | `heuristic` — C2PA + filename + keyword rules | Yes |
-| **LLM-as-classifier** (hosted LLM, allow/unallow + rationale) | **`gemini`** (free Google AI Studio) or **`npm run eval`** (OpenAI Vision in paid mode) | Yes, if you use Gemini or OpenAI for the `llm` row |
-| **Hybrid** | `hybrid` — heuristic first, then text/LLM on uncertain cases | Yes |
-
-**Important:** the default **`rules`** provider (`npm run eval:free` with no env vars) is **not** a hosted LLM. It is a **metadata + caption text classifier** (reads OpenFake `model=` and `prompt=` fields). That is useful for development and as an extra baseline, but **for the poster’s “LLM” row you should run with Gemini** (free) or OpenAI (paid):
-
-```powershell
-# Recommended for milestone LLM row ($0 with free tier)
-$env:EVAL_LLM_PROVIDER = "gemini"
-$env:GEMINI_API_KEY = "your-key-from-aistudio"
-npm run eval:free
-```
-
-Get a free key: https://aistudio.google.com/apikey
+| **LLM-as-classifier** (hosted LLM, allow/unallow + rationale) | **Claude** (`npm run eval:free`) or **`npm run eval`** (OpenAI Vision) | Yes |
+| **Hybrid** | `hybrid` — heuristic first, then Claude on uncertain cases | Yes |
 
 Add to **`.env.local`** (repo root):
 
 ```env
-EVAL_LLM_PROVIDER=gemini
-GEMINI_API_KEY=your-key-here
-GEMINI_MODEL=gemini-2.0-flash-lite
-EVAL_GEMINI_TEXT_ONLY=1
+ANTHROPIC_API_KEY=your-key-here
+EVAL_CLAUDE_TEXT_ONLY=1
 ```
 
-`EVAL_GEMINI_TEXT_ONLY=1` (default) sends **captions + metadata only** — hosted LLM, much easier on free-tier quotas than 200 vision calls. Set `EVAL_GEMINI_TEXT_ONLY=0` only if your account has vision quota.
+Get a key: https://console.anthropic.com/settings/keys (new accounts get ~$5 free credit).
 
-**If you see 429 with `limit: 0`:** your Google project has **no free API quota** (not just slow-down). The eval runner will **auto-fallback to rules** so you can finish. To get real Gemini LLM numbers: enable billing on the Cloud project linked to AI Studio, or create a new API key/project, or use `npm run eval -- --limit 20` with OpenAI if your team has credits.
+`EVAL_CLAUDE_TEXT_ONLY=1` (default) sends **captions + metadata only** — cheap hosted LLM (~$0.25/1M tokens on Haiku). Set `EVAL_CLAUDE_TEXT_ONLY=0` to send the image (vision, costs more).
 
-**Simplest path right now** — remove Gemini from `.env.local` and use rules only:
-
-```env
-# EVAL_LLM_PROVIDER=gemini   ← comment out or delete these
-# GEMINI_API_KEY=...
-```
-
-Then `npm run eval:free` runs heuristic + rules-based llm/hybrid with no API calls.
-
-### Free mode ($0)
-
-**Quick dev run** (rules only — not the LLM row for the report):
+### Free mode (`npm run eval:free`)
 
 ```bash
 npm run eval -- --dry-run
@@ -158,16 +134,11 @@ npm run eval:free -- --limit 5
 npm run eval:free
 ```
 
-| `EVAL_LLM_PROVIDER` | Use for |
-|---------------------|---------|
-| `rules` (default) | Fast local eval, no API keys — **traditional text classifier**, not LLM |
-| `gemini` | **Hosted LLM** for llm + hybrid rows (free tier) |
-
 | Approach | Free stack |
 |----------|------------|
 | `heuristic` | C2PA + filename + election keywords from manifest `notes` |
-| `llm` | Gemini (if configured) or metadata rules (default) |
-| `hybrid` | Heuristic first, then Gemini or rules on uncertain cases |
+| `llm` | Claude Haiku (hosted LLM, text or vision) |
+| `hybrid` | Heuristic first, then Claude on uncertain cases |
 
 ### Paid mode (OpenAI + AWS)
 
@@ -206,7 +177,21 @@ One JSON object per line. `path` is relative to the manifest file.
 | ID | Free mode (`npm run eval:free`) | Paid mode (`npm run eval`) |
 |----|----------------------------------|----------------------------|
 | `heuristic` | C2PA + filename + keyword rules | C2PA + Rekognition + rule risk |
-| `llm` | Gemini (hosted LLM) or rules (dev only) | OpenAI Vision |
-| `hybrid` | Heuristic + Gemini or rules | Heuristic + OpenAI on edge cases |
+| `llm` | Claude Haiku (hosted LLM) | OpenAI Vision |
+| `hybrid` | Heuristic + Claude | Heuristic + OpenAI on edge cases |
+| `production` | — (paid only) | **Exact upload pipeline** (`runAnalysisPipeline` + upload flag rule) |
 
 Ground truth positive class = `unallow` (should flag).
+
+### Production pipeline eval
+
+To benchmark what users actually hit on upload (GPT-4.1 Vision → `calculateRisk` → HIGH/CRITICAL or known-manipulation flag):
+
+```bash
+npm run eval -- --approach production --limit 5
+npm run eval -- --approach production
+```
+
+Requires `OPENAI_API_KEY` and AWS credentials in `.env.local`. Included automatically in `npm run eval` (paid `all`), but not in `npm run eval:free`.
+
+Final production numbers on OpenFake (200 images) are saved at [`evals/results/production-openfake-200.json`](results/production-openfake-200.json).

@@ -4,12 +4,13 @@
  *   npm run eval -- --dry-run
  *   npm run eval -- --limit 5
  *   npm run eval -- --approach hybrid
- *   npm run eval:free              # $0 eval (rules + heuristic; optional Gemini for LLM row)
+ *   npm run eval -- --approach production   # exact upload pipeline
+ *   npm run eval:free              # eval with Claude LLM (no OpenAI/AWS)
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { EVAL_CONFIG, isFreeEvalMode } from "./config";
+import { isFreeEvalMode } from "./config";
 import { describeFreeLlmProvider } from "./lib/free-llm";
 import { estimateCostUsdPer1000 } from "./lib/cost";
 import { resolveImagePath, validateManifests } from "./lib/manifest";
@@ -63,25 +64,53 @@ type ClassifyFn = (
   meta?: Record<string, unknown>;
 }>;
 
-async function loadApproaches(free: boolean): Promise<Record<ApproachId, ClassifyFn>> {
+async function loadApproach(
+  approach: ApproachId,
+  free: boolean
+): Promise<ClassifyFn> {
+  if (approach === "production") {
+    if (free) {
+      throw new Error(
+        "The production pipeline requires OpenAI and AWS (paid mode).\n" +
+          "Run: npm run eval -- --approach production"
+      );
+    }
+    const { classifyProduction } = await import("./lib/classifiers");
+    return (buf, _name, _notes) => classifyProduction(buf);
+  }
+
   if (free) {
     const { classifyHeuristicFree, classifyHybridFree, classifyLlmFree } =
       await import("./lib/classifiers-free");
-    return {
+    const approaches = {
       heuristic: classifyHeuristicFree,
       llm: classifyLlmFree,
       hybrid: classifyHybridFree,
-    };
+    } as const;
+    return approaches[approach];
   }
 
   const { classifyHeuristic, classifyHybrid, classifyLlm } = await import(
     "./lib/classifiers"
   );
-  return {
+  const approaches = {
     heuristic: classifyHeuristic,
-    llm: (buf, _name, _notes) => classifyLlm(buf),
+    llm: (buf: Buffer, _name: string, _notes?: string) => classifyLlm(buf),
     hybrid: classifyHybrid,
-  };
+  } as const;
+  return approaches[approach];
+}
+
+function selectedApproaches(
+  approach: ApproachId | "all",
+  freeMode: boolean
+): ApproachId[] {
+  if (approach === "all") {
+    return freeMode
+      ? ["heuristic", "llm", "hybrid"]
+      : ["heuristic", "llm", "hybrid", "production"];
+  }
+  return [approach];
 }
 
 async function runApproach(
@@ -89,10 +118,9 @@ async function runApproach(
   examples: ManifestRow[],
   manifestPathByLabel: Record<"allow" | "unallow", string>,
   concurrency: number,
-  approaches: Record<ApproachId, ClassifyFn>,
+  classify: ClassifyFn,
   freeMode: boolean
 ): Promise<{ results: ExampleResult[]; stats: ApproachRunStats }> {
-  const classify = approaches[approach];
   const results: ExampleResult[] = [];
   let index = 0;
 
@@ -198,64 +226,39 @@ async function main() {
   }
 
   if (!opts.dryRun && freeMode) {
-    console.log("\n*** FREE eval mode — no OpenAI or AWS charges ***");
+    console.log("\n*** FREE eval mode — Claude LLM, no OpenAI or AWS charges ***");
     console.log(`    LLM: ${describeFreeLlmProvider()}`);
     console.log("    Heuristic: C2PA + filename + prompt keywords only\n");
 
     if (
-      EVAL_CONFIG.freeLlmProvider === "gemini" &&
-      process.env.GEMINI_API_KEY &&
-      (opts.approach === "all" || opts.approach === "llm" || opts.approach === "hybrid")
-    ) {
-      const { probeGeminiQuota } = await import("./lib/free-llm");
-      const probe = await probeGeminiQuota();
-      if (probe === "blocked" && EVAL_CONFIG.geminiFallbackRules) {
-        console.warn(
-          "Gemini probe failed (no free-tier quota on this key). Will use rules fallback for llm/hybrid.\n"
-        );
-      } else if (probe === "ok") {
-        console.log("Gemini quota probe: OK\n");
-      }
-    }
-
-    if (
-      EVAL_CONFIG.freeLlmProvider === "gemini" &&
-      !process.env.GEMINI_API_KEY &&
+      !process.env.ANTHROPIC_API_KEY &&
       (opts.approach === "all" || opts.approach === "llm" || opts.approach === "hybrid")
     ) {
       console.error(
-        "GEMINI_API_KEY is required for EVAL_LLM_PROVIDER=gemini.\n" +
-          "Get a free key at https://aistudio.google.com/apikey\n" +
-          "Or use default rules provider: npm run eval:free (no key needed)"
+        "ANTHROPIC_API_KEY is required for npm run eval:free.\n" +
+          "Get a key at https://console.anthropic.com/settings/keys\n" +
+          "New accounts include free credits (~$5)."
       );
       process.exit(1);
     }
-
-    if (
-      EVAL_CONFIG.freeLlmProvider === "rules" &&
-      (opts.approach === "llm" || opts.approach === "all")
-    ) {
+  } else if (!opts.dryRun && !process.env.OPENAI_API_KEY) {
+    const needsOpenAi =
+      opts.approach === "all" ||
+      opts.approach === "llm" ||
+      opts.approach === "hybrid" ||
+      opts.approach === "production";
+    if (needsOpenAi) {
       console.warn(
-        "Note: EVAL_LLM_PROVIDER=rules is a metadata text classifier, not a hosted LLM.\n" +
-          "      For the milestone LLM row, set GEMINI_API_KEY and EVAL_LLM_PROVIDER=gemini.\n"
+        "OPENAI_API_KEY is not set; llm, hybrid, and production will fail. Use: npm run eval:free"
       );
     }
-  } else if (!opts.dryRun && !process.env.OPENAI_API_KEY) {
-    console.warn(
-      "OPENAI_API_KEY is not set; LLM and hybrid will fail. Use: npm run eval:free"
-    );
   }
 
   if (opts.dryRun) {
     return;
   }
 
-  const selected: ApproachId[] =
-    opts.approach === "all"
-      ? ["heuristic", "llm", "hybrid"]
-      : [opts.approach];
-
-  const approaches = await loadApproaches(freeMode);
+  const selected = selectedApproaches(opts.approach, freeMode);
 
   const manifestPathByLabel = {
     allow: ALLOW_MANIFEST,
@@ -267,12 +270,13 @@ async function main() {
 
   for (const approach of selected) {
     console.log(`\nRunning approach: ${approach} (${all.length} images)...`);
+    const classify = await loadApproach(approach, freeMode);
     const { results, stats } = await runApproach(
       approach,
       all,
       manifestPathByLabel,
       opts.concurrency,
-      approaches,
+      classify,
       freeMode
     );
     summary.push(stats);

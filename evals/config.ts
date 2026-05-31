@@ -13,23 +13,15 @@ export const EVAL_CONFIG = {
   /** Risk levels treated as a positive (flagged) prediction. */
   flagRiskLevels: ["HIGH", "CRITICAL"] as const,
 
-  /**
-   * Free-mode text/LLM provider for llm + hybrid approaches:
-   * - rules: OpenFake metadata + caption keywords (default, $0, not a hosted LLM)
-   * - gemini: Google AI Studio free tier (hosted LLM — satisfies milestone LLM row)
-   */
-  freeLlmProvider: (process.env.EVAL_LLM_PROVIDER ?? "rules") as FreeLlmProvider,
-  /** flash-lite has separate free-tier quota; flash often shows limit:0 on new keys. */
-  geminiModel: process.env.GEMINI_MODEL ?? "gemini-2.0-flash-lite",
-  /** Text-only uses captions/metadata — much lower quota use (default on). Set EVAL_GEMINI_TEXT_ONLY=0 for vision. */
-  geminiTextOnly: process.env.EVAL_GEMINI_TEXT_ONLY !== "0",
-  geminiDelayMs: Number(process.env.EVAL_GEMINI_DELAY_MS ?? "6500"),
-  geminiMaxRetries: Number(process.env.EVAL_GEMINI_MAX_RETRIES ?? "5"),
-  /** When Gemini returns 429/limit:0, use rules so the eval run completes. */
-  geminiFallbackRules: process.env.EVAL_GEMINI_FALLBACK_RULES !== "0",
+  /** Hosted LLM for free-mode llm + hybrid (Anthropic Claude). */
+  claudeModel:
+    process.env.ANTHROPIC_MODEL ??
+    process.env.EVAL_CLAUDE_MODEL ??
+    "claude-haiku-4-5",
+  /** Text-only sends captions/metadata — cheap and fast. Set EVAL_CLAUDE_TEXT_ONLY=0 for vision. */
+  claudeTextOnly: process.env.EVAL_CLAUDE_TEXT_ONLY !== "0",
+  claudeDelayMs: Number(process.env.EVAL_CLAUDE_DELAY_MS ?? "400"),
 } as const;
-
-export type FreeLlmProvider = "rules" | "gemini";
 
 export function isFreeEvalMode(): boolean {
   return (

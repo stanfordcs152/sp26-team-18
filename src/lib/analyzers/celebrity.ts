@@ -11,7 +11,16 @@ const client = new RekognitionClient({
   },
 });
 
+const REKOGNITION_MAX_BYTES = 5 * 1024 * 1024;
+
 export async function detectCelebrities(imageBuffer: Buffer) {
+  if (imageBuffer.length > REKOGNITION_MAX_BYTES) {
+    console.warn(
+      `Skipping Rekognition: image is ${(imageBuffer.length / 1024 / 1024).toFixed(1)}MB (max 5MB)`
+    );
+    return [];
+  }
+
   try {
     const command = new RecognizeCelebritiesCommand({
       Image: {
