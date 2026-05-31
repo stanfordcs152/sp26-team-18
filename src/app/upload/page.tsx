@@ -21,6 +21,7 @@ export default function UploadPage() {
     null
   )
   const [pendingImageUrl, setPendingImageUrl] = useState("")
+  const [pendingImageHash, setPendingImageHash] = useState<string | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
 
   // Build the row payload that gets inserted into `posts`. Used by both the
@@ -28,7 +29,8 @@ export default function UploadPage() {
   // in sync.
   const buildPostRow = (
     imageUrl: string,
-    analysis: PostAnalysis | null
+    analysis: PostAnalysis | null,
+    imageHash: string | null
   ) => {
     const isFlagged = analysis
       ? analysis.risk.level === "HIGH" ||
@@ -43,6 +45,7 @@ export default function UploadPage() {
       is_political: isPolitical,
       is_flagged: isFlagged,
       confidence_score: analysis ? Math.round(analysis.risk.score * 100) : 0,
+      image_hash: imageHash,
       analysis,
       risk_score: analysis ? analysis.risk.score : null,
       risk_level: analysis ? analysis.risk.level : null,
@@ -122,6 +125,7 @@ export default function UploadPage() {
     }
 
     const moderationAnalysis = analysisData.analysis as PostAnalysis
+    const imageHash = (analysisData.imageHash as string | undefined) ?? null
 
     const shouldWarn =
       moderationAnalysis.risk.level === "HIGH" ||
@@ -131,6 +135,7 @@ export default function UploadPage() {
     if (shouldWarn) {
       setPendingModeration(moderationAnalysis)
       setPendingImageUrl(imageUrl)
+      setPendingImageHash(imageHash)
       setShowModerationWarning(true)
       setSubmitting(false)
       setIsAnalyzing(false)
@@ -138,7 +143,7 @@ export default function UploadPage() {
     }
 
     const { error: insertError } = await insertPost(
-      buildPostRow(imageUrl, moderationAnalysis)
+      buildPostRow(imageUrl, moderationAnalysis, imageHash)
     )
 
     if (insertError) {
@@ -157,7 +162,7 @@ export default function UploadPage() {
     if (!supabase || !pendingModeration) return
 
     const { error: insertError } = await insertPost(
-      buildPostRow(pendingImageUrl, pendingModeration)
+      buildPostRow(pendingImageUrl, pendingModeration, pendingImageHash)
     )
 
     if (insertError) {
