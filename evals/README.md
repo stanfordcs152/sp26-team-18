@@ -48,7 +48,21 @@ pip install -r evals/scripts/requirements.txt
 
 Requires Python 3.10+ and enough disk space for streamed image samples (not the full 3.4 TB corpus).
 
-## 2. Download OpenFake samples
+## 2. Log in to Hugging Face (recommended on Windows)
+
+Unauthenticated streaming often hits rate limits and partial downloads (PIL “cannot identify image file”).
+
+```bash
+huggingface-cli login
+```
+
+Optional: silence symlink warnings on Windows:
+
+```powershell
+$env:HF_HUB_DISABLE_SYMLINKS_WARNING = "1"
+```
+
+## 3. Download OpenFake samples
 
 Default: **100 real → allow**, **100 fake → unallow** from `core/validation` (reproducible with `--seed 42`):
 
@@ -77,7 +91,7 @@ npm run eval:setup-openfake -- --clear --per-set 100
 
 Images are saved as JPEG under `evals/allow/images/` and `evals/unallow/images/`. Manifest rows use ids like `openfake-core-validation-allow-0001` with `source` set to the OpenFake citation.
 
-## 3. Optional: Deepfake-Eval-2024 supplement
+## 4. Optional: Deepfake-Eval-2024 supplement
 
 1. Request access on [Hugging Face](https://huggingface.co/datasets/nuriachandra/Deepfake-Eval-2024).
 2. `huggingface-cli login` (or set `HF_TOKEN`).
@@ -89,7 +103,7 @@ npm run eval:setup-deepfake-eval -- --per-set 25
 
 Appends rows prefixed with `dfe2024-` (does not remove OpenFake samples).
 
-## 4. Validate and run classifiers
+## 5. Validate and run classifiers
 
 ```bash
 npm run eval -- --dry-run          # check manifests + paths

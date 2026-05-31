@@ -14,6 +14,8 @@ Usage:
   python evals/scripts/setup_openfake.py --per-set 100
   python evals/scripts/setup_openfake.py --per-set 100 --reddit-per-set 25
   python evals/scripts/setup_openfake.py --dry-run
+
+Tip: set HF_TOKEN (huggingface-cli login) for stable streaming on Windows.
 """
 
 from __future__ import annotations
@@ -21,7 +23,10 @@ from __future__ import annotations
 import argparse
 import random
 import sys
+import time
+from io import BytesIO
 from pathlib import Path
+from typing import Iterator
 
 # Allow importing manifest_io when run from repo root
 _SCRIPTS_DIR = Path(__file__).resolve().parent
@@ -49,29 +54,137 @@ OPENFAKE_CITATION = (
 )
 
 
-def reservoir_sample(stream, k: int, label_value: str, rng: random.Random) -> list[dict]:
-    """Reservoir sample rows where row['label'] == label_value from a streaming dataset."""
-    reservoir: list[dict] = []
-    seen = 0
+def load_openfake_stream(config: str, split: str):
+    """Stream with decode=False so corrupt rows can be skipped without crashing a batch."""
+    from datasets import Image as ImageFeature
+    from datasets import load_dataset
 
-    for row in stream:
+    ds = load_dataset(
+        "ComplexDataLab/OpenFake",
+        config,
+        split=split,
+        streaming=True,
+    )
+    return ds.cast_column("image", ImageFeature(decode=False))
+
+
+def pil_from_row_image(image_field) -> "object | None":
+    """Decode a datasets Image(decode=False) value to RGB PIL, or None if unusable."""
+    from PIL import Image
+
+    if image_field is None:
+        return None
+
+    if hasattr(image_field, "save"):
+        return image_field.convert("RGB")
+
+    if isinstance(image_field, dict):
+        raw = image_field.get("bytes")
+        if raw:
+            pil = Image.open(BytesIO(raw))
+            pil.load()
+            return pil.convert("RGB")
+        path = image_field.get("path")
+        if path:
+            pil = Image.open(path)
+            pil.load()
+            return pil.convert("RGB")
+
+    return None
+
+
+def normalize_row(row) -> dict | None:
+    """Return row dict with a decoded PIL image, or None to skip."""
+    try:
         row_dict = dict(row)
-        if row_dict.get("label") != label_value:
-            continue
-        seen += 1
-        if len(reservoir) < k:
-            reservoir.append(row_dict)
-        else:
-            j = rng.randint(0, seen - 1)
-            if j < k:
-                reservoir[j] = row_dict
+    except Exception:
+        return None
 
-    if len(reservoir) < k:
+    pil = pil_from_row_image(row_dict.get("image"))
+    if pil is None:
+        return None
+
+    row_dict["image"] = pil
+    return row_dict
+
+
+def safe_next(stream: Iterator, retries: int = 8) -> object | None:
+    """Return next row, retrying on transient Hub / decode disconnects."""
+    for attempt in range(retries):
+        try:
+            return next(stream)
+        except StopIteration:
+            return None
+        except Exception as exc:
+            if attempt == retries - 1:
+                print(f"  stream read failed after {retries} tries: {exc}", file=sys.stderr)
+                return None
+            wait = min(30, 2 ** attempt)
+            print(f"  stream error ({exc!r}); retry in {wait}s...", file=sys.stderr)
+            time.sleep(wait)
+    return None
+
+
+def reservoir_sample_both(
+    stream: Iterator,
+    k_real: int,
+    k_fake: int,
+    rng: random.Random,
+    *,
+    max_skip: int = 5000,
+) -> tuple[list[dict], list[dict], int]:
+    """
+    One pass over the stream: reservoir-sample real and fake rows.
+    Skips corrupt / undecodable images instead of aborting.
+    """
+    reservoir_real: list[dict] = []
+    reservoir_fake: list[dict] = []
+    seen_real = 0
+    seen_fake = 0
+    skipped = 0
+
+    while len(reservoir_real) < k_real or len(reservoir_fake) < k_fake:
+        raw = safe_next(stream)
+        if raw is None:
+            break
+
+        row_dict = normalize_row(raw)
+        if row_dict is None:
+            skipped += 1
+            if skipped % 100 == 0:
+                print(f"  skipped {skipped} rows (bad image / decode)...")
+            if skipped >= max_skip:
+                break
+            continue
+
+        label = row_dict.get("label")
+        if label == "real":
+            seen_real += 1
+            if len(reservoir_real) < k_real:
+                reservoir_real.append(row_dict)
+            else:
+                j = rng.randint(0, seen_real - 1)
+                if j < k_real:
+                    reservoir_real[j] = row_dict
+        elif label == "fake":
+            seen_fake += 1
+            if len(reservoir_fake) < k_fake:
+                reservoir_fake.append(row_dict)
+            else:
+                j = rng.randint(0, seen_fake - 1)
+                if j < k_fake:
+                    reservoir_fake[j] = row_dict
+
+    if len(reservoir_real) < k_real or len(reservoir_fake) < k_fake:
         raise RuntimeError(
-            f"Stream ended with only {len(reservoir)} '{label_value}' examples; need {k}. "
-            "Try a larger split (e.g. train) or lower --per-set."
+            f"Could only collect real={len(reservoir_real)}/{k_real}, "
+            f"fake={len(reservoir_fake)}/{k_fake} (skipped {skipped} bad rows). "
+            "Try: huggingface-cli login (HF_TOKEN), --split train, or run again."
         )
-    return reservoir
+
+    if skipped:
+        print(f"  skipped {skipped} undecodable / corrupt rows total")
+    return reservoir_real, reservoir_fake, skipped
 
 
 def format_notes(row: dict) -> str:
@@ -90,10 +203,9 @@ def format_notes(row: dict) -> str:
 def save_image(row: dict, dest: Path) -> None:
     image = row["image"]
     dest.parent.mkdir(parents=True, exist_ok=True)
-    if hasattr(image, "save"):
-        image.save(dest, format="JPEG", quality=90)
-    else:
+    if not hasattr(image, "save"):
         raise TypeError(f"Unexpected image type: {type(image)}")
+    image.save(dest, format="JPEG", quality=90)
 
 
 def write_samples(
@@ -101,12 +213,10 @@ def write_samples(
     samples: list[dict],
     eval_label: str,
     images_dir: Path,
-    manifest_path: Path,
     id_suffix: str,
     source: str,
     start_index: int,
 ) -> tuple[list[dict], int]:
-    """Write images and return new manifest rows. eval_label is allow|unallow."""
     new_rows: list[dict] = []
     idx = start_index
 
@@ -129,28 +239,18 @@ def write_samples(
     return new_rows, idx
 
 
-def load_openfake_stream(config: str, split: str):
-    from datasets import load_dataset
-
-    return load_dataset(
-        "ComplexDataLab/OpenFake",
-        config,
-        split=split,
-        streaming=True,
-    )
-
-
 def sample_from_config(
     *,
     config: str,
     split: str,
     per_set: int,
     rng: random.Random,
+    max_skip: int,
 ) -> tuple[list[dict], list[dict]]:
-    stream = load_openfake_stream(config, split)
-    reals = reservoir_sample(stream, per_set, "real", rng)
-    stream = load_openfake_stream(config, split)
-    fakes = reservoir_sample(stream, per_set, "fake", rng)
+    stream = iter(load_openfake_stream(config, split))
+    reals, fakes, _ = reservoir_sample_both(
+        stream, per_set, per_set, rng, max_skip=max_skip
+    )
     return reals, fakes
 
 
@@ -160,7 +260,6 @@ def clear_openfake_artifacts() -> None:
 
 
 def filter_demo_rows(rows: list[dict]) -> list[dict]:
-    """Drop placeholder demo rows from initial scaffold."""
     return [
         r
         for r in rows
@@ -186,6 +285,14 @@ def run(args: argparse.Namespace) -> None:
         print(f"  -> {UNALLOW_DIR / 'images'} (unallow / fake)")
         return
 
+    if not args.no_hf_login_hint and not (
+        __import__("os").environ.get("HF_TOKEN")
+        or __import__("os").environ.get("HUGGING_FACE_HUB_TOKEN")
+    ):
+        print(
+            "Note: no HF_TOKEN set — run `huggingface-cli login` for fewer disconnects.\n"
+        )
+
     if args.clear:
         clear_openfake_artifacts()
 
@@ -200,6 +307,7 @@ def run(args: argparse.Namespace) -> None:
         split=args.split,
         per_set=args.per_set,
         rng=rng,
+        max_skip=args.max_skip,
     )
 
     source = f"{OPENFAKE_CITATION}; config=core; split={args.split}"
@@ -207,7 +315,6 @@ def run(args: argparse.Namespace) -> None:
         samples=reals,
         eval_label="allow",
         images_dir=ALLOW_DIR / "images",
-        manifest_path=ALLOW_MANIFEST,
         id_suffix=f"core-{args.split}",
         source=source,
         start_index=allow_idx,
@@ -216,7 +323,6 @@ def run(args: argparse.Namespace) -> None:
         samples=fakes,
         eval_label="unallow",
         images_dir=UNALLOW_DIR / "images",
-        manifest_path=UNALLOW_MANIFEST,
         id_suffix=f"core-{args.split}",
         source=source,
         start_index=unallow_idx,
@@ -232,13 +338,13 @@ def run(args: argparse.Namespace) -> None:
             split="test",
             per_set=args.reddit_per_set,
             rng=rng,
+            max_skip=args.max_skip,
         )
         reddit_source = f"{OPENFAKE_CITATION}; config=reddit; split=test"
         allow_rows, allow_idx = write_samples(
             samples=reals,
             eval_label="allow",
             images_dir=ALLOW_DIR / "images",
-            manifest_path=ALLOW_MANIFEST,
             id_suffix="reddit-test",
             source=reddit_source,
             start_index=allow_idx,
@@ -247,7 +353,6 @@ def run(args: argparse.Namespace) -> None:
             samples=fakes,
             eval_label="unallow",
             images_dir=UNALLOW_DIR / "images",
-            manifest_path=UNALLOW_MANIFEST,
             id_suffix="reddit-test",
             source=reddit_source,
             start_index=unallow_idx,
@@ -267,34 +372,26 @@ def run(args: argparse.Namespace) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Sample OpenFake into TruthGuard eval sets.")
-    parser.add_argument(
-        "--per-set",
-        type=int,
-        default=100,
-        help="Number of real (allow) and fake (unallow) images from core config (default: 100).",
-    )
+    parser.add_argument("--per-set", type=int, default=100)
     parser.add_argument(
         "--split",
         default="validation",
         choices=["train", "validation", "test"],
-        help="OpenFake core split to stream (default: validation).",
     )
+    parser.add_argument("--reddit-per-set", type=int, default=0)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--clear", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
     parser.add_argument(
-        "--reddit-per-set",
+        "--max-skip",
         type=int,
-        default=0,
-        help="Additional per-class samples from reddit/test in-the-wild config (default: 0).",
-    )
-    parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility.")
-    parser.add_argument(
-        "--clear",
-        action="store_true",
-        help="Remove prior openfake-* images before downloading.",
+        default=5000,
+        help="Abort if more than this many corrupt rows are skipped (default: 5000).",
     )
     parser.add_argument(
-        "--dry-run",
+        "--no-hf-login-hint",
         action="store_true",
-        help="Print plan without downloading.",
+        help="Suppress HF_TOKEN reminder.",
     )
     args = parser.parse_args()
     run(args)
