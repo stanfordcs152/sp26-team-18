@@ -106,6 +106,7 @@ export default function UploadPage() {
 
     const analysisFormData = new FormData()
     analysisFormData.append("image", file)
+    analysisFormData.append("username", username.trim())
 
     const analysisResponse = await fetch("/api/analyze", {
       method: "POST",
@@ -115,7 +116,11 @@ export default function UploadPage() {
     const analysisData = await analysisResponse.json()
 
     if (!analysisResponse.ok || !analysisData.success) {
-      setError("Failed to analyze uploaded image.")
+      setError(
+        analysisResponse.status === 429 && analysisData.error
+          ? analysisData.error
+          : "Failed to analyze uploaded image."
+      )
       setSubmitting(false)
       setIsAnalyzing(false)
       return
