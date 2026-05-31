@@ -37,7 +37,7 @@ evals/
     setup_deepfake_eval_2024.py
     requirements.txt
   datasets/SOURCES.md
-  results/                  # run output (gitignored *.json)
+  results/                  # timestamped runs gitignored; see production-openfake-200.json
 ```
 
 ## 1. Install Python deps (one time)
@@ -103,7 +103,35 @@ npm run eval:setup-deepfake-eval -- --per-set 25
 
 Appends rows prefixed with `dfe2024-` (does not remove OpenFake samples).
 
-## 5. Validate and run classifiers
+## 5. Environment variables
+
+Add to **`.env.local`** at the repo root. The eval runner loads this file automatically (`tsx --env-file=.env.local`).
+
+### Free mode (`npm run eval:free`) — Claude LLM, no OpenAI/AWS
+
+```env
+ANTHROPIC_API_KEY=your-key-here
+EVAL_CLAUDE_TEXT_ONLY=1
+```
+
+Get a key: https://console.anthropic.com/settings/keys (new accounts get ~$5 free credit).
+
+`EVAL_CLAUDE_TEXT_ONLY=1` (default) sends **captions + metadata only** — cheap hosted LLM (~$0.25/1M tokens on Haiku). Set `EVAL_CLAUDE_TEXT_ONLY=0` to send the image (vision, costs more).
+
+Optional: `ANTHROPIC_MODEL` or `EVAL_CLAUDE_MODEL` (default `claude-haiku-4-5`), `EVAL_CLAUDE_DELAY_MS` (default `400`).
+
+### Paid mode (`npm run eval`) — OpenAI Vision + AWS Rekognition
+
+```env
+OPENAI_API_KEY=sk-proj-...
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+```
+
+Required for `llm`, `hybrid`, and `production` approaches. Rekognition has a **5MB per-image limit**; larger images skip celebrity hints but still run through GPT-4.1 Vision.
+
+## 6. Validate and run classifiers
 
 ### Does this satisfy the milestone’s three approaches?
 
@@ -115,46 +143,67 @@ The assignment asks for **three** detection strategies:
 | **LLM-as-classifier** (hosted LLM, allow/unallow + rationale) | **Claude** (`npm run eval:free`) or **`npm run eval`** (OpenAI Vision) | Yes |
 | **Hybrid** | `hybrid` — heuristic first, then Claude on uncertain cases | Yes |
 
-Add to **`.env.local`** (repo root):
+The fourth approach, **`production`**, benchmarks the exact upload pipeline (not a separate milestone requirement).
 
-```env
-ANTHROPIC_API_KEY=your-key-here
-EVAL_CLAUDE_TEXT_ONLY=1
-```
+### Commands
 
-Get a key: https://console.anthropic.com/settings/keys (new accounts get ~$5 free credit).
-
-`EVAL_CLAUDE_TEXT_ONLY=1` (default) sends **captions + metadata only** — cheap hosted LLM (~$0.25/1M tokens on Haiku). Set `EVAL_CLAUDE_TEXT_ONLY=0` to send the image (vision, costs more).
-
-### Free mode (`npm run eval:free`)
+**Validate manifests (no API calls):**
 
 ```bash
 npm run eval -- --dry-run
+```
+
+**Free mode** — runs `heuristic`, `llm`, and `hybrid` with Claude (see env vars above):
+
+```bash
 npm run eval:free -- --limit 5
 npm run eval:free
+npm run eval:free -- --approach hybrid
 ```
 
-| Approach | Free stack |
-|----------|------------|
-| `heuristic` | C2PA + filename + election keywords from manifest `notes` |
-| `llm` | Claude Haiku (hosted LLM, text or vision) |
-| `hybrid` | Heuristic first, then Claude on uncertain cases |
-
-### Paid mode (OpenAI + AWS)
-
-Uses the same approach names but calls production APIs (costs money):
+**Paid mode** — runs all four approaches (`heuristic`, `llm`, `hybrid`, `production`):
 
 ```bash
-npm run eval -- --dry-run
 npm run eval -- --limit 5
 npm run eval
 ```
 
-Requires `.env.local` with `OPENAI_API_KEY` and AWS credentials. This also satisfies the LLM requirement.
+**Production only** (skip heuristic / llm / hybrid):
 
-Results land in `evals/results/` and print a summary table (precision, recall, F1, confusion matrix, latency, estimated USD/1k).
+```bash
+npm run eval -- --approach production
+npm run eval:production
+```
 
-Tune thresholds in `evals/config.ts` before your final poster numbers.
+Useful flags: `--limit N` (per class), `--concurrency N` (default `2`; paid production runs often use `1`).
+
+Results land in `evals/results/<timestamp>-<approach>.json` and print a summary table (precision, recall, F1, confusion matrix, latency, estimated USD/1k). Tune thresholds in `evals/config.ts` before your final poster numbers.
+
+### Approach reference
+
+| ID | Free mode (`npm run eval:free`) | Paid mode (`npm run eval`) |
+|----|----------------------------------|----------------------------|
+| `heuristic` | C2PA + filename + keyword rules | C2PA + Rekognition + rule risk |
+| `llm` | Claude Haiku (hosted LLM) | OpenAI Vision |
+| `hybrid` | Heuristic + Claude | Heuristic + OpenAI on edge cases |
+| `production` | — (paid only) | **Exact upload pipeline** (`runAnalysisPipeline` + `shouldFlagAnalysis`) |
+
+Ground truth positive class = `unallow` (should flag).
+
+### Production benchmark (OpenFake, 200 images)
+
+Committed results: [`evals/results/production-openfake-200.json`](results/production-openfake-200.json)
+
+| Metric | Value |
+|--------|------:|
+| Precision | 1.000 |
+| Recall | 0.470 |
+| F1 | 0.639 |
+| TP / FP / TN / FN | 47 / 0 / 100 / 53 |
+| Median latency | ~3.4s |
+| Est. cost | ~$13 / 1k images |
+
+Production path: GPT-4.1 Vision → `calculateRisk` → flag on `HIGH`/`CRITICAL` risk or `possibleKnownManipulation`. Zero false positives on real images; misses are mostly photorealistic or non-political fakes the LLM judged as authentic.
 
 ## Committing images to git
 
@@ -171,27 +220,3 @@ The milestone asks for labeled examples in the repo. After setup:
 ```
 
 One JSON object per line. `path` is relative to the manifest file.
-
-## Three detection approaches (by mode)
-
-| ID | Free mode (`npm run eval:free`) | Paid mode (`npm run eval`) |
-|----|----------------------------------|----------------------------|
-| `heuristic` | C2PA + filename + keyword rules | C2PA + Rekognition + rule risk |
-| `llm` | Claude Haiku (hosted LLM) | OpenAI Vision |
-| `hybrid` | Heuristic + Claude | Heuristic + OpenAI on edge cases |
-| `production` | — (paid only) | **Exact upload pipeline** (`runAnalysisPipeline` + upload flag rule) |
-
-Ground truth positive class = `unallow` (should flag).
-
-### Production pipeline eval
-
-To benchmark what users actually hit on upload (GPT-4.1 Vision → `calculateRisk` → HIGH/CRITICAL or known-manipulation flag):
-
-```bash
-npm run eval -- --approach production --limit 5
-npm run eval -- --approach production
-```
-
-Requires `OPENAI_API_KEY` and AWS credentials in `.env.local`. Included automatically in `npm run eval` (paid `all`), but not in `npm run eval:free`.
-
-Final production numbers on OpenFake (200 images) are saved at [`evals/results/production-openfake-200.json`](results/production-openfake-200.json).
