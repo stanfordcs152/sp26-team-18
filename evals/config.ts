@@ -13,27 +13,16 @@ export const EVAL_CONFIG = {
   /** Risk levels treated as a positive (flagged) prediction. */
   flagRiskLevels: ["HIGH", "CRITICAL"] as const,
 
-  /** Free mode: local Ollama vision (https://ollama.com). */
-  ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434",
-  /** moondream is lighter than llava on consumer GPUs; override with OLLAMA_VISION_MODEL. */
-  ollamaVisionModel: process.env.OLLAMA_VISION_MODEL ?? "moondream",
-  ollamaMaxImageSide: Number(process.env.OLLAMA_MAX_IMAGE_SIDE ?? "512"),
-  ollamaMaxRetries: Number(process.env.OLLAMA_MAX_RETRIES ?? "3"),
-  ollamaRequestTimeoutMs: Number(process.env.OLLAMA_REQUEST_TIMEOUT_MS ?? "120000"),
-
   /**
-   * Free LLM provider for llm + hybrid approaches:
-   * - rules: OpenFake metadata + caption keywords (default — no installs)
-   * - caption: text-only Ollama on manifest prompts
-   * - ollama-vision: local vision (needs GPU)
-   * - gemini: Google AI Studio free tier (GEMINI_API_KEY)
+   * Free-mode text/LLM provider for llm + hybrid approaches:
+   * - rules: OpenFake metadata + caption keywords (default, $0, not a hosted LLM)
+   * - gemini: Google AI Studio free tier (hosted LLM — satisfies milestone LLM row)
    */
   freeLlmProvider: (process.env.EVAL_LLM_PROVIDER ?? "rules") as FreeLlmProvider,
-  ollamaTextModel: process.env.OLLAMA_TEXT_MODEL ?? "phi3:mini",
   geminiModel: process.env.GEMINI_MODEL ?? "gemini-2.0-flash",
 } as const;
 
-export type FreeLlmProvider = "rules" | "caption" | "ollama-vision" | "gemini";
+export type FreeLlmProvider = "rules" | "gemini";
 
 export function isFreeEvalMode(): boolean {
   return (

@@ -1,6 +1,6 @@
 /**
  * Zero-dependency text classifier using OpenFake manifest metadata.
- * Uses generator/source (model=...) and caption keywords — no Ollama or API keys.
+ * Uses generator/source (model=...) and caption keywords — no API keys.
  */
 import type { VisionAnalysisResult } from "./vision-result";
 import { extractCaptionFromNotes } from "./vision-result";

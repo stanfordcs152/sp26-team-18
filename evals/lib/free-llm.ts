@@ -1,11 +1,9 @@
 /**
- * Routes free LLM classification to the configured provider.
- * Default: rules — no Ollama or API keys (OpenFake metadata + captions).
+ * Free LLM / text classification for llm + hybrid approaches.
+ * Default: rules (OpenFake metadata). Optional: Gemini free tier.
  */
 import { EVAL_CONFIG, type FreeLlmProvider } from "../config";
-import { classifyCaptionOllama } from "./caption-llm";
 import { classifyCaptionRules } from "./caption-rules";
-import { extractImageTextOllama } from "./ollama-vision";
 import type { VisionAnalysisResult } from "./vision-result";
 
 export async function classifyWithFreeLlm(
@@ -19,14 +17,6 @@ export async function classifyWithFreeLlm(
     case "rules": {
       const vision = classifyCaptionRules(manifestNotes, filename);
       return { vision, provider, model: "openfake-metadata-rules" };
-    }
-    case "caption": {
-      const vision = await classifyCaptionOllama(manifestNotes, filename);
-      return { vision, provider, model: EVAL_CONFIG.ollamaTextModel };
-    }
-    case "ollama-vision": {
-      const vision = await extractImageTextOllama(imageBuffer);
-      return { vision, provider, model: EVAL_CONFIG.ollamaVisionModel };
     }
     case "gemini": {
       const vision = await classifyGemini(imageBuffer, filename, manifestNotes);
@@ -58,7 +48,7 @@ async function classifyGemini(
         {
           parts: [
             {
-              text: `Analyze this image for AI-generated political disinformation. Filename: ${filename}. Dataset notes: ${manifestNotes ?? ""}. Return ONLY JSON with fields: visibleText, publicFigures, publicFigureConfidence, appearsAIGenerated, syntheticMediaConfidence, politicalContext, politicalContextConfidence, possibleKnownManipulation, misinformationRisk (LOW|MEDIUM|HIGH|CRITICAL), reasoning.`,
+              text: `You are a Trust & Safety classifier for political image disinformation. Analyze the image and metadata. Filename: ${filename}. Dataset notes: ${manifestNotes ?? ""}. Return ONLY JSON with fields: visibleText, publicFigures, publicFigureConfidence, appearsAIGenerated, syntheticMediaConfidence, politicalContext, politicalContextConfidence, possibleKnownManipulation, misinformationRisk (LOW|MEDIUM|HIGH|CRITICAL), reasoning.`,
             },
             { inline_data: { mime_type: "image/jpeg", data: base64 } },
           ],
@@ -82,12 +72,8 @@ async function classifyGemini(
 export function describeFreeLlmProvider(): string {
   switch (EVAL_CONFIG.freeLlmProvider) {
     case "rules":
-      return "OpenFake metadata + caption rules (no Ollama, no API keys)";
-    case "caption":
-      return `caption LLM via Ollama text (${EVAL_CONFIG.ollamaTextModel})`;
-    case "ollama-vision":
-      return `Ollama vision (${EVAL_CONFIG.ollamaVisionModel})`;
+      return "OpenFake metadata + caption rules (text classifier, not a hosted LLM)";
     case "gemini":
-      return `Gemini free tier (${EVAL_CONFIG.geminiModel})`;
+      return `Gemini hosted LLM (${EVAL_CONFIG.geminiModel})`;
   }
 }

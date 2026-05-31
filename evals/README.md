@@ -105,9 +105,30 @@ Appends rows prefixed with `dfe2024-` (does not remove OpenFake samples).
 
 ## 5. Validate and run classifiers
 
-### Free mode (recommended — $0, no Ollama required)
+### Does this satisfy the milestone’s three approaches?
 
-**Default:** metadata + caption **rules** classifier on OpenFake manifest fields (`model=`, `prompt=`). No installs, no API keys.
+The assignment asks for **three** detection strategies:
+
+| Milestone requirement | Your implementation | Satisfied? |
+|----------------------|---------------------|------------|
+| **Traditional / cheap classifier** | `heuristic` — C2PA + filename + keyword rules | Yes |
+| **LLM-as-classifier** (hosted LLM, allow/unallow + rationale) | **`gemini`** (free Google AI Studio) or **`npm run eval`** (OpenAI Vision in paid mode) | Yes, if you use Gemini or OpenAI for the `llm` row |
+| **Hybrid** | `hybrid` — heuristic first, then text/LLM on uncertain cases | Yes |
+
+**Important:** the default **`rules`** provider (`npm run eval:free` with no env vars) is **not** a hosted LLM. It is a **metadata + caption text classifier** (reads OpenFake `model=` and `prompt=` fields). That is useful for development and as an extra baseline, but **for the poster’s “LLM” row you should run with Gemini** (free) or OpenAI (paid):
+
+```powershell
+# Recommended for milestone LLM row ($0 with free tier)
+$env:EVAL_LLM_PROVIDER = "gemini"
+$env:GEMINI_API_KEY = "your-key-from-aistudio"
+npm run eval:free
+```
+
+Get a free key: https://aistudio.google.com/apikey
+
+### Free mode ($0)
+
+**Quick dev run** (rules only — not the LLM row for the report):
 
 ```bash
 npm run eval -- --dry-run
@@ -115,31 +136,20 @@ npm run eval:free -- --limit 5
 npm run eval:free
 ```
 
-**LLM provider** (`EVAL_LLM_PROVIDER`, default `rules`):
-
-| Value | Requirements |
-|-------|----------------|
-| `rules` | **Nothing.** Uses OpenFake generator/source metadata + caption keywords |
-| `gemini` | Free [Google AI Studio](https://aistudio.google.com/apikey) key → `$env:GEMINI_API_KEY="..."` |
-| `caption` | Ollama + text model, e.g. `ollama pull phi3:mini` |
-| `ollama-vision` | Ollama + vision model (often fails on laptops — GGML errors) |
-
-```powershell
-# Optional: real cloud LLM with vision (free tier, no credit card usually)
-$env:EVAL_LLM_PROVIDER = "gemini"
-$env:GEMINI_API_KEY = "your-key-from-aistudio"
-npm run eval:free -- --limit 5 --approach llm
-```
-
-For your poster, label the default `llm` approach as **"metadata + caption text classifier"** (traditional NLP-style) and `hybrid` as heuristic + that text layer.
+| `EVAL_LLM_PROVIDER` | Use for |
+|---------------------|---------|
+| `rules` (default) | Fast local eval, no API keys — **traditional text classifier**, not LLM |
+| `gemini` | **Hosted LLM** for llm + hybrid rows (free tier) |
 
 | Approach | Free stack |
 |----------|------------|
 | `heuristic` | C2PA + filename + election keywords from manifest `notes` |
-| `llm` | Metadata/caption rules (default) or Gemini/Ollama if configured |
-| `hybrid` | Heuristic first, text classifier on uncertain cases |
+| `llm` | Gemini (if configured) or metadata rules (default) |
+| `hybrid` | Heuristic first, then Gemini or rules on uncertain cases |
 
 ### Paid mode (OpenAI + AWS)
+
+Uses the same approach names but calls production APIs (costs money):
 
 ```bash
 npm run eval -- --dry-run
@@ -147,7 +157,7 @@ npm run eval -- --limit 5
 npm run eval
 ```
 
-Requires `.env.local` with `OPENAI_API_KEY` and AWS credentials.
+Requires `.env.local` with `OPENAI_API_KEY` and AWS credentials. This also satisfies the LLM requirement.
 
 Results land in `evals/results/` and print a summary table (precision, recall, F1, confusion matrix, latency, estimated USD/1k).
 
@@ -169,12 +179,12 @@ The milestone asks for labeled examples in the repo. After setup:
 
 One JSON object per line. `path` is relative to the manifest file.
 
-## Three detection approaches
+## Three detection approaches (by mode)
 
-| ID | Stack |
-|----|--------|
-| `heuristic` | C2PA + `detectAi` + AWS Rekognition + `calculateRisk` |
-| `llm` | OpenAI Vision (`extractImageText`) |
-| `hybrid` | Heuristic fast-path; LLM on uncertain / celebrity / invalid C2PA |
+| ID | Free mode (`npm run eval:free`) | Paid mode (`npm run eval`) |
+|----|----------------------------------|----------------------------|
+| `heuristic` | C2PA + filename + keyword rules | C2PA + Rekognition + rule risk |
+| `llm` | Gemini (hosted LLM) or rules (dev only) | OpenAI Vision |
+| `hybrid` | Heuristic + Gemini or rules | Heuristic + OpenAI on edge cases |
 
 Ground truth positive class = `unallow` (should flag).

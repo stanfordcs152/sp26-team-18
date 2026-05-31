@@ -4,7 +4,7 @@
  *   npm run eval -- --dry-run
  *   npm run eval -- --limit 5
  *   npm run eval -- --approach hybrid
- *   npm run eval:free              # no OpenAI / AWS charges (local Ollama for vision)
+ *   npm run eval:free              # $0 eval (rules + heuristic; optional Gemini for LLM row)
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -202,37 +202,27 @@ async function main() {
     console.log(`    LLM: ${describeFreeLlmProvider()}`);
     console.log("    Heuristic: C2PA + filename + prompt keywords only\n");
 
-    const needsOllama =
-      (opts.approach === "all" ||
-        opts.approach === "llm" ||
-        opts.approach === "hybrid") &&
-      (EVAL_CONFIG.freeLlmProvider === "caption" ||
-        EVAL_CONFIG.freeLlmProvider === "ollama-vision");
-
-    if (needsOllama) {
-      const { checkOllamaAvailable } = await import("./lib/ollama-vision");
-      const ok = await checkOllamaAvailable();
-      if (!ok) {
-        const model =
-          EVAL_CONFIG.freeLlmProvider === "caption"
-            ? EVAL_CONFIG.ollamaTextModel
-            : EVAL_CONFIG.ollamaVisionModel;
-        console.error(
-          "Ollama is not reachable. Install from https://ollama.com then run:\n" +
-            `  ollama pull ${model}\n` +
-            "  ollama serve   (if not already running)"
-        );
-        process.exit(1);
-      }
-    }
-
     if (
       EVAL_CONFIG.freeLlmProvider === "gemini" &&
       !process.env.GEMINI_API_KEY &&
       (opts.approach === "all" || opts.approach === "llm" || opts.approach === "hybrid")
     ) {
-      console.error("GEMINI_API_KEY is required for EVAL_LLM_PROVIDER=gemini");
+      console.error(
+        "GEMINI_API_KEY is required for EVAL_LLM_PROVIDER=gemini.\n" +
+          "Get a free key at https://aistudio.google.com/apikey\n" +
+          "Or use default rules provider: npm run eval:free (no key needed)"
+      );
       process.exit(1);
+    }
+
+    if (
+      EVAL_CONFIG.freeLlmProvider === "rules" &&
+      (opts.approach === "llm" || opts.approach === "all")
+    ) {
+      console.warn(
+        "Note: EVAL_LLM_PROVIDER=rules is a metadata text classifier, not a hosted LLM.\n" +
+          "      For the milestone LLM row, set GEMINI_API_KEY and EVAL_LLM_PROVIDER=gemini.\n"
+      );
     }
   } else if (!opts.dryRun && !process.env.OPENAI_API_KEY) {
     console.warn(
