@@ -14,6 +14,8 @@ credentials/
 /coverage
 /evals/results/*.json
 /evals/.cache/
+**/__pycache__/
+*.pyc
 
 # next.js
 /.next/
