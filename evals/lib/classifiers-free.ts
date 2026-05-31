@@ -8,7 +8,7 @@
 import { EVAL_CONFIG } from "../config";
 import { detectAi } from "@/lib/ai-detection";
 import { calculateRisk, type RiskLevel } from "@/lib/analyzers/risk";
-import { checkC2pa } from "@/lib/c2pa";
+import { checkC2pa } from "./c2pa-check";
 import {
   extractImageTextOllama,
   type VisionAnalysisResult,

@@ -3,7 +3,7 @@ import { detectAi } from "@/lib/ai-detection";
 import { detectCelebrities } from "@/lib/analyzers/celebrity";
 import { extractImageText } from "@/lib/analyzers/ocr";
 import { calculateRisk, type RiskLevel } from "@/lib/analyzers/risk";
-import { checkC2pa } from "@/lib/c2pa";
+import { checkC2pa } from "./c2pa-check";
 import type { ClassifierPrediction } from "./types";
 
 function isFlagRiskLevel(level: RiskLevel) {
