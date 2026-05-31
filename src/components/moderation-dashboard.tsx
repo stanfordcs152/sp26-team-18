@@ -1,44 +1,46 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { AlertTriangle, BarChart3, CheckCircle2, Clock3 } from "lucide-react"
+import {
+  AlertCircle,
+  AlertTriangle,
+  BarChart3,
+  CheckCircle2,
+  Clock3,
+} from "lucide-react"
 import { ModerationStatsBar } from "@/components/moderation-stats"
 import { ModerationQueueLive } from "@/components/moderation-queue-live"
-import type { ModerationStats } from "@/lib/types"
+import { ModerationQueue } from "@/components/moderation-queue"
+import { mockModerationQueue } from "@/lib/mock-data"
+import type { ModerationQueueData } from "@/lib/types"
 
-const EMPTY_STATS: ModerationStats = {
-  pending: 0,
-  reviewedToday: 0,
-  removedToday: 0,
-  escalated: 0,
-  avgReviewTime: "—",
+interface Props {
+  // True when Supabase is configured (real auth + data). When false we render
+  // the mock-data dashboard so the demo still works without env vars.
+  configured: boolean
+  // Queue + stats loaded server-side as the signed-in moderator. Null when
+  // unconfigured, or when the load failed (RLS / missing migration).
+  data: ModerationQueueData | null
 }
 
-export interface DashboardCounters {
-  pending: number
-  highRisk: number
-  approvedToday: number
-  escalated: number
-}
+export function ModerationDashboard({ configured, data }: Props) {
+  // Unconfigured, or a load failure: fall back to the mock priority queue.
+  if (!configured || !data) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+          <AlertCircle className="size-3.5 mt-0.5 shrink-0" />
+          <span>
+            {configured
+              ? "Couldn't load live reports — showing mock data. Check that the Supabase migrations have been applied."
+              : "Supabase is not configured. Showing mock data; reports submitted from the feed won't appear here until env vars are set."}
+          </span>
+        </div>
+        <ModerationQueue items={mockModerationQueue} />
+      </div>
+    )
+  }
 
-const EMPTY_COUNTERS: DashboardCounters = {
-  pending: 0,
-  highRisk: 0,
-  approvedToday: 0,
-  escalated: 0,
-}
-
-export function ModerationDashboard() {
-  const [stats, setStats] = useState<ModerationStats>(EMPTY_STATS)
-  const [counters, setCounters] = useState<DashboardCounters>(EMPTY_COUNTERS)
-
-  const handleStats = useCallback(
-    (next: ModerationStats, nextCounters: DashboardCounters) => {
-      setStats(next)
-      setCounters(nextCounters)
-    },
-    []
-  )
+  const { stats, counters } = data
 
   return (
     <>
@@ -97,7 +99,7 @@ export function ModerationDashboard() {
             {counters.pending} item{counters.pending === 1 ? "" : "s"} pending
           </span>
         </div>
-        <ModerationQueueLive onStats={handleStats} />
+        <ModerationQueueLive items={data.items} />
       </section>
     </>
   )

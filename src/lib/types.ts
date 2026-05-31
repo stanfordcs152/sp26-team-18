@@ -143,3 +143,41 @@ export interface ModerationStats {
   escalated: number
   avgReviewTime: string
 }
+
+// Phase 6: a single post in the live moderation queue, grouping every open
+// report against it. Built server-side in moderation-queue-data.ts and rendered
+// by ModerationCardLive.
+export interface LiveQueueItem {
+  groupKey: string // post id
+  post: Post
+  postStatus: PostStatus
+  reports: {
+    id: string
+    reason: ReportReason
+    details: string | null
+    reporterUsername: string
+    createdAt: string
+  }[]
+  newestReportAt: string
+  oldestReportAt: string
+  // Phase 5: AI image-classifier result, persisted on `posts.analysis`.
+  // Null on legacy posts uploaded before migration 0004.
+  analysis: PostAnalysis | null
+  riskScore: number | null
+  riskLevel: RiskLevel | null
+}
+
+// Top-level counters shown on the moderation dashboard tiles.
+export interface DashboardCounters {
+  pending: number
+  highRisk: number
+  approvedToday: number
+  escalated: number
+}
+
+// Everything the dashboard needs from one server-side queue load.
+export interface ModerationQueueData {
+  items: LiveQueueItem[]
+  stats: ModerationStats
+  counters: DashboardCounters
+}

@@ -1,14 +1,39 @@
 import Link from "next/link"
+import { redirect } from "next/navigation"
 import { Shield, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModerationDashboard } from "@/components/moderation-dashboard"
+import {
+  getModeratorProfile,
+  getSupabaseEnv,
+  isModeratorRole,
+} from "@/lib/moderator-auth"
+import { loadModerationQueue } from "@/lib/moderation-queue-data"
+import type { ModerationQueueData } from "@/lib/types"
 
 export const metadata = {
   title: "Moderation Dashboard - TruthGuard",
   description: "Review and moderate flagged AI-generated content",
 }
 
-export default function ModerationPage() {
+// Read fresh per request: the queue depends on the moderator's session cookie.
+export const dynamic = "force-dynamic"
+
+export default async function ModerationPage() {
+  // The proxy already bounced anonymous requests to login (when Supabase is
+  // configured). Here we verify the moderator role for real — the Edge proxy
+  // can't do a DB lookup — and RLS is the final enforcement on the data.
+  const configured = Boolean(getSupabaseEnv())
+  let data: ModerationQueueData | null = null
+
+  if (configured) {
+    const profile = await getModeratorProfile()
+    if (!profile || !isModeratorRole(profile.role)) {
+      redirect("/moderator-login")
+    }
+    data = await loadModerationQueue()
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -42,7 +67,7 @@ export default function ModerationPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-4xl">
-        <ModerationDashboard />
+        <ModerationDashboard configured={configured} data={data} />
       </main>
     </div>
   )

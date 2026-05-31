@@ -1,56 +1,79 @@
 import { NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 import {
   MODERATOR_COOKIE,
-  SESSION_TTL_MS,
-  signSession,
-} from "@/lib/moderator-session"
+  getSupabaseEnv,
+  isModeratorRole,
+  type ModeratorRole,
+} from "@/lib/moderator-auth"
 
-// Constant-time string compare so a wrong password doesn't leak length / prefix
-// info via timing.
-function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false
-  let mismatch = 0
-  for (let i = 0; i < a.length; i++) {
-    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i)
-  }
-  return mismatch === 0
-}
-
+// Authenticates a moderator against Supabase Auth and, if their profile role is
+// moderator/admin, stores the access token in an httpOnly session cookie. The
+// moderation UI and RLS both key off that token.
 export async function POST(request: Request) {
-  const password = process.env.MODERATOR_PASSWORD
-  const secret = process.env.MODERATOR_SESSION_SECRET
-
-  if (!password || !secret) {
+  const env = getSupabaseEnv()
+  if (!env) {
     return NextResponse.json(
       {
         error:
-          "Moderator gate not configured. Set MODERATOR_PASSWORD and MODERATOR_SESSION_SECRET.",
+          "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
       },
       { status: 500 }
     )
   }
 
   const body = (await request.json().catch(() => null)) as
-    | { password?: string }
+    | { email?: string; password?: string }
     | null
-  const submitted = body?.password ?? ""
+  const email = body?.email?.trim()
+  const password = body?.password
 
-  if (!timingSafeEqual(submitted, password)) {
-    return NextResponse.json({ error: "Invalid password" }, { status: 401 })
+  if (!email || !password) {
+    return NextResponse.json(
+      { error: "Email and password are required." },
+      { status: 400 }
+    )
   }
 
-  const expiry = Date.now() + SESSION_TTL_MS
-  const token = await signSession(secret, expiry)
+  const supabase = createClient(env.url, env.anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+  if (error || !data.session) {
+    return NextResponse.json(
+      { error: "Invalid email or password." },
+      { status: 401 }
+    )
+  }
+
+  // signInWithPassword set the session on this client, so the profiles read
+  // runs as the new user and RLS ("select own") returns their row.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .single()
+
+  if (!profile || !isModeratorRole(profile.role as ModeratorRole)) {
+    return NextResponse.json(
+      { error: "This account is not authorized for moderation." },
+      { status: 403 }
+    )
+  }
 
   const response = NextResponse.json({ ok: true })
   response.cookies.set({
     name: MODERATOR_COOKIE,
-    value: token,
+    value: data.session.access_token,
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: Math.floor(SESSION_TTL_MS / 1000),
+    maxAge: data.session.expires_in,
   })
   return response
 }
