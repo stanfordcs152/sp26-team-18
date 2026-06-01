@@ -2,15 +2,14 @@
  * Milestone 3 classifier evaluation runner.
  *
  *   npm run eval -- --dry-run
- *   npm run eval -- --limit 5
- *   npm run eval -- --approach hybrid
- *   npm run eval -- --approach production   # exact upload pipeline
- *   npm run eval:free              # eval with Claude LLM (no OpenAI/AWS)
+ *   npm run eval -- --approach ml_hybrid
+ *   npm run eval:production
+ *   npm run eval:free
  */
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { isFreeEvalMode } from "./config";
+import { EVAL_CONFIG, isFreeEvalMode } from "./config";
 import { describeFreeLlmProvider } from "./lib/free-llm";
 import { estimateCostUsdPer1000 } from "./lib/cost";
 import { resolveImagePath, validateManifests } from "./lib/manifest";
@@ -31,6 +30,12 @@ import type {
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ALLOW_MANIFEST = path.join(REPO_ROOT, "evals/allow/manifest.jsonl");
 const UNALLOW_MANIFEST = path.join(REPO_ROOT, "evals/unallow/manifest.jsonl");
+const RESULTS_DIR = path.join(REPO_ROOT, "evals/results");
+
+const MANIFEST_PATH_BY_LABEL = {
+  allow: ALLOW_MANIFEST,
+  unallow: UNALLOW_MANIFEST,
+} as const;
 
 function parseArgs(argv: string[]) {
   const opts = {
@@ -56,7 +61,8 @@ function parseArgs(argv: string[]) {
 type ClassifyFn = (
   buf: Buffer,
   filename: string,
-  manifestNotes?: string
+  manifestNotes?: string,
+  rowId?: string
 ) => Promise<{
   flagged: boolean;
   latencyMs: number;
@@ -107,16 +113,19 @@ function selectedApproaches(
 ): ApproachId[] {
   if (approach === "all") {
     return freeMode
-      ? ["heuristic", "llm", "hybrid"]
-      : ["heuristic", "llm", "hybrid", "production"];
+      ? ["heuristic", "ml", "ml_hybrid", "llm", "hybrid"]
+      : ["heuristic", "ml", "ml_hybrid", "llm", "hybrid", "production"];
   }
   return [approach];
+}
+
+function isMlHoldoutApproach(approach: ApproachId) {
+  return approach === "ml" || approach === "ml_hybrid";
 }
 
 async function runApproach(
   approach: ApproachId,
   examples: ManifestRow[],
-  manifestPathByLabel: Record<"allow" | "unallow", string>,
   concurrency: number,
   classify: ClassifyFn,
   freeMode: boolean
@@ -128,11 +137,11 @@ async function runApproach(
     while (index < examples.length) {
       const i = index++;
       const row = examples[i];
-      const manifestPath = manifestPathByLabel[row.label];
+      const manifestPath = MANIFEST_PATH_BY_LABEL[row.label];
       const absPath = resolveImagePath(REPO_ROOT, manifestPath, row.path);
       const buf = await readFile(absPath);
       const filename = path.basename(absPath);
-      const prediction = await classify(buf, filename, row.notes);
+      const prediction = await classify(buf, filename, row.notes, row.id);
       results.push({ id: row.id, label: row.label, path: row.path, prediction });
     }
   }
@@ -147,15 +156,12 @@ async function runApproach(
   const predicted = results.map((r) => r.prediction.flagged);
   const confusion = confusionMatrix(groundTruth, predicted);
   const latencies = results.map((r) => r.prediction.latencyMs);
-
-  const allowCount = results.filter((r) => r.label === "allow").length;
-  const unallowCount = results.filter((r) => r.label === "unallow").length;
   const llmCalls = results.filter((r) => r.prediction.usedLlm).length;
 
   const stats: ApproachRunStats = {
     approach,
-    allowCount,
-    unallowCount,
+    allowCount: results.filter((r) => r.label === "allow").length,
+    unallowCount: results.filter((r) => r.label === "unallow").length,
     precision: precision(confusion),
     recall: recall(confusion),
     f1: f1Score(confusion),
@@ -163,16 +169,71 @@ async function runApproach(
     latencyMs: latencyStats(latencies),
     costUsdPer1000: estimateCostUsdPer1000(
       approach,
-      {
-        totalExamples: results.length,
-        llmCalls,
-      },
+      { totalExamples: results.length, llmCalls },
       freeMode
     ),
     llmCalls,
   };
 
   return { results, stats };
+}
+
+async function writeApproachResult(
+  approach: ApproachId,
+  payload: Record<string, unknown>
+) {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  await mkdir(RESULTS_DIR, { recursive: true });
+  const outFile = path.join(RESULTS_DIR, `${timestamp}-${approach}.json`);
+  await writeFile(outFile, JSON.stringify(payload, null, 2), "utf8");
+  console.log(`Wrote ${path.relative(REPO_ROOT, outFile)}`);
+}
+
+async function prepareMlHoldout(all: ManifestRow[]) {
+  const {
+    buildMlClassifyFn,
+    buildMlHybridClassifyFn,
+    loadMlTestSplit,
+    mlModelPath,
+    mlSplitPath,
+  } = await import("./lib/ml-classifier");
+
+  try {
+    await access(mlModelPath());
+  } catch {
+    console.error(
+      "Trained ML model not found. Run first:\n  npm run eval:train-ml"
+    );
+    process.exit(1);
+  }
+  try {
+    await access(mlSplitPath());
+  } catch {
+    console.error(
+      "ML split file not found. Re-run training:\n  npm run eval:train-ml"
+    );
+    process.exit(1);
+  }
+
+  const split = await loadMlTestSplit();
+  const testIds = new Set(split.testIds);
+  const examples = all.filter((row) => testIds.has(row.id));
+
+  if (examples.length === 0) {
+    console.error("No examples match the ML test split.");
+    process.exit(1);
+  }
+
+  const imagePathById = new Map<string, string>();
+  for (const row of examples) {
+    const manifestPath = MANIFEST_PATH_BY_LABEL[row.label];
+    imagePathById.set(
+      row.id,
+      resolveImagePath(REPO_ROOT, manifestPath, row.path)
+    );
+  }
+
+  return { split, examples, imagePathById, buildMlClassifyFn, buildMlHybridClassifyFn };
 }
 
 function printSummaryTable(rows: ApproachRunStats[]) {
@@ -223,77 +284,115 @@ async function main() {
 
   if (opts.dryRun) {
     console.log("\nDry run — manifests valid, no API calls.");
+    return;
   }
 
-  if (!opts.dryRun && freeMode) {
+  if (freeMode) {
     console.log("\n*** FREE eval mode — Claude LLM, no OpenAI or AWS charges ***");
     console.log(`    LLM: ${describeFreeLlmProvider()}`);
     console.log("    Heuristic: C2PA + filename + prompt keywords only\n");
 
-    if (
-      !process.env.ANTHROPIC_API_KEY &&
-      (opts.approach === "all" || opts.approach === "llm" || opts.approach === "hybrid")
-    ) {
+    const needsClaude =
+      opts.approach === "all" ||
+      opts.approach === "llm" ||
+      opts.approach === "hybrid" ||
+      opts.approach === "ml_hybrid";
+    if (!process.env.ANTHROPIC_API_KEY && needsClaude) {
       console.error(
         "ANTHROPIC_API_KEY is required for npm run eval:free.\n" +
-          "Get a key at https://console.anthropic.com/settings/keys\n" +
-          "New accounts include free credits (~$5)."
+          "Get a key at https://console.anthropic.com/settings/keys"
       );
       process.exit(1);
     }
-  } else if (!opts.dryRun && !process.env.OPENAI_API_KEY) {
+  } else if (!process.env.OPENAI_API_KEY) {
     const needsOpenAi =
       opts.approach === "all" ||
       opts.approach === "llm" ||
       opts.approach === "hybrid" ||
+      opts.approach === "ml_hybrid" ||
       opts.approach === "production";
     if (needsOpenAi) {
       console.warn(
-        "OPENAI_API_KEY is not set; llm, hybrid, and production will fail. Use: npm run eval:free"
+        "OPENAI_API_KEY is not set; llm, hybrid, ml_hybrid, and production will fail. Use: npm run eval:free"
       );
     }
   }
 
-  if (opts.dryRun) {
-    return;
-  }
-
   const selected = selectedApproaches(opts.approach, freeMode);
-
-  const manifestPathByLabel = {
-    allow: ALLOW_MANIFEST,
-    unallow: UNALLOW_MANIFEST,
-  } as const;
-
   const summary: ApproachRunStats[] = [];
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 
   for (const approach of selected) {
+    if (isMlHoldoutApproach(approach)) {
+      const { split, examples, imagePathById, buildMlClassifyFn, buildMlHybridClassifyFn } =
+        await prepareMlHoldout(all);
+
+      console.log(
+        `\nRunning approach: ${approach} (${examples.length} held-out test images, trained on ${split.trainCount})...`
+      );
+
+      let classify: ClassifyFn;
+      let extraStats: Record<string, unknown> = { mlSplit: split };
+
+      if (approach === "ml") {
+        classify = await buildMlClassifyFn(examples, imagePathById);
+      } else {
+        const llmClassifyFn = freeMode
+          ? (await import("./lib/classifiers-free")).classifyLlmFree
+          : async (buf: Buffer, _filename: string, _notes?: string) => {
+              const { classifyLlm } = await import("./lib/classifiers");
+              return classifyLlm(buf);
+            };
+
+        classify = await buildMlHybridClassifyFn(
+          examples,
+          imagePathById,
+          llmClassifyFn,
+          {
+            uncertainLow: EVAL_CONFIG.mlUncertainLow,
+            uncertainHigh: EVAL_CONFIG.mlUncertainHigh,
+            decisionThreshold: EVAL_CONFIG.mlDecisionThreshold,
+          }
+        );
+        extraStats = {
+          ...extraStats,
+          uncertainBand: [
+            EVAL_CONFIG.mlUncertainLow,
+            EVAL_CONFIG.mlUncertainHigh,
+          ],
+        };
+      }
+
+      const { results, stats } = await runApproach(
+        approach,
+        examples,
+        opts.concurrency,
+        classify,
+        freeMode
+      );
+      summary.push(stats);
+      await writeApproachResult(approach, {
+        generatedAt: new Date().toISOString(),
+        stats: { ...stats, ...extraStats },
+        results,
+      });
+      continue;
+    }
+
     console.log(`\nRunning approach: ${approach} (${all.length} images)...`);
     const classify = await loadApproach(approach, freeMode);
     const { results, stats } = await runApproach(
       approach,
       all,
-      manifestPathByLabel,
       opts.concurrency,
       classify,
       freeMode
     );
     summary.push(stats);
-
-    const outDir = path.join(REPO_ROOT, "evals/results");
-    const outFile = path.join(outDir, `${timestamp}-${approach}.json`);
-    await mkdir(outDir, { recursive: true });
-    await writeFile(
-      outFile,
-      JSON.stringify(
-        { generatedAt: new Date().toISOString(), stats, results },
-        null,
-        2
-      ),
-      "utf8"
-    );
-    console.log(`Wrote ${path.relative(REPO_ROOT, outFile)}`);
+    await writeApproachResult(approach, {
+      generatedAt: new Date().toISOString(),
+      stats,
+      results,
+    });
   }
 
   printSummaryTable(summary);

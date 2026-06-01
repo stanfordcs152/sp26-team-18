@@ -13,8 +13,17 @@ credentials/
 # testing
 /coverage
 /evals/results/*.json
+!/evals/results/openfake-benchmark.json
+!/evals/results/heuristic-openfake-200.json
+!/evals/results/llm-openfake-200.json
+!/evals/results/hybrid-openfake-200.json
 !/evals/results/production-openfake-200.json
+!/evals/results/ml-openfake-holdout-40.json
+!/evals/results/ml-hybrid-openfake-holdout-40.json
 /evals/.cache/
+/evals/models/**/*.pt
+!/evals/models/**/training-report.json
+!/evals/models/**/split.json
 **/__pycache__/
 *.pyc
 

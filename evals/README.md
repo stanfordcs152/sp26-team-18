@@ -1,222 +1,116 @@
 # Classifier evaluation (Milestone 3 — Part 2)
 
-TruthGuard evaluates **AI-generated political disinformation in images**. All milestone assets live under `evals/` on branch `eval-classifier`.
+TruthGuard evaluates **AI-generated political disinformation in images**. Eval assets live under `evals/`.
 
-## Dataset strategy
+## Dataset
 
-| Source | Role | Political focus | Access |
-|--------|------|-----------------|--------|
-| **[OpenFake](https://huggingface.co/datasets/ComplexDataLab/OpenFake)** | **Primary** — allow + unallow | Built for politically salient real vs synthetic | Hugging Face, open |
-| **[Deepfake-Eval-2024](https://huggingface.co/datasets/nuriachandra/Deepfake-Eval-2024)** | Optional supplement | In-the-wild 2024 social deepfakes | HF gated |
-| FaceForensics++ / Celeb-DF | **Not used** | Celebrity face-swaps, not political memes/news | — |
+| Source | Role |
+|--------|------|
+| **[OpenFake](https://huggingface.co/datasets/ComplexDataLab/OpenFake)** | Primary — 100 real (`allow/`) + 100 synthetic (`unallow/`) |
+| Deepfake-Eval-2024 | Optional supplement (`npm run eval:setup-deepfake-eval`) |
 
-**Label mapping (both primary scripts):**
+| Dataset label | Eval folder | Meaning |
+|---------------|-------------|---------|
+| `real` | `allow/` | Should **not** be flagged |
+| `fake` | `unallow/` | Should be **caught** |
 
-| Dataset label | Eval set | Meaning for TruthGuard |
-|---------------|----------|-------------------------|
-| `real` | `allow/` | Authentic media — should **not** be flagged |
-| `fake` | `unallow/` | Synthetic media — should be **caught** |
-
-Citations and BibTeX: [`evals/datasets/SOURCES.md`](datasets/SOURCES.md).
+Citations: [`evals/datasets/SOURCES.md`](datasets/SOURCES.md).
 
 ## Layout
 
 ```
 evals/
-  config.ts                 # classifier thresholds
-  run.ts                    # metrics runner
-  lib/                      # classifiers, metrics
-  allow/
-    manifest.jsonl
-    images/                 # populated by setup scripts
-  unallow/
-    manifest.jsonl
-    images/
-  scripts/
-    setup_openfake.py       # primary downloader
-    setup_deepfake_eval_2024.py
-    requirements.txt
-  datasets/SOURCES.md
-  results/                  # timestamped runs gitignored; see production-openfake-200.json
+  config.ts              # thresholds (hybrid + ml_hybrid bands)
+  run.ts                 # eval runner
+  lib/                   # classifiers, metrics, ML bridge
+  models/image-resnet18/ # ResNet18 checkpoint + split.json (model.pt gitignored)
+  allow/  unallow/       # manifest.jsonl + images/
+  scripts/               # setup + train_image_classifier.py
+  results/
+    openfake-benchmark.json           # summary table (poster numbers)
+    *-openfake-200.json               # full per-image results (200-image approaches)
+    ml-openfake-holdout-40.json       # ML holdout eval
+    ml-hybrid-openfake-holdout-40.json
 ```
 
-## 1. Install Python deps (one time)
+## Setup
 
 ```bash
 pip install -r evals/scripts/requirements.txt
-```
-
-Requires Python 3.10+ and enough disk space for streamed image samples (not the full 3.4 TB corpus).
-
-## 2. Log in to Hugging Face (recommended on Windows)
-
-Unauthenticated streaming often hits rate limits and partial downloads (PIL “cannot identify image file”).
-
-```bash
-huggingface-cli login
-```
-
-Optional: silence symlink warnings on Windows:
-
-```powershell
-$env:HF_HUB_DISABLE_SYMLINKS_WARNING = "1"
-```
-
-## 3. Download OpenFake samples
-
-Default: **100 real → allow**, **100 fake → unallow** from `core/validation` (reproducible with `--seed 42`):
-
-```bash
+huggingface-cli login   # recommended on Windows
 npm run eval:setup-openfake
 ```
 
-Options:
+Add to **`.env.local`** (loaded via `tsx --env-file=.env.local`):
+
+**Paid (`npm run eval`):** `OPENAI_API_KEY`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+
+**Free (`npm run eval:free`):** `ANTHROPIC_API_KEY` — Claude for `llm`, `hybrid`, `ml_hybrid` escalations
+
+## Approaches (six total)
+
+| ID | What it is | Eval set | Flag rule |
+|----|------------|----------|-----------|
+| `heuristic` | C2PA + Rekognition + rule risk | 200 | Rule-based risk |
+| `ml` | Fine-tuned **ResNet18** on pixels | **40 holdout** | `probaUnallow ≥ 0.5` |
+| `ml_hybrid` | ResNet18 → OpenAI on uncertain band | **40 holdout** | ML or `visionShouldFlag` (not production) |
+| `llm` | OpenAI Vision every image | 200 | `visionShouldFlag` |
+| `hybrid` | Heuristic → OpenAI on uncertain cases | 200 | Heuristic or `visionShouldFlag` |
+| `production` | **Exact upload pipeline** | 200 | `shouldFlagAnalysis` |
+
+**Milestone mapping:** traditional = `heuristic` + `ml`; LLM = `llm`; hybrid = `hybrid`. `ml_hybrid` and `production` are extra benchmarks.
+
+### Train ML (one time)
 
 ```bash
-# Preview without downloading
-npm run eval:setup-openfake -- --dry-run
-
-# Milestone minimum
-npm run eval:setup-openfake -- --per-set 100
-
-# Add in-the-wild Reddit test images (25 per class)
-npm run eval:setup-openfake -- --per-set 100 --reddit-per-set 25
-
-# Use train split (larger stream) or OOD test split
-npm run eval:setup-openfake -- --split train --per-set 100
-
-# Re-download: remove prior openfake-* files first
-npm run eval:setup-openfake -- --clear --per-set 100
+npm run eval:train-ml
 ```
 
-Images are saved as JPEG under `evals/allow/images/` and `evals/unallow/images/`. Manifest rows use ids like `openfake-core-validation-allow-0001` with `source` set to the OpenFake citation.
+- 80/20 stratified split (160 train / 40 test, seed 42)
+- Saves `evals/models/image-resnet18/split.json` + `model.pt` (local only, gitignored)
 
-## 4. Optional: Deepfake-Eval-2024 supplement
-
-1. Request access on [Hugging Face](https://huggingface.co/datasets/nuriachandra/Deepfake-Eval-2024).
-2. `huggingface-cli login` (or set `HF_TOKEN`).
-3. Run:
-
-```bash
-npm run eval:setup-deepfake-eval -- --per-set 25
-```
-
-Appends rows prefixed with `dfe2024-` (does not remove OpenFake samples).
-
-## 5. Environment variables
-
-Add to **`.env.local`** at the repo root. The eval runner loads this file automatically (`tsx --env-file=.env.local`).
-
-### Free mode (`npm run eval:free`) — Claude LLM, no OpenAI/AWS
-
-```env
-ANTHROPIC_API_KEY=your-key-here
-EVAL_CLAUDE_TEXT_ONLY=1
-```
-
-Get a key: https://console.anthropic.com/settings/keys (new accounts get ~$5 free credit).
-
-`EVAL_CLAUDE_TEXT_ONLY=1` (default) sends **captions + metadata only** — cheap hosted LLM (~$0.25/1M tokens on Haiku). Set `EVAL_CLAUDE_TEXT_ONLY=0` to send the image (vision, costs more).
-
-Optional: `ANTHROPIC_MODEL` or `EVAL_CLAUDE_MODEL` (default `claude-haiku-4-5`), `EVAL_CLAUDE_DELAY_MS` (default `400`).
-
-### Paid mode (`npm run eval`) — OpenAI Vision + AWS Rekognition
-
-```env
-OPENAI_API_KEY=sk-proj-...
-AWS_REGION=us-east-1
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_KEY=...
-```
-
-Required for `llm`, `hybrid`, and `production` approaches. Rekognition has a **5MB per-image limit**; larger images skip celebrity hints but still run through GPT-4.1 Vision.
-
-## 6. Validate and run classifiers
-
-### Does this satisfy the milestone’s three approaches?
-
-The assignment asks for **three** detection strategies:
-
-| Milestone requirement | Your implementation | Satisfied? |
-|----------------------|---------------------|------------|
-| **Traditional / cheap classifier** | `heuristic` — C2PA + filename + keyword rules | Yes |
-| **LLM-as-classifier** (hosted LLM, allow/unallow + rationale) | **Claude** (`npm run eval:free`) or **`npm run eval`** (OpenAI Vision) | Yes |
-| **Hybrid** | `hybrid` — heuristic first, then Claude on uncertain cases | Yes |
-
-The fourth approach, **`production`**, benchmarks the exact upload pipeline (not a separate milestone requirement).
-
-### Commands
-
-**Validate manifests (no API calls):**
+### Run evals
 
 ```bash
 npm run eval -- --dry-run
-```
-
-**Free mode** — runs `heuristic`, `llm`, and `hybrid` with Claude (see env vars above):
-
-```bash
-npm run eval:free -- --limit 5
-npm run eval:free
-npm run eval:free -- --approach hybrid
-```
-
-**Paid mode** — runs all four approaches (`heuristic`, `llm`, `hybrid`, `production`):
-
-```bash
-npm run eval -- --limit 5
-npm run eval
-```
-
-**Production only** (skip heuristic / llm / hybrid):
-
-```bash
-npm run eval -- --approach production
+npm run eval -- --concurrency 1
+npm run eval -- --approach ml_hybrid
 npm run eval:production
+npm run eval:free
 ```
 
-Useful flags: `--limit N` (per class), `--concurrency N` (default `2`; paid production runs often use `1`).
+New runs write timestamped JSON under `evals/results/` (gitignored). Committed poster numbers are in **`openfake-benchmark.json`**.
 
-Results land in `evals/results/<timestamp>-<approach>.json` and print a summary table (precision, recall, F1, confusion matrix, latency, estimated USD/1k). Tune thresholds in `evals/config.ts` before your final poster numbers.
+Tune thresholds in `evals/config.ts` (`uncertainRiskLow/High` for `hybrid`, `mlUncertainLow/High` for `ml_hybrid`).
 
-### Approach reference
+## Benchmark results (OpenFake, paid mode)
 
-| ID | Free mode (`npm run eval:free`) | Paid mode (`npm run eval`) |
-|----|----------------------------------|----------------------------|
-| `heuristic` | C2PA + filename + keyword rules | C2PA + Rekognition + rule risk |
-| `llm` | Claude Haiku (hosted LLM) | OpenAI Vision |
-| `hybrid` | Heuristic + Claude | Heuristic + OpenAI on edge cases |
-| `production` | — (paid only) | **Exact upload pipeline** (`runAnalysisPipeline` + `shouldFlagAnalysis`) |
+Committed summary: [`evals/results/openfake-benchmark.json`](results/openfake-benchmark.json)
 
-Ground truth positive class = `unallow` (should flag).
+| Approach | N | Precision | Recall | F1 | LLM calls | USD / 1k |
+|----------|--:|----------:|-------:|---:|----------:|---------:|
+| `heuristic` | 200 | 0.471 | 0.160 | 0.239 | 0 | 1.00 |
+| `ml` | 40† | 0.706 | 0.600 | 0.649 | 0 | 0.00 |
+| `ml_hybrid` | 40† | 0.769 | 0.500 | 0.606 | 10 | 3.25 |
+| `llm` | 200 | 1.000 | 0.030 | 0.058 | 200 | 13.00 |
+| `hybrid` | 200 | 1.000 | 0.030 | 0.058 | 200 | 13.00 |
+| `production` | 200 | 1.000 | 0.470 | 0.639 | 200 | 13.00 |
 
-### Production benchmark (OpenFake, 200 images)
+† **40-image held-out test** — not comparable sample size to 200-image rows; see `ml-openfake-holdout-40.json`.
 
-Committed results: [`evals/results/production-openfake-200.json`](results/production-openfake-200.json)
+**How to read this:**
 
-| Metric | Value |
-|--------|------:|
-| Precision | 1.000 |
-| Recall | 0.470 |
-| F1 | 0.639 |
-| TP / FP / TN / FN | 47 / 0 / 100 / 53 |
-| Median latency | ~3.4s |
-| Est. cost | ~$13 / 1k images |
+- **`production`** is what users hit on upload — best recall among high-precision options on full 200.
+- **`ml`** is the honest pixel classifier on held-out data; best F1 among ML approaches on that split.
+- **`llm` / `hybrid`** optimize political disinfo (`visionShouldFlag`), not OpenFake’s synthetic/real label — low recall here is expected.
+- **`ml_hybrid`** escalates 25% of holdout images to Vision; higher precision, lower recall than `ml` alone on this split.
 
-Production path: GPT-4.1 Vision → `calculateRisk` → flag on `HIGH`/`CRITICAL` risk or `possibleKnownManipulation`. Zero false positives on real images; misses are mostly photorealistic or non-political fakes the LLM judged as authentic.
+Per-image outputs: `heuristic-openfake-200.json`, `llm-openfake-200.json`, `hybrid-openfake-200.json`, `production-openfake-200.json`, `ml-openfake-holdout-40.json`, `ml-hybrid-openfake-holdout-40.json`.
 
-## Committing images to git
-
-The milestone asks for labeled examples in the repo. After setup:
-
-- ~100 JPEGs per set is typically hundreds of MB — acceptable for git or use **Git LFS** if your team prefers.
-- Minimum for grading: manifests + reproducible `npm run eval:setup-openfake` command with pinned `--seed`.
-- Hugging Face cache (optional): set `HF_HOME=evals/.cache` to keep downloads inside `evals/` (gitignored).
-
-## Manifest format (manual rows)
+## Manifest format
 
 ```json
-{"id":"allow-001","path":"images/photo-001.jpg","label":"allow","source":"OpenFake ...","notes":"model=laion"}
+{"id":"openfake-core-validation-allow-0001","path":"images/....jpg","label":"allow","source":"...","notes":"model=pexels; type=real"}
 ```
 
 One JSON object per line. `path` is relative to the manifest file.

@@ -1,6 +1,12 @@
 export type GroundTruthLabel = "allow" | "unallow";
 
-export type ApproachId = "heuristic" | "llm" | "hybrid" | "production";
+export type ApproachId =
+  | "heuristic"
+  | "ml"
+  | "llm"
+  | "hybrid"
+  | "ml_hybrid"
+  | "production";
 
 export interface ManifestRow {
   id: string;

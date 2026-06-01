@@ -1,0 +1,3425 @@
+{
+  "generatedAt": "2026-06-01T00:04:50.524Z",
+  "stats": {
+    "approach": "heuristic",
+    "allowCount": 100,
+    "unallowCount": 100,
+    "precision": 0.47058823529411764,
+    "recall": 0.16,
+    "f1": 0.23880597014925375,
+    "confusion": {
+      "tp": 16,
+      "fp": 18,
+      "tn": 82,
+      "fn": 84
+    },
+    "latencyMs": {
+      "median": 423.40409999999974,
+      "p99": 2354.374299999996
+    },
+    "costUsdPer1000": 1,
+    "llmCalls": 0
+  },
+  "results": [
+    {
+      "id": "openfake-core-validation-allow-0001",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0001.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3576.5802,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0002",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0002.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1536.5487000000003,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0003",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0003.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 155.90760000000046,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0004",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0004.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 329.6111000000001,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0005",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0005.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 15.28900000000067,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0006",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0006.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1196.0578000000005,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0007",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0007.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1340.7757999999994,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0008",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0008.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 848.655999999999,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0009",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0009.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 300.1144000000004,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0010",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0010.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 385.27950000000055,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0011",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0011.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 370.6149999999998,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0012",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0012.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 756.6874000000007,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0013",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0013.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 654.4123999999993,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0014",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0014.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 500.40070000000014,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0015",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0015.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1086.261699999999,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0016",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0016.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 256.28700000000026,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0017",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0017.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 916.8209999999999,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0018",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0018.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 775.2695999999996,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0019",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0019.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 786.2989000000016,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0020",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0020.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1133.3665,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0021",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0021.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 721.3839000000007,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0022",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0022.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 2082.335500000001,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0023",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0023.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 367.4766000000018,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0024",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0024.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 517.8316999999988,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0025",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0025.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 810.0079000000005,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0026",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0026.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 321.44840000000113,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0027",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0027.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 511.7615000000005,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0028",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0028.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 312.22459999999774,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0029",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0029.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 245.29249999999956,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0030",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0030.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 2552.032299999999,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0031",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0031.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 296.16149999999834,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0032",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0032.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1125.1404000000002,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0033",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0033.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 523.4364999999998,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0034",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0034.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 472.6952999999994,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0035",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0035.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 309.45370000000185,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0036",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0036.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 266.41909999999916,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0037",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0037.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 351.33339999999953,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0038",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0038.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 678.4245999999985,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0039",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0039.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 239.72490000000107,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0040",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0040.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 21.377199999998993,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0041",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0041.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 357.73199999999997,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0042",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0042.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 883.9755999999979,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0043",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0043.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 579.2358999999997,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0044",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0044.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1138.0161000000007,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0045",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0045.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 447.5046999999977,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0046",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0046.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 270.5991999999969,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0047",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0047.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 322.9258999999947,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0048",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0048.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1067.5494000000035,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0049",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0049.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 442.09649999999965,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0050",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0050.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1042.347799999996,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0051",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0051.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 735.7781000000032,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0052",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0052.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 285.9112000000023,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0053",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0053.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 344.8191999999981,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0054",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0054.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 1881.9634000000005,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0055",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0055.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 263.9349000000002,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0056",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0056.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 747.1899000000049,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0057",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0057.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 996.4515000000029,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0058",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0058.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1296.1914000000033,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0059",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0059.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1037.2040999999954,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0060",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0060.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1110.3852000000043,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0061",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0061.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 245.45550000000367,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0062",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0062.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 334.7705999999962,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0063",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0063.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1298.9481000000014,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0064",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0064.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 429.0324000000037,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0065",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0065.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 450.0711999999985,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0066",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0066.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 450.5343000000066,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0067",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0067.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 969.1991999999955,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0068",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0068.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 533.1275000000023,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0069",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0069.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 849.6880999999994,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0070",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0070.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 964.6110000000044,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0071",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0071.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 397.4673999999941,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0072",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0072.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 2301.505299999997,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0073",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0073.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 453.03510000000097,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0074",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0074.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 393.6041000000041,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0075",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0075.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 352.73969999999827,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0076",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0076.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 468.4936999999991,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0077",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0077.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 1422.1494999999995,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0078",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0078.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 453.39020000000164,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0079",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0079.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 467.16599999999744,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0080",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0080.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 544.4268999999986,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0081",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0081.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 435.01640000000043,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0082",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0082.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 713.3615999999965,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0083",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0083.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 21.120999999999185,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0084",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0084.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 978.7165000000023,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0085",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0085.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 625.1322,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0086",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0086.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 184.37419999999838,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0087",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0087.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 1912.2811000000002,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0088",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0088.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1645.9110999999975,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0089",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0089.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 2354.374299999996,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0090",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0090.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 14.987699999997858,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0091",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0091.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 20.387900000001537,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0092",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0092.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 422.2069999999949,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0093",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0093.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1467.8948000000091,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0094",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0094.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1083.3280000000086,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0095",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0095.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 214.33239999999932,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0096",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0096.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 241.41270000000077,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0097",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0097.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1633.5464000000065,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0098",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0098.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 483.34679999999935,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0099",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0099.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 623.1900999999925,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0100",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0100.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 515.7304999999906,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0001",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0001.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 238.14689999999246,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0002",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0002.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 322.4380000000092,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0003",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0003.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 338.6566000000021,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0004",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0004.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 503.1168000000034,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0005",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0005.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 213.47580000000016,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0006",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0006.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 456.0521000000008,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0007",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0007.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 944.4556000000011,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0008",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0008.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 425.93979999999283,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0009",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0009.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 374.023199999996,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0010",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0010.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 254.8176999999996,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0011",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0011.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 292.71590000001015,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0012",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0012.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 261.86900000000605,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0013",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0013.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 343.6880000000092,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0014",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0014.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 257.67639999999665,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0015",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0015.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 302.50040000000445,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0016",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0016.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 410.33400000000256,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0017",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0017.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 423.40409999999974,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0018",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0018.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 899.5069999999978,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0019",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0019.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 401.5371000000014,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0020",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0020.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 487.5691999999981,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0021",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0021.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 150.06119999999646,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0022",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0022.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 346.17759999999544,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0023",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0023.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 562.8329999999987,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0024",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0024.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 223.5613000000012,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0025",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0025.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 739.619200000001,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0026",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0026.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 178.74250000000757,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0027",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0027.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 161.81660000000556,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0028",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0028.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 135.92170000000624,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0029",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0029.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 442.1802000000025,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0030",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0030.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 478.2167000000045,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0031",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0031.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1735.0183000000106,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0032",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0032.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 480.21540000000095,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0033",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0033.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 395.23219999999856,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0034",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0034.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 844.9342000000033,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0035",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0035.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 232.51929999999993,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0036",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0036.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 384.97039999999106,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0037",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0037.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 589.8349000000017,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0038",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0038.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 598.0620000000054,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0039",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0039.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 726.6201000000001,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0040",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0040.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 523.2491000000009,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0041",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0041.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 315.3899000000092,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0042",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0042.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 432.1963000000105,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0043",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0043.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 1922.9455999999918,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0044",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0044.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 474.7752000000037,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0045",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0045.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 309.94809999999416,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0046",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0046.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 337.3657999999996,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0047",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0047.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 665.4269000000058,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0048",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0048.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 347.96250000000873,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0049",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0049.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 429.434500000003,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0050",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0050.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 327.7700000000041,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0051",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0051.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 614.6215000000084,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0052",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0052.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 357.92489999999816,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0053",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0053.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 245.1926999999996,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0054",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0054.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 401.4282999999996,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0055",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0055.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 445.99980000000505,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0056",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0056.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 204.50729999999749,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0057",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0057.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 310.78979999999865,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0058",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0058.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 272.74800000000687,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0059",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0059.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 343.69719999999506,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0060",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0060.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 333.94379999999364,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0061",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0061.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 365.41509999999835,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0062",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0062.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 369.62029999999504,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0063",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0063.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 653.3717999999935,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0064",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0064.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 589.9348000000027,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0065",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0065.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 358.4325000000099,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0066",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0066.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 284.7358000000095,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0067",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0067.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 515.044000000009,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0068",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0068.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 600.4893000000011,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0069",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0069.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 333.22410000000673,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0070",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0070.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 315.6460000000079,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0071",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0071.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 459.5414999999921,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0072",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0072.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 412.4887000000017,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0073",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0073.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 309.2755999999936,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0074",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0074.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 316.35759999998845,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0075",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0075.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 409.4939000000013,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0076",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0076.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 304.7622999999876,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0077",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0077.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 187.0456000000122,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0078",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0078.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 655.9004999999888,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0079",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0079.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 454.7978000000003,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0080",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0080.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 316.88870000001043,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0081",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0081.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 819.3418999999994,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0082",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0082.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 385.32240000000456,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0083",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0083.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 222.78959999998915,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0084",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0084.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 371.02390000000014,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0085",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0085.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 646.7180999999982,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0086",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0086.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 261.1811000000016,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0087",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0087.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 406.4637999999977,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0088",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0088.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 367.0807000000059,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0089",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0089.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 421.94229999999516,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0090",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0090.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 363.6765000000014,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.6300000000000001,
+          "aiScore": 45,
+          "hasPoliticalFigure": true
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0091",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0091.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 375.5832999999984,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0092",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0092.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 244.39410000000498,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0093",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0093.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 858.6292000000103,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0094",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0094.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 319.2118000000046,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0095",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0095.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 647.0071000000025,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0096",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0096.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 344.9265999999916,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0097",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0097.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 305.0587999999989,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0098",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0098.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 408.8454999999958,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0099",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0099.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 294.85959999999614,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0100",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0100.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 127.84120000000985,
+        "usedLlm": false,
+        "meta": {
+          "c2paStatus": "missing",
+          "riskLevel": "MEDIUM",
+          "riskScore": 0.43000000000000005,
+          "aiScore": 45,
+          "hasPoliticalFigure": false
+        }
+      }
+    }
+  ]
+}

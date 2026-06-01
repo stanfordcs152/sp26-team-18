@@ -1,5 +1,8 @@
 # Python deps for eval dataset setup (install once):
 #   pip install -r evals/scripts/requirements.txt
+scikit-learn>=1.5.0
+torch>=2.2.0
+torchvision>=0.17.0
 datasets>=3.2.0
 huggingface_hub>=0.26.0
 Pillow>=10.0.0

@@ -6,9 +6,14 @@ export const EVAL_CONFIG = {
   /** Rekognition celebrity MatchConfidence (0–100). Paid mode only. */
   celebrityConfidenceThreshold: 90,
 
-  /** calculateRisk score band where hybrid escalates to the LLM. */
+  /** calculateRisk score band where heuristic hybrid escalates to the LLM. */
   uncertainRiskLow: 0.35,
   uncertainRiskHigh: 0.65,
+
+  /** probaUnallow band where ml_hybrid escalates to the LLM. */
+  mlUncertainLow: 0.3,
+  mlUncertainHigh: 0.7,
+  mlDecisionThreshold: 0.5,
 
   /** Risk levels treated as a positive (flagged) prediction. */
   flagRiskLevels: ["HIGH", "CRITICAL"] as const,

@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "eval:train-ml": "python evals/scripts/train_image_classifier.py",
     "eval": "tsx --env-file=.env.local evals/run.ts",
     "eval:free": "tsx --env-file=.env.local evals/run.ts --free --concurrency 1",
     "eval:production": "tsx --env-file=.env.local evals/run.ts --approach production --concurrency 1",

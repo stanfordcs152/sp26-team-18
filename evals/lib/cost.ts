@@ -30,6 +30,16 @@ export function estimateCostUsdPer1000(
     case "heuristic":
       perImage = rek + PRICING.c2paLocalPerImageUsd;
       break;
+    case "ml":
+      perImage = 0;
+      break;
+    case "ml_hybrid": {
+      // Rekognition + OpenAI Vision only happen on the ML "uncertain" subset.
+      // `llmCalls` is the number of examples where we escalated to an LLM.
+      const llmRate = stats.llmCalls / n;
+      perImage = llmRate * (rek + llm);
+      break;
+    }
     case "llm":
     case "production":
       perImage = rek + llm;
