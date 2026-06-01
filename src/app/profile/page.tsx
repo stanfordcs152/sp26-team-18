@@ -57,7 +57,7 @@ export default async function ProfilePage() {
                     ) : null}
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex items-center justify-between gap-4">
                   <Badge
                     variant={
                       isModeratorRole(profile.role) ? "default" : "outline"
@@ -65,6 +65,11 @@ export default async function ProfilePage() {
                   >
                     {profile.role}
                   </Badge>
+                  <form action="/api/auth/logout" method="post">
+                    <Button variant="outline" size="sm" type="submit">
+                      Sign out
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
             ) : (
@@ -80,8 +85,8 @@ export default async function ProfilePage() {
                 {configured ? (
                   <CardContent>
                     <Button asChild>
-                      <Link href="/moderator-login?redirect=/profile">
-                        Sign in
+                      <Link href="/login?redirect=/profile">
+                        Sign in or sign up
                       </Link>
                     </Button>
                   </CardContent>
