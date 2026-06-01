@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { PostCard } from "@/components/post-card"
 import { FeedFilters, type FilterType } from "@/components/feed-filters"
 import { supabase } from "@/lib/supabase"
+import { mockPosts } from "@/lib/mock-data"
 import type { Post } from "@/lib/types"
 
 type SupabasePostRow = {
@@ -25,17 +26,37 @@ export function Feed() {
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   useEffect(() => {
+    let cancelled = false
+    let fallbackTimer: ReturnType<typeof setTimeout> | null = null
+
+    const showDemoFeed = (message: string) => {
+      if (cancelled) return
+      setPosts(mockPosts)
+      setNotice(message)
+      setError(null)
+      setIsLoading(false)
+    }
+
     const loadPosts = async () => {
       if (!supabase) {
-        setError("Missing Supabase configuration.")
-        setIsLoading(false)
+        showDemoFeed(
+          "Live Supabase feed is not configured, so demo posts are shown for review."
+        )
         return
       }
 
       setIsLoading(true)
       setError(null)
+      setNotice(null)
+
+      fallbackTimer = setTimeout(() => {
+        showDemoFeed(
+          "Live posts are taking longer than expected, so demo posts are shown while the backend catches up."
+        )
+      }, 3500)
 
       // Try the most-recent schema first (Phase 3 + Phase 4 columns), then
       // fall back to Phase 4 only, then to the legacy schema. Each fallback
@@ -47,7 +68,6 @@ export function Feed() {
         .select(
           "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note, c2pa_status, is_political"
         )
-        .neq("status", "removed")
         .order("created_at", { ascending: false })
 
       if (!phase34.error) {
@@ -58,7 +78,6 @@ export function Feed() {
           .select(
             "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note"
           )
-          .neq("status", "removed")
           .order("created_at", { ascending: false })
 
         if (!phase4.error) {
@@ -72,20 +91,17 @@ export function Feed() {
             .order("created_at", { ascending: false })
 
           if (legacy.error) {
-            setError(legacy.error.message)
-            setIsLoading(false)
+            if (fallbackTimer) clearTimeout(fallbackTimer)
+            showDemoFeed(
+              `Live feed could not be loaded (${legacy.error.message}). Showing demo posts.`
+            )
             return
           }
           data = (legacy.data ?? []) as SupabasePostRow[]
         }
       }
 
-      // Defensive: drop removed posts on the client too. The legacy fallback
-      // query above doesn't filter on status, so without this a partially
-      // migrated DB would still surface moderator-removed posts.
-      const visibleRows = data.filter((row) => row.status !== "removed")
-
-      const mappedPosts: Post[] = visibleRows.map((row) => {
+      const mappedPosts: Post[] = data.map((row) => {
         const isFlagged = Boolean(row.is_flagged)
         const confidence = Math.round(Number(row.confidence_score ?? 0))
         const status = isFlagged
@@ -132,11 +148,27 @@ export function Feed() {
         }
       })
 
+      if (cancelled) return
+      if (fallbackTimer) clearTimeout(fallbackTimer)
+
+      if (mappedPosts.length === 0) {
+        showDemoFeed(
+          "No live posts are available yet, so demo posts are shown for the Milestone 3 walkthrough."
+        )
+        return
+      }
+
       setPosts(mappedPosts)
+      setNotice(null)
       setIsLoading(false)
     }
 
     void loadPosts()
+
+    return () => {
+      cancelled = true
+      if (fallbackTimer) clearTimeout(fallbackTimer)
+    }
   }, [])
 
   const filteredPosts = useMemo(() => {
@@ -153,15 +185,24 @@ export function Feed() {
     )
   }, [filter, posts])
 
+  const skeletons = [0, 1, 2]
+
   return (
     <div className="flex flex-col">
       <FeedFilters activeFilter={filter} onFilterChange={setFilter} />
 
-      <div className="divide-y divide-border">
+      <div className="divide-y divide-border/70">
+        {notice ? (
+          <div className="m-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-600 dark:text-amber-300">
+            {notice}
+          </div>
+        ) : null}
         {isLoading ? (
-          <div className="px-4 py-10 text-sm text-muted-foreground">Loading posts...</div>
+          skeletons.map((item) => <FeedSkeleton key={item} />)
         ) : error ? (
-          <div className="px-4 py-10 text-sm text-destructive">Failed to load posts: {error}</div>
+          <div className="m-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-10 text-sm text-destructive">
+            Failed to load posts: {error}
+          </div>
         ) : filteredPosts.length > 0 ? (
           filteredPosts.map((post) => <PostCard key={post.id} post={post} />)
         ) : (
@@ -172,6 +213,25 @@ export function Feed() {
             </p>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function FeedSkeleton() {
+  return (
+    <div className="flex gap-3 px-4 py-5">
+      <div className="size-10 shrink-0 animate-pulse rounded-full bg-muted" />
+      <div className="min-w-0 flex-1 space-y-3">
+        <div className="flex gap-2">
+          <div className="h-4 w-32 animate-pulse rounded-full bg-muted" />
+          <div className="h-4 w-20 animate-pulse rounded-full bg-muted/70" />
+        </div>
+        <div className="space-y-2">
+          <div className="h-3 w-full animate-pulse rounded-full bg-muted/80" />
+          <div className="h-3 w-3/4 animate-pulse rounded-full bg-muted/80" />
+        </div>
+        <div className="aspect-video w-full animate-pulse rounded-2xl bg-muted/70" />
       </div>
     </div>
   )

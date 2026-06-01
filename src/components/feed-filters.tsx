@@ -18,7 +18,7 @@ const filters: { value: FilterType; label: string; icon: typeof Layers }[] = [
 
 export function FeedFilters({ activeFilter, onFilterChange }: FeedFiltersProps) {
   return (
-    <div className="flex border-b border-border">
+    <div className="flex border-b border-border/70 bg-background/80">
       {filters.map((filter) => {
         const Icon = filter.icon
         const isActive = activeFilter === filter.value
@@ -28,16 +28,16 @@ export function FeedFilters({ activeFilter, onFilterChange }: FeedFiltersProps) 
             key={filter.value}
             onClick={() => onFilterChange(filter.value)}
             className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-medium transition-colors relative",
+              "relative flex flex-1 items-center justify-center gap-2 py-3.5 text-sm font-semibold transition-colors",
               isActive
                 ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
             )}
           >
             <Icon className="size-4" />
             <span>{filter.label}</span>
             {isActive && (
-              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-primary" />
+              <span className="absolute bottom-0 left-1/2 h-1 w-14 -translate-x-1/2 rounded-full bg-foreground" />
             )}
           </button>
         )

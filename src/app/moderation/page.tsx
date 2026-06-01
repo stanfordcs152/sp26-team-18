@@ -1,8 +1,6 @@
-import Link from "next/link"
-import { redirect } from "next/navigation"
-import { Shield, ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Shield } from "lucide-react"
 import { ModerationDashboard } from "@/components/moderation-dashboard"
+import { ModeSwitch } from "@/components/mode-switch"
 import {
   getModeratorProfile,
   getSupabaseEnv,
@@ -20,54 +18,56 @@ export const metadata = {
 export const dynamic = "force-dynamic"
 
 export default async function ModerationPage() {
-  // The proxy already bounced anonymous requests to login (when Supabase is
-  // configured). Here we verify the moderator role for real — the Edge proxy
-  // can't do a DB lookup — and RLS is the final enforcement on the data.
+  // Demo mode: `/moderation` should load immediately from the product mode
+  // switch. If a signed-in moderator session exists, show live RLS-backed data;
+  // otherwise fall back to the polished mock console.
   const configured = Boolean(getSupabaseEnv())
   let data: ModerationQueueData | null = null
+  let usingDemoData = true
 
   if (configured) {
     const profile = await getModeratorProfile()
-    if (!profile || !isModeratorRole(profile.role)) {
-      redirect("/moderator-login")
+    if (profile && isModeratorRole(profile.role)) {
+      data = await loadModerationQueue()
+      usingDemoData = !data
     }
-    data = await loadModerationQueue()
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4">
+      <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur-xl supports-[backdrop-filter]:bg-background/75">
+        <div className="mx-auto max-w-7xl px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="/">
-                  <ArrowLeft className="size-5" />
-                  <span className="sr-only">Back to Feed</span>
-                </Link>
-              </Button>
               <div className="flex items-center gap-3">
-                <Shield className="size-8 text-primary" />
+                <div className="flex size-10 items-center justify-center rounded-2xl bg-foreground text-background">
+                  <Shield className="size-5" />
+                </div>
                 <div>
-                  <h1 className="text-xl font-bold">Moderation Dashboard</h1>
+                  <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                    Moderator Mode
+                  </p>
+                  <h1 className="text-3xl font-bold tracking-tight">Trust & Safety Console</h1>
                   <p className="text-sm text-muted-foreground">
                     Review flagged content for AI-generated misinformation
                   </p>
                 </div>
               </div>
             </div>
-            <form action="/api/moderator/logout" method="post">
-              <Button variant="ghost" size="sm" type="submit">
-                Sign out
-              </Button>
-            </form>
+            <div className="flex items-center gap-3">
+              <div className="hidden min-w-80 sm:block">
+                <ModeSwitch compact />
+              </div>
+            </div>
+          </div>
+          <div className="mt-3 sm:hidden">
+            <ModeSwitch compact />
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-4xl">
-        <ModerationDashboard configured={configured} data={data} />
+      <main className="mx-auto w-full max-w-7xl px-4 py-6">
+        <ModerationDashboard configured={!usingDemoData} data={data} />
       </main>
     </div>
   )
