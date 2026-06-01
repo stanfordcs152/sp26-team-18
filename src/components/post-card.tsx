@@ -11,6 +11,10 @@ import {
   BadgeCheck,
   Play,
   Flag,
+  ShieldCheck,
+  ShieldAlert,
+  Clock3,
+  XCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Post } from "@/lib/types"
@@ -25,7 +29,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { AIDetectionBadge } from "@/components/ai-detection-badge"
 import { C2paBadge } from "@/components/c2pa-badge"
-import { Badge } from "@/components/ui/badge"
 import { ReportModal } from "@/components/report-modal"
 
 interface PostCardProps {
@@ -60,28 +63,71 @@ export function PostCard({ post }: PostCardProps) {
 
   const media = post.media[0]
   const hasAIFlags = media && media.aiDetection.status !== "authentic"
+  const isRemoved = post.status === "removed"
+
+  const statusConfig = isRemoved
+    ? {
+        label: "Removed",
+        description: "Moderator action removed this content from distribution.",
+        icon: XCircle,
+        className: "border-red-500/30 bg-red-500/10 text-red-500",
+      }
+    : isLabeled
+      ? {
+          label: "Flagged by Moderator",
+          description: "A moderator applied a public warning label.",
+          icon: Flag,
+          className: "border-amber-500/30 bg-amber-500/10 text-amber-500",
+        }
+      : hasAIFlags
+        ? {
+            label: "AI Risk",
+            description: "Automated analysis found synthetic-media signals.",
+            icon: ShieldAlert,
+            className: "border-orange-500/30 bg-orange-500/10 text-orange-500",
+          }
+        : {
+            label: "Verified Authentic",
+            description: "No high-risk AI signals were detected.",
+            icon: ShieldCheck,
+            className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500",
+          }
+  const StatusIcon = statusConfig.icon
 
   return (
     <article
       className={cn(
-        "border-b border-border bg-card transition-colors hover:bg-accent/30",
-        hasAIFlags && "border-l-2 border-l-amber-500/50"
+        "bg-background transition-colors hover:bg-muted/20",
+        isRemoved && "bg-muted/10"
       )}
     >
-      <div className="flex gap-3 p-4">
-        {/* Avatar */}
-        <Avatar className="size-10 shrink-0">
+      {isRemoved ? (
+        <div className="flex items-start gap-3 bg-red-500/10 px-4 py-3">
+          <XCircle className="mt-0.5 size-5 shrink-0 text-red-500" />
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-red-500">
+              This post was removed after moderator review
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {post.moderatorNote
+                ? `Moderator note: ${post.moderatorNote}`
+                : "The original media is no longer distributed in the product feed."}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="flex gap-3 px-4 py-4">
+        <Avatar className="size-10 shrink-0 ring-1 ring-border/60">
           <AvatarImage src={post.author.avatarUrl} alt={post.author.displayName} />
           <AvatarFallback>
             {post.author.displayName.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-1.5">
               <span className="font-semibold text-foreground truncate">
                 {post.author.displayName}
               </span>
@@ -95,6 +141,11 @@ export function PostCard({ post }: PostCardProps) {
               <time className="text-muted-foreground text-sm">
                 {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
               </time>
+              {post.isPolitical ? (
+                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                  Political
+                </span>
+              ) : null}
             </div>
 
             <DropdownMenu>
@@ -115,14 +166,29 @@ export function PostCard({ post }: PostCardProps) {
             </DropdownMenu>
           </div>
 
-          {/* Moderator label banner (Phase 4) */}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+                statusConfig.className
+              )}
+              title={statusConfig.description}
+            >
+              <StatusIcon className="size-3.5" />
+              {statusConfig.label}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-muted/30 px-2.5 py-1 text-xs font-medium text-muted-foreground">
+              <Clock3 className="size-3.5" />
+              Uploaded - Analyzed - {isRemoved ? "Removed" : isLabeled ? "Labeled" : hasAIFlags ? "Flagged" : "Visible"}
+            </span>
+          </div>
+
           {isLabeled && (
             <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
-              <Flag className="size-3.5 mt-0.5 shrink-0" />
+              <Flag className="mt-0.5 size-3.5 shrink-0" />
               <div>
                 <p className="font-medium">
-                  ⚠️ This post was flagged for potential AI-generated political
-                  content
+                  This post was flagged for potential AI-generated political content
                 </p>
                 {post.moderatorNote ? (
                   <p className="mt-1 text-amber-700/80 dark:text-amber-300/80">
@@ -133,14 +199,12 @@ export function PostCard({ post }: PostCardProps) {
             </div>
           )}
 
-          {/* Post text */}
-          <p className="mt-1 text-foreground whitespace-pre-wrap break-words">
-            {post.content}
+          <p className="mt-2 whitespace-pre-wrap break-words text-[15px] leading-6 text-foreground">
+            {isRemoved ? "Content unavailable" : post.content}
           </p>
 
-          {/* Media */}
-          {media && (
-            <div className="mt-3 relative rounded-xl overflow-hidden border border-border">
+          {media && !isRemoved && (
+            <div className="relative mt-3 overflow-hidden rounded-2xl border border-border/80 bg-muted">
               <div className="relative aspect-video">
                 {/* eslint-disable-next-line @next/next/no-img-element -- using <img> for arbitrary remote URLs without next/image domain config */}
                 <img
@@ -156,43 +220,25 @@ export function PostCard({ post }: PostCardProps) {
                   </div>
                 )}
               </div>
-
-              {/* AI Detection Badge */}
-              <div className="absolute top-2 right-2">
-                <AIDetectionBadge
-                  status={media.aiDetection.status}
-                  confidence={media.aiDetection.confidence}
-                  flags={media.aiDetection.flags}
-                />
-              </div>
-
-              {/* C2PA Content Credentials badge */}
-              {post.c2paStatus && (
-                <div className="absolute top-2 left-2">
-                  <C2paBadge status={post.c2paStatus} />
-                </div>
-              )}
-
-              {/* Political content flag */}
-              {post.isPolitical && (
-                <div className="absolute bottom-2 left-2">
-                  <Badge
-                    variant="outline"
-                    className="bg-background/80 backdrop-blur text-xs"
-                  >
-                    Political
-                  </Badge>
-                </div>
-              )}
             </div>
           )}
 
-          {/* Engagement */}
-          <div className="flex items-center justify-between mt-3 -ml-2">
+          {media && !isRemoved ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <AIDetectionBadge
+                status={media.aiDetection.status}
+                confidence={media.aiDetection.confidence}
+                flags={media.aiDetection.flags}
+              />
+              {post.c2paStatus ? <C2paBadge status={post.c2paStatus} /> : null}
+            </div>
+          ) : null}
+
+          <div className="mt-3 flex items-center justify-between -ml-2 text-muted-foreground">
             <Button
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 gap-1.5"
+              className="gap-1.5 rounded-full text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500"
             >
               <MessageCircle className="size-4" />
               <span className="text-xs">{formatNumber(post.comments)}</span>
@@ -201,7 +247,7 @@ export function PostCard({ post }: PostCardProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-green-500 hover:bg-green-500/10 gap-1.5"
+              className="gap-1.5 rounded-full text-muted-foreground hover:bg-emerald-500/10 hover:text-emerald-500"
             >
               <Share2 className="size-4" />
               <span className="text-xs">{formatNumber(post.shares)}</span>
@@ -214,8 +260,8 @@ export function PostCard({ post }: PostCardProps) {
               className={cn(
                 "gap-1.5",
                 isLiked
-                  ? "text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                  : "text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
+                  ? "rounded-full text-red-500 hover:bg-red-500/10 hover:text-red-600"
+                  : "rounded-full text-muted-foreground hover:bg-red-500/10 hover:text-red-500"
               )}
             >
               <Heart
@@ -230,8 +276,8 @@ export function PostCard({ post }: PostCardProps) {
               onClick={handleBookmark}
               className={cn(
                 isBookmarked
-                  ? "text-blue-500 hover:text-blue-600 hover:bg-blue-500/10"
-                  : "text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10"
+                  ? "rounded-full text-sky-500 hover:bg-sky-500/10 hover:text-sky-600"
+                  : "rounded-full text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500"
               )}
             >
               <Bookmark

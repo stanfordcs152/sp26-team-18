@@ -2,13 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Shield, PlusSquare } from "lucide-react"
+import { Home, PlusSquare, ToggleRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/upload", label: "Upload", icon: PlusSquare },
-  { href: "/moderation", label: "Moderate", icon: Shield },
+  { href: "/moderation", label: "Mode", icon: ToggleRight },
 ]
 
 export function MobileBottomNav() {
