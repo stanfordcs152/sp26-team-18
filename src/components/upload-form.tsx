@@ -9,6 +9,7 @@ import {
   ImageUp,
   SearchCheck,
   ShieldAlert,
+  UserCircle2,
   X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -272,19 +273,25 @@ export function UploadForm({
           <label htmlFor="username" className="text-sm font-medium">
             Username
           </label>
-          <Input
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="your_username"
-            readOnly={lockedUsername}
-            required
-          />
           {lockedUsername ? (
-            <p className="text-xs text-muted-foreground">
-              Posting as your account.
-            </p>
-          ) : null}
+            <>
+              <div className="flex items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 text-sm font-medium">
+                <UserCircle2 className="size-4 text-primary" />
+                {username}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Posting as your account.
+              </p>
+            </>
+          ) : (
+            <Input
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="your_username"
+              required
+            />
+          )}
         </div>
 
         <div className="space-y-2">
