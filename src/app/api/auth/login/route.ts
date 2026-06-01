@@ -39,6 +39,15 @@ export async function POST(request: Request) {
     password,
   })
   if (error || !data.session) {
+    if (error?.code === "email_not_confirmed") {
+      return NextResponse.json(
+        {
+          error:
+            "Please confirm your email before signing in. Check your inbox for the confirmation link.",
+        },
+        { status: 401 }
+      )
+    }
     return NextResponse.json(
       { error: "Invalid email or password." },
       { status: 401 }

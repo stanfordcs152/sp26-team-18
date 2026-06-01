@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { validatePassword } from "@/lib/password"
 
 type Mode = "signin" | "signup"
 
@@ -22,9 +23,18 @@ function AuthForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitting(true)
     setError(null)
     setNotice(null)
+
+    if (mode === "signup") {
+      const weak = validatePassword(password)
+      if (weak) {
+        setError(weak)
+        return
+      }
+    }
+
+    setSubmitting(true)
 
     const endpoint = mode === "signin" ? "/api/auth/login" : "/api/auth/signup"
     const res = await fetch(endpoint, {
@@ -122,6 +132,11 @@ function AuthForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          {!isSignin ? (
+            <p className="text-xs text-muted-foreground">
+              At least 8 characters, including a number and a special character.
+            </p>
+          ) : null}
         </div>
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}

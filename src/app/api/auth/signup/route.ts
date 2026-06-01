@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { MODERATOR_COOKIE, getSupabaseEnv } from "@/lib/moderator-auth"
+import { validatePassword } from "@/lib/password"
 
 // General user sign-up: creates a Supabase Auth account. The handle_new_user
 // trigger (migration 0006) provisions a matching 'user' profile, using the
@@ -31,6 +32,11 @@ export async function POST(request: Request) {
       { error: "Email and password are required." },
       { status: 400 }
     )
+  }
+
+  const weakPassword = validatePassword(password)
+  if (weakPassword) {
+    return NextResponse.json({ error: weakPassword }, { status: 400 })
   }
 
   const supabase = createClient(env.url, env.anonKey, {
