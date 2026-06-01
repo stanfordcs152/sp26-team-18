@@ -1,15 +1,29 @@
 "use client"
 
-import { FormEvent, useState } from "react"
+import { FormEvent, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, FileCheck2, SearchCheck, ShieldAlert } from "lucide-react"
+import {
+  ArrowLeft,
+  FileCheck2,
+  ImageUp,
+  SearchCheck,
+  ShieldAlert,
+  X,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { ModeSwitch } from "@/components/mode-switch"
 import { supabase } from "@/lib/supabase"
 import type { PostAnalysis } from "@/lib/types"
+import { cn } from "@/lib/utils"
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
 
 // When `accountUsername` is set, the post is attributed to the signed-in user
 // and the username field is locked. It's null only in demo mode (no Supabase),
@@ -33,6 +47,22 @@ export function UploadForm({
   )
   const [pendingImageUrl, setPendingImageUrl] = useState("")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [dragActive, setDragActive] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Select a file and build a preview object URL for it. The effect below
+  // revokes the previous URL when it changes or the component unmounts.
+  const selectFile = (next: File | null) => {
+    setFile(next)
+    setPreviewUrl(next ? URL.createObjectURL(next) : null)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    }
+  }, [previewUrl])
 
   // Build the row payload that gets inserted into `posts`. Used by both the
   // direct (no-warning) path and the "Submit for Review" path so they stay
@@ -275,13 +305,83 @@ export function UploadForm({
           <label htmlFor="image" className="text-sm font-medium">
             Image
           </label>
-          <Input
+          <input
+            ref={fileInputRef}
             id="image"
             type="file"
             accept="image/*"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            required
+            className="sr-only"
+            onChange={(e) => selectFile(e.target.files?.[0] ?? null)}
           />
+          {file && previewUrl ? (
+            <div className="overflow-hidden rounded-xl border border-border bg-muted/30">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={previewUrl}
+                alt="Selected upload preview"
+                className="max-h-72 w-full object-contain"
+              />
+              <div className="flex items-center justify-between gap-3 border-t border-border bg-card/60 px-3 py-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{file.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatBytes(file.size)}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Change
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => selectFile(null)}
+                  >
+                    <X className="size-4" />
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault()
+                setDragActive(true)
+              }}
+              onDragLeave={() => setDragActive(false)}
+              onDrop={(e) => {
+                e.preventDefault()
+                setDragActive(false)
+                const dropped = e.dataTransfer.files?.[0]
+                if (dropped && dropped.type.startsWith("image/")) {
+                  selectFile(dropped)
+                }
+              }}
+              className={cn(
+                "flex w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-10 text-center transition-colors",
+                dragActive
+                  ? "border-primary bg-primary/5"
+                  : "border-border bg-muted/30 hover:bg-muted/50"
+              )}
+            >
+              <div className="flex size-11 items-center justify-center rounded-full bg-foreground text-background">
+                <ImageUp className="size-5" />
+              </div>
+              <p className="text-sm font-medium">
+                Click to upload or drag and drop
+              </p>
+              <p className="text-xs text-muted-foreground">PNG, JPG, or GIF</p>
+            </button>
+          )}
           <p className="text-xs text-muted-foreground">
             We&apos;ll run an AI image classifier on upload to detect synthetic
             political media.
