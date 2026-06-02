@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { runAnalysisPipeline } from "@/lib/analyzers/pipeline";
+import { analyzeImageBuffer } from "@/lib/analyze-image";
 import { checkUploadRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
@@ -40,11 +40,24 @@ export async function POST(req: NextRequest) {
 
     const imageBuffer = Buffer.from(arrayBuffer);
 
-    const analysis = await runAnalysisPipeline(imageBuffer);
+    const result = await analyzeImageBuffer(imageBuffer);
+    const { analysis, shouldFlag } = result;
+
+    console.log("[analyze] final normalized analysis:", {
+      risk: analysis.risk,
+      ai: analysis.ai,
+      publicFigures: analysis.vision.publicFigures,
+      politicalContext: analysis.vision.politicalContext,
+      possibleKnownManipulation: analysis.vision.possibleKnownManipulation,
+      provenance: analysis.provenance,
+    });
+    console.log("[analyze] final shouldFlag decision:", shouldFlag);
 
     return NextResponse.json({
       success: true,
       analysis,
+      shouldFlag,
+      feedLabel: result.feedLabel,
     });
   } catch (error) {
     console.error("Analysis pipeline failed:", error);

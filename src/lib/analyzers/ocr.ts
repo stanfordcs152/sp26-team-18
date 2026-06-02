@@ -17,6 +17,7 @@ export type VisionAnalysisResult = {
   publicFigures: string[];
   publicFigureConfidence: number;
   appearsAIGenerated: boolean;
+  aiConfidence?: number;
   syntheticMediaConfidence: number;
   politicalContext: boolean;
   politicalContextConfidence: number;
@@ -24,6 +25,55 @@ export type VisionAnalysisResult = {
   misinformationRisk: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   reasoning: string;
 };
+
+function asNumber(value: unknown, fallback = 0): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.max(0, Math.min(1, value))
+    : fallback;
+}
+
+function asBoolean(value: unknown, fallback = false): boolean {
+  return typeof value === "boolean" ? value : fallback;
+}
+
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function normalizeVisionAnalysis(raw: unknown): VisionAnalysisResult {
+  const record =
+    raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+  const aiConfidence = asNumber(
+    record.syntheticMediaConfidence ?? record.aiConfidence ?? record.aiProbability
+  );
+  const misinformationRisk = asString(record.misinformationRisk, "LOW");
+
+  return {
+    visibleText: asString(record.visibleText),
+    publicFigures: asStringArray(record.publicFigures),
+    publicFigureConfidence: asNumber(record.publicFigureConfidence),
+    appearsAIGenerated:
+      asBoolean(record.appearsAIGenerated) || aiConfidence >= 0.6,
+    aiConfidence,
+    syntheticMediaConfidence: aiConfidence,
+    politicalContext: asBoolean(record.politicalContext),
+    politicalContextConfidence: asNumber(record.politicalContextConfidence),
+    possibleKnownManipulation: asBoolean(record.possibleKnownManipulation),
+    misinformationRisk:
+      misinformationRisk === "MEDIUM" ||
+      misinformationRisk === "HIGH" ||
+      misinformationRisk === "CRITICAL"
+        ? misinformationRisk
+        : "LOW",
+    reasoning: asString(record.reasoning),
+  };
+}
 
 export async function extractImageText(
   imageBuffer: Buffer
@@ -33,7 +83,9 @@ export async function extractImageText(
 
     const celebrityMatches = await detectCelebrities(imageBuffer);
 
-    console.log("AWS CELEBRITY MATCHES:", celebrityMatches);
+    console.log("[analyze] OpenAI key configured:", Boolean(process.env.OPENAI_API_KEY));
+    console.log("[analyze] classifier path:", "openai-vision-gpt-4.1");
+    console.log("[analyze] AWS celebrity matches:", celebrityMatches);
 
     const response = await getClient().chat.completions.create({
       model: "gpt-4.1",
@@ -96,9 +148,14 @@ Rules:
 
     const content = response.choices[0]?.message?.content || "{}";
 
-    const parsed = JSON.parse(content) as VisionAnalysisResult;
+    console.log("[analyze] raw OpenAI classification JSON:", content);
 
-    return parsed;
+    const parsed = JSON.parse(content) as unknown;
+    const normalized = normalizeVisionAnalysis(parsed);
+
+    console.log("[analyze] normalized vision analysis:", normalized);
+
+    return normalized;
   } catch (error) {
     console.error("OpenAI Vision analysis failed:", error);
 

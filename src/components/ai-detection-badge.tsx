@@ -32,6 +32,12 @@ const statusConfig: Record<
     icon: ShieldCheck,
     className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
   },
+  unverified: {
+    label: "Unverified",
+    description: "Authenticity has not been verified",
+    icon: ShieldQuestion,
+    className: "bg-slate-500/10 text-slate-600 border-slate-500/20",
+  },
   under_review: {
     label: "Under Review",
     description: "Content is being analyzed",

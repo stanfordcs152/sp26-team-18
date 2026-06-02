@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { ModerationQueueLive } from "@/components/moderation-queue-live"
 import { supabase } from "@/lib/supabase"
+import { shouldFlagAnalysis } from "@/lib/analyzers/flag"
 import type {
   LiveQueueItem,
   ModerationQueueData,
@@ -101,6 +102,7 @@ function analysisNeedsReview(analysis: PostAnalysis | null | undefined) {
     highOrCritical(analysis.vision?.misinformationRisk) ||
     analysis.manipulationSignals?.possibleKnownManipulation === true ||
     analysis.vision?.possibleKnownManipulation === true ||
+    shouldFlagAnalysis(analysis) ||
     (analysis.ai?.flagged === true &&
       (analysis.vision?.politicalContext === true || publicFigureContext))
   )
@@ -453,7 +455,27 @@ export function ModerationDashboard() {
       let rows: PostRow[] | null = null
 
       if (!full.error) {
-        rows = (full.data ?? []) as PostRow[]
+        const recent = await supabase
+          .from("posts")
+          .select(POSTS_SELECT_FULL)
+          .order("created_at", { ascending: false })
+          .limit(50)
+
+        const byId = new Map<string, PostRow>()
+        for (const row of (full.data ?? []) as PostRow[]) {
+          byId.set(row.id, row)
+        }
+        if (!recent.error) {
+          for (const row of (recent.data ?? []) as PostRow[]) {
+            byId.set(row.id, row)
+          }
+        }
+
+        rows = Array.from(byId.values()).sort((a, b) => {
+          const scoreDiff = (riskScore(b) ?? -1) - (riskScore(a) ?? -1)
+          if (scoreDiff !== 0) return scoreDiff
+          return a.created_at < b.created_at ? 1 : -1
+        })
       } else {
         const legacy = await supabase
           .from("posts")
