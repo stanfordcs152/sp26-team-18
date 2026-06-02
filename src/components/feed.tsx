@@ -15,11 +15,13 @@ type SupabasePostRow = {
   username: string
   is_flagged: boolean
   confidence_score: number
+  risk_level?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | null
   status?: "visible" | "labeled" | "removed" | null
-  moderator_note?: string | null
-  c2pa_status?: "verified" | "missing" | "invalid" | "no_image" | null
-  is_political?: boolean | null
 }
+
+const FEED_LIMIT = 20
+const FEED_SELECT =
+  "id, username, caption, image_url, created_at, is_flagged, risk_level, confidence_score, status"
 
 export function Feed() {
   const [filter, setFilter] = useState<FilterType>("all")
@@ -34,7 +36,7 @@ export function Feed() {
 
     const showDemoFeed = (message: string) => {
       if (cancelled) return
-      setPosts(mockPosts)
+      setPosts(mockPosts.filter((post) => post.status !== "removed"))
       setNotice(message)
       setError(null)
       setIsLoading(false)
@@ -43,7 +45,7 @@ export function Feed() {
     const loadPosts = async () => {
       if (!supabase) {
         showDemoFeed(
-          "Live Supabase feed is not configured, so demo posts are shown for review."
+          "Live posts are not configured, so sample posts are shown."
         )
         return
       }
@@ -63,22 +65,22 @@ export function Feed() {
       // covers the case where a migration hasn't been applied yet.
       let data: SupabasePostRow[] | null = null
 
-      const phase34 = await supabase
+      const currentSchema = await supabase
         .from("posts")
-        .select(
-          "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note, c2pa_status, is_political"
-        )
+        .select(FEED_SELECT)
         .order("created_at", { ascending: false })
+        .limit(FEED_LIMIT)
 
-      if (!phase34.error) {
-        data = (phase34.data ?? []) as SupabasePostRow[]
+      if (!currentSchema.error) {
+        data = (currentSchema.data ?? []) as SupabasePostRow[]
       } else {
         const phase4 = await supabase
           .from("posts")
           .select(
-            "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note"
+            "id, username, caption, image_url, created_at, is_flagged, confidence_score, status"
           )
           .order("created_at", { ascending: false })
+          .limit(FEED_LIMIT)
 
         if (!phase4.error) {
           data = (phase4.data ?? []) as SupabasePostRow[]
@@ -86,9 +88,10 @@ export function Feed() {
           const legacy = await supabase
             .from("posts")
             .select(
-              "id, created_at, image_url, caption, username, is_flagged, confidence_score"
+              "id, username, caption, image_url, created_at, is_flagged, confidence_score"
             )
             .order("created_at", { ascending: false })
+            .limit(FEED_LIMIT)
 
           if (legacy.error) {
             if (fallbackTimer) clearTimeout(fallbackTimer)
@@ -142,9 +145,6 @@ export function Feed() {
           isLiked: false,
           isBookmarked: false,
           status: row.status ?? "visible",
-          moderatorNote: row.moderator_note ?? null,
-          c2paStatus: row.c2pa_status ?? undefined,
-          isPolitical: row.is_political ?? false,
         }
       })
 
@@ -153,12 +153,12 @@ export function Feed() {
 
       if (mappedPosts.length === 0) {
         showDemoFeed(
-          "No live posts are available yet, so demo posts are shown for the Milestone 3 walkthrough."
+          "No live posts are available yet, so sample posts are shown."
         )
         return
       }
 
-      setPosts(mappedPosts)
+      setPosts(mappedPosts.filter((post) => post.status !== "removed"))
       setNotice(null)
       setIsLoading(false)
     }

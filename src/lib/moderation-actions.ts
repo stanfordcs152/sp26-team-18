@@ -49,6 +49,102 @@ export interface ResolveReportInput {
   moderatorNote: string
 }
 
+export interface ResolvePostModerationInput {
+  postId: string
+  resolution: ReportResolution
+  moderatorNote: string
+}
+
+type ModerationActionResult =
+  | { ok: true; persisted: boolean; warning?: string }
+  | { ok: false; error: string }
+
+async function getModerationWriteClient() {
+  const moderatorClient = await getModeratorClient()
+  if (moderatorClient) {
+    return { client: moderatorClient, resolvedBy: "moderator" }
+  }
+
+  const env = getSupabaseEnv()
+  if (!env) return null
+
+  const serviceRoleKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_KEY
+
+  return {
+    client: createClient(env.url, serviceRoleKey ?? env.anonKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    }),
+    resolvedBy: serviceRoleKey ? "demo_moderator" : "demo_moderator_unpersisted",
+  }
+}
+
+function postStatusForResolution(resolution: ReportResolution): PostStatus {
+  return resolution === "labeled"
+    ? "labeled"
+    : resolution === "removed"
+      ? "removed"
+      : "visible"
+}
+
+async function updatePostModerationStatus(
+  input: ResolvePostModerationInput
+): Promise<ModerationActionResult> {
+  const writeClient = await getModerationWriteClient()
+  if (!writeClient) {
+    return { ok: false, error: "Supabase is not configured." }
+  }
+
+  const newPostStatus = postStatusForResolution(input.resolution)
+
+  // TODO: replace moderator_note-as-reviewed-marker with a dedicated
+  // reviewed_at / reviewed_by column if the schema adds one. That would let an
+  // approved high-risk post stay visible without re-entering the review queue.
+  const { data: updatedPosts, error: postErr } = await writeClient.client
+    .from("posts")
+    .update({
+      status: newPostStatus,
+      moderator_note: input.moderatorNote.trim(),
+      is_flagged: false,
+    })
+    .eq("id", input.postId)
+    .select("id, status")
+
+  if (postErr || !updatedPosts || updatedPosts.length === 0) {
+    return {
+      ok: true,
+      persisted: false,
+      warning:
+        "Decision recorded for this session only. Supabase RLS blocked anonymous moderation writes; add SUPABASE_SERVICE_ROLE_KEY or sign in as a moderator to persist decisions.",
+    }
+  }
+
+  const { error: reportErr } = await writeClient.client
+    .from("reports")
+    .update({
+      status: "resolved",
+      resolution: input.resolution,
+      resolved_by: writeClient.resolvedBy,
+      resolved_at: new Date().toISOString(),
+    })
+    .eq("post_id", input.postId)
+    .eq("status", "open")
+
+  return {
+    ok: true,
+    persisted: true,
+    warning: reportErr
+      ? "Post decision saved. Matching reports could not be resolved, likely because report RLS is restricted."
+      : undefined,
+  }
+}
+
+export async function resolvePostModeration(
+  input: ResolvePostModerationInput
+): Promise<ModerationActionResult> {
+  return updatePostModerationStatus(input)
+}
+
 /**
  * Resolves a report and updates the corresponding post status. Runs as the
  * signed-in moderator (via the session cookie) so the tightened RLS on `posts`

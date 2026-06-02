@@ -1,26 +1,25 @@
 import { SidebarNav } from "@/components/sidebar-nav"
 import { Feed } from "@/components/feed"
-import { TrendingSidebar } from "@/components/trending-sidebar"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import Link from "next/link"
-import { ShieldCheck, Upload } from "lucide-react"
+import { Upload } from "lucide-react"
 import { ModeSwitch } from "@/components/mode-switch"
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto flex max-w-7xl">
+      <div className="mx-auto flex max-w-6xl">
         <aside className="sticky top-0 hidden h-screen w-[72px] shrink-0 border-r border-border/70 md:block xl:w-[248px]">
           <SidebarNav />
         </aside>
 
-        <main className="max-w-[660px] flex-1 border-r border-border/70 pb-20 md:pb-0">
+        <main className="mx-auto min-w-0 flex-1 border-r border-border/70 pb-20 md:max-w-[780px] md:border-l md:pb-0">
           <header className="sticky top-0 z-10 border-b border-border/70 bg-background/85 backdrop-blur-xl">
             <div className="space-y-4 px-4 py-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                    User Platform
+                    TruthGuard
                   </p>
                   <h1 className="text-3xl font-bold tracking-tight">Home</h1>
                 </div>
@@ -42,12 +41,8 @@ export default function HomePage() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold">Create a post</p>
                     <p className="text-xs text-muted-foreground">
-                      Upload media and receive AI/provenance status before it reaches the feed.
+                      Share an image with your community.
                     </p>
-                  </div>
-                  <div className="hidden items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-500 sm:inline-flex">
-                    <ShieldCheck className="size-3.5" />
-                    Analyzed on upload
                   </div>
                 </Link>
               </div>
@@ -56,10 +51,6 @@ export default function HomePage() {
 
           <Feed />
         </main>
-
-        <aside className="sticky top-0 hidden h-screen w-[320px] shrink-0 xl:block">
-          <TrendingSidebar />
-        </aside>
       </div>
       <MobileBottomNav />
     </div>

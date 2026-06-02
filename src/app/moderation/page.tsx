@@ -1,38 +1,13 @@
 import { Shield } from "lucide-react"
 import { ModerationDashboard } from "@/components/moderation-dashboard"
 import { ModeSwitch } from "@/components/mode-switch"
-import {
-  getModeratorProfile,
-  getSupabaseEnv,
-  isModeratorRole,
-} from "@/lib/moderator-auth"
-import { loadModerationQueue } from "@/lib/moderation-queue-data"
-import type { ModerationQueueData } from "@/lib/types"
 
 export const metadata = {
   title: "Moderation Dashboard - TruthGuard",
   description: "Review and moderate flagged AI-generated content",
 }
 
-// Read fresh per request: the queue depends on the moderator's session cookie.
-export const dynamic = "force-dynamic"
-
 export default async function ModerationPage() {
-  // Demo mode: `/moderation` should load immediately from the product mode
-  // switch. If a signed-in moderator session exists, show live RLS-backed data;
-  // otherwise fall back to the polished mock console.
-  const configured = Boolean(getSupabaseEnv())
-  let data: ModerationQueueData | null = null
-  let usingDemoData = true
-
-  if (configured) {
-    const profile = await getModeratorProfile()
-    if (profile && isModeratorRole(profile.role)) {
-      data = await loadModerationQueue()
-      usingDemoData = !data
-    }
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur-xl supports-[backdrop-filter]:bg-background/75">
@@ -67,7 +42,7 @@ export default async function ModerationPage() {
       </header>
 
       <main className="mx-auto w-full max-w-7xl px-4 py-6">
-        <ModerationDashboard configured={!usingDemoData} data={data} />
+        <ModerationDashboard />
       </main>
     </div>
   )
