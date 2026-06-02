@@ -34,6 +34,7 @@ type PostRow = {
   analysis?: PostAnalysis | null
   risk_score?: number | null
   risk_level?: string | null
+  self_declared_ai?: boolean | null
 }
 
 type DashboardState =
@@ -42,7 +43,7 @@ type DashboardState =
   | { status: "error"; data: null; error: string }
 
 const POSTS_SELECT_FULL =
-  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note, analysis, risk_score, risk_level"
+  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note, analysis, risk_score, risk_level, self_declared_ai"
 const POSTS_SELECT_LEGACY =
   "id, created_at, image_url, caption, username, is_flagged, confidence_score"
 const MODERATION_QUEUE_LIMIT = 20
@@ -155,7 +156,14 @@ function rowToPost(row: PostRow): Post {
   }
 }
 
-function buildQueueData(rows: PostRow[]): ModerationQueueData {
+function normalizeUsername(username: string | null | undefined): string {
+  return username?.trim() || "unknown_user"
+}
+
+function buildQueueData(
+  rows: PostRow[],
+  removedByAuthor: Map<string, number>
+): ModerationQueueData {
   const items: LiveQueueItem[] = rows
     .filter(rowNeedsReview)
     .slice(0, MODERATION_QUEUE_LIMIT)
@@ -169,6 +177,8 @@ function buildQueueData(rows: PostRow[]): ModerationQueueData {
       analysis: row.analysis ?? null,
       riskScore: riskScore(row),
       riskLevel: riskLevel(row),
+      selfDeclaredAi: row.self_declared_ai ?? null,
+      authorRemovedCount: removedByAuthor.get(normalizeUsername(row.username)) ?? 0,
     }))
 
   const reviewedToday = rows.filter((row) => {
@@ -234,9 +244,33 @@ export function ModerationDashboard() {
         .limit(MODERATION_QUEUE_LIMIT)
 
       let rows: PostRow[] | null = null
+      // Three-strikes signal: how many of each queued author's posts are already
+      // removed platform-wide. `posts` is publicly readable, so the anon client
+      // can compute this. Only available on the full path (legacy schema may lack
+      // the status column); failures are non-fatal — counts default to 0.
+      const removedByAuthor = new Map<string, number>()
 
       if (!full.error) {
         rows = (full.data ?? []) as PostRow[]
+
+        const queueAuthors = Array.from(
+          new Set(rows.filter(rowNeedsReview).map((r) => normalizeUsername(r.username)))
+        )
+        if (queueAuthors.length > 0) {
+          const { data: authorPosts } = await supabase
+            .from("posts")
+            .select("username, status")
+            .in("username", queueAuthors)
+          for (const p of (authorPosts ?? []) as {
+            username: string | null
+            status: PostStatus | null
+          }[]) {
+            if (p.status === "removed") {
+              const u = normalizeUsername(p.username)
+              removedByAuthor.set(u, (removedByAuthor.get(u) ?? 0) + 1)
+            }
+          }
+        }
       } else {
         const legacy = await supabase
           .from("posts")
@@ -262,7 +296,7 @@ export function ModerationDashboard() {
       if (!cancelled) {
         setState({
           status: "ready",
-          data: buildQueueData(rows),
+          data: buildQueueData(rows, removedByAuthor),
           error: null,
         })
       }

@@ -232,9 +232,15 @@ export function ModerationQueueLive({ items }: Props) {
     if (result.warning) setWarning(result.warning)
 
     setDecisions((prev) => ({ ...prev, [selected.groupKey]: pendingAction }))
-    setDismissedIds((prev) => ({ ...prev, [selected.groupKey]: true }))
-    setNote("")
-    setPendingAction("pending")
+    // Only clear the row from the queue when the decision actually persisted.
+    // An unpersisted write (no moderator session / RLS-blocked) leaves the post
+    // unchanged in the DB, so it would reappear on reload — keep it visible with
+    // the warning instead of optimistically hiding it.
+    if (result.persisted) {
+      setDismissedIds((prev) => ({ ...prev, [selected.groupKey]: true }))
+      setNote("")
+      setPendingAction("pending")
+    }
   }
 
   if (!selected) {
