@@ -6,6 +6,7 @@ import {
   getSupabaseEnv,
   isModeratorRole,
 } from "@/lib/moderator-auth"
+import { buildPostModerationUpdate } from "@/lib/moderation-action-payload"
 import type {
   ModerationActionRecord,
   ModerationDecision,
@@ -136,15 +137,7 @@ async function updatePostModerationStatus(
 
   const { data: updatedPosts, error: postErr } = await writeClient.client
     .from("posts")
-    .update({
-      status: newPostStatus,
-      moderation_status: newModerationStatus,
-      moderator_note: note,
-      is_flagged: action === "escalated",
-      reviewed_at: now,
-      reviewed_by: writeClient.resolvedBy,
-      removed_at: action === "removed" ? now : null,
-    })
+    .update(buildPostModerationUpdate(action, now, note, writeClient.resolvedBy))
     .eq("id", input.postId)
     .select("id, status, moderation_status")
 

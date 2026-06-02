@@ -41,15 +41,18 @@ type PostRow = {
   analysis?: PostAnalysis | null
   risk_score?: number | null
   risk_level?: string | null
+  moderation_status?: "pending_review" | "approved" | "removed" | "escalated" | null
+  reviewed_at?: string | null
+  reviewed_by?: string | null
+  removed_at?: string | null
+  approved_at?: string | null
+  escalated_at?: string | null
   // Phase 8 (migration 0010) — may be null on legacy posts.
   self_declared_ai?: boolean | null
 }
 
-const FALLBACK_AVATAR =
-  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
-
 const POSTS_SELECT_FULL =
-  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note, analysis, risk_score, risk_level, self_declared_ai"
+  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderation_status, moderator_note, reviewed_at, reviewed_by, removed_at, approved_at, escalated_at, analysis, risk_score, risk_level, self_declared_ai"
 const POSTS_SELECT_LEGACY =
   "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note"
 
@@ -68,7 +71,7 @@ function rowToPost(row: PostRow): Post {
       id: row.username,
       username: row.username,
       displayName: row.username,
-      avatarUrl: FALLBACK_AVATAR,
+      avatarUrl: "",
       verified: false,
     },
     content: row.caption ?? "",
@@ -197,12 +200,15 @@ export async function loadModerationQueue(): Promise<ModerationQueueData | null>
         analysis,
         riskScore: postRow.risk_score ?? null,
         riskLevel,
+        isFlagged: postRow.is_flagged,
         selfDeclaredAi: postRow.self_declared_ai ?? null,
         confidenceScore: postRow.confidence_score ?? null,
-        moderationStatus: null,
-        reviewedAt: null,
-        reviewedBy: null,
-        removedAt: null,
+        moderationStatus: postRow.moderation_status ?? null,
+        reviewedAt: postRow.reviewed_at ?? null,
+        reviewedBy: postRow.reviewed_by ?? null,
+        removedAt: postRow.removed_at ?? null,
+        approvedAt: postRow.approved_at ?? null,
+        escalatedAt: postRow.escalated_at ?? null,
         userHistory: null,
       })
     }

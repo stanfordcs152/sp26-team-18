@@ -14,8 +14,18 @@ import {
 } from "lucide-react"
 import { ModerationQueueLive } from "@/components/moderation-queue-live"
 import { supabase } from "@/lib/supabase"
-import { shouldFlagAnalysis } from "@/lib/analyzers/flag"
+import {
+  MODERATION_RISK_SCORE_THRESHOLD,
+  shouldFlagAnalysis,
+} from "@/lib/analyzers/flag"
 import { countRemovedByAuthor, normalizeUsername } from "@/lib/moderation-strikes"
+import {
+  MODERATION_FILTER_LABELS,
+  countModerationFilter,
+  matchesModerationFilter,
+  type ModerationMetricFilter,
+} from "@/lib/moderation-metrics"
+import { cn } from "@/lib/utils"
 import type {
   LiveQueueItem,
   ModerationQueueData,
@@ -44,6 +54,8 @@ type PostRow = {
   reviewed_at?: string | null
   reviewed_by?: string | null
   removed_at?: string | null
+  approved_at?: string | null
+  escalated_at?: string | null
   analysis?: PostAnalysis | null
   risk_score?: number | null
   risk_level?: string | null
@@ -76,13 +88,10 @@ type DashboardState =
   | { status: "error"; data: null; error: string }
 
 const POSTS_SELECT_FULL =
-  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderation_status, moderator_note, reviewed_at, reviewed_by, removed_at, analysis, risk_score, risk_level, self_declared_ai"
+  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderation_status, moderator_note, reviewed_at, reviewed_by, removed_at, approved_at, escalated_at, analysis, risk_score, risk_level, self_declared_ai"
 const POSTS_SELECT_LEGACY =
   "id, created_at, image_url, caption, username, is_flagged, confidence_score"
 const MODERATION_QUEUE_LIMIT = 20
-
-const FALLBACK_AVATAR =
-  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
 
 function isRiskLevel(value: string | null | undefined): value is RiskLevel {
   return value === "LOW" || value === "MEDIUM" || value === "HIGH" || value === "CRITICAL"
@@ -125,6 +134,7 @@ function rowNeedsReview(row: PostRow) {
 
   return (
     row.is_flagged === true ||
+    (riskScore(row) ?? 0) >= MODERATION_RISK_SCORE_THRESHOLD ||
     highOrCritical(row.risk_level) ||
     analysisNeedsReview(row.analysis)
   )
@@ -171,7 +181,7 @@ function rowToPost(row: PostRow): Post {
       id: username,
       username,
       displayName: username,
-      avatarUrl: FALLBACK_AVATAR,
+      avatarUrl: "",
       verified: false,
     },
     content: caption,
@@ -276,38 +286,42 @@ function buildUserHistories(
 function buildQueueData(
   rows: PostRow[],
   histories: Map<string, UserModerationHistory>,
-  stats: ModerationStats,
   removedByAuthor: Map<string, number>
 ): ModerationQueueData {
-  const items: LiveQueueItem[] = rows
-    .filter(rowNeedsReview)
-    .slice(0, MODERATION_QUEUE_LIMIT)
-    .map((row) => {
-      const username = row.username?.trim() || "unknown_user"
+  const toItem = (row: PostRow): LiveQueueItem => {
+    const username = row.username?.trim() || "unknown_user"
 
-      return {
-        groupKey: row.id,
-        post: rowToPost(row),
-        postStatus: row.status ?? "visible",
-        reports: [],
-        newestReportAt: row.created_at,
-        oldestReportAt: row.created_at,
-        analysis: row.analysis ?? null,
-        riskScore: riskScore(row),
-        riskLevel: riskLevel(row),
-        confidenceScore: row.confidence_score,
-        moderationStatus: row.moderation_status ?? null,
-        reviewedAt: row.reviewed_at ?? null,
-        reviewedBy: row.reviewed_by ?? null,
-        removedAt: row.removed_at ?? null,
-        userHistory: histories.get(username) ?? null,
-        selfDeclaredAi: row.self_declared_ai ?? null,
-        authorRemovedCount: removedByAuthor.get(normalizeUsername(row.username)) ?? 0,
-      }
-    })
+    return {
+      groupKey: row.id,
+      post: rowToPost(row),
+      postStatus: row.status ?? "visible",
+      reports: [],
+      newestReportAt: row.created_at,
+      oldestReportAt: row.created_at,
+      analysis: row.analysis ?? null,
+      riskScore: riskScore(row),
+      riskLevel: riskLevel(row),
+      isFlagged: row.is_flagged === true,
+      confidenceScore: row.confidence_score,
+      moderationStatus: row.moderation_status ?? null,
+      reviewedAt: row.reviewed_at ?? null,
+      reviewedBy: row.reviewed_by ?? null,
+      removedAt: row.removed_at ?? null,
+      approvedAt: row.approved_at ?? null,
+      escalatedAt: row.escalated_at ?? null,
+      userHistory: histories.get(username) ?? null,
+      selfDeclaredAi: row.self_declared_ai ?? null,
+      authorRemovedCount: removedByAuthor.get(normalizeUsername(row.username)) ?? 0,
+    }
+  }
+
+  const allItems = rows.map(toItem)
+  const items = rows.filter(rowNeedsReview).slice(0, MODERATION_QUEUE_LIMIT).map(toItem)
+  const stats = buildStats(allItems)
 
   return {
     items,
+    allItems,
     stats,
     counters: {
       pending: stats.pending,
@@ -329,101 +343,19 @@ function buildQueueData(
   }
 }
 
-async function loadStats(fallbackPending: number): Promise<ModerationStats> {
-  if (!supabase) {
-    return {
-      pending: fallbackPending,
-      reviewedToday: 0,
-      removedToday: 0,
-      escalated: 0,
-      avgReviewTime: "—",
-      flagsToday: null,
-      flagsThisWeek: null,
-      approvalsToday: null,
-      escalationsToday: null,
-    }
-  }
-
-  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-
-  const [
-    pendingRes,
-    highRiskRes,
-    criticalRes,
-    reviewedTodayRes,
-    flagsTodayRes,
-    flagsThisWeekRes,
-    removalsTodayRes,
-    approvalsTodayRes,
-    escalationsTodayRes,
-  ] = await Promise.all([
-    supabase
-      .from("posts")
-      .select("id", { count: "exact", head: true })
-      .or("is_flagged.eq.true,moderation_status.in.(pending_review,escalated)"),
-    supabase
-      .from("posts")
-      .select("id", { count: "exact", head: true })
-      .in("risk_level", ["HIGH", "CRITICAL"]),
-    supabase
-      .from("posts")
-      .select("id", { count: "exact", head: true })
-      .eq("risk_level", "CRITICAL"),
-    supabase
-      .from("posts")
-      .select("id", { count: "exact", head: true })
-      .not("reviewed_at", "is", null)
-      .gte("reviewed_at", dayAgo),
-    supabase
-      .from("posts")
-      .select("id", { count: "exact", head: true })
-      .eq("is_flagged", true)
-      .gte("created_at", dayAgo),
-    supabase
-      .from("posts")
-      .select("id", { count: "exact", head: true })
-      .eq("is_flagged", true)
-      .gte("created_at", weekAgo),
-    supabase
-      .from("posts")
-      .select("id", { count: "exact", head: true })
-      .eq("moderation_status", "removed")
-      .gte("reviewed_at", dayAgo),
-    supabase
-      .from("posts")
-      .select("id", { count: "exact", head: true })
-      .eq("moderation_status", "approved")
-      .gte("reviewed_at", dayAgo),
-    supabase
-      .from("posts")
-      .select("id", { count: "exact", head: true })
-      .eq("moderation_status", "escalated")
-      .gte("reviewed_at", dayAgo),
-  ])
-
-  const pending = pendingRes.error ? null : pendingRes.count ?? 0
-  const highRisk = highRiskRes.error ? null : highRiskRes.count ?? 0
-  const critical = criticalRes.error ? null : criticalRes.count ?? 0
-  const reviewedToday = reviewedTodayRes.error ? null : reviewedTodayRes.count ?? 0
-  const flagsToday = flagsTodayRes.error ? null : flagsTodayRes.count ?? 0
-  const flagsThisWeek = flagsThisWeekRes.error ? null : flagsThisWeekRes.count ?? 0
-  const removalsToday = removalsTodayRes.error ? null : removalsTodayRes.count ?? 0
-  const approvalsToday = approvalsTodayRes.error ? null : approvalsTodayRes.count ?? 0
-  const escalationsToday = escalationsTodayRes.error ? null : escalationsTodayRes.count ?? 0
-
+function buildStats(items: LiveQueueItem[]): ModerationStats {
   return {
-    pending: pending ?? fallbackPending,
-    highRisk,
-    critical,
-    reviewedToday: reviewedToday ?? 0,
-    removedToday: removalsToday ?? 0,
-    escalated: escalationsToday ?? 0,
+    pending: countModerationFilter(items, "pending"),
+    highRisk: countModerationFilter(items, "highRisk"),
+    critical: countModerationFilter(items, "critical"),
+    reviewedToday: countModerationFilter(items, "reviewedToday"),
+    removedToday: countModerationFilter(items, "removalsToday"),
+    escalated: countModerationFilter(items, "escalationsToday"),
     avgReviewTime: "—",
-    flagsToday,
-    flagsThisWeek,
-    approvalsToday,
-    escalationsToday,
+    flagsToday: countModerationFilter(items, "flagsToday"),
+    flagsThisWeek: countModerationFilter(items, "flagsThisWeek"),
+    approvalsToday: countModerationFilter(items, "approvalsToday"),
+    escalationsToday: countModerationFilter(items, "escalationsToday"),
   }
 }
 
@@ -433,6 +365,8 @@ export function ModerationDashboard() {
     data: null,
     error: null,
   })
+  const [activeFilter, setActiveFilter] = useState<ModerationMetricFilter | null>(null)
+  const [refreshToken, setRefreshToken] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -452,7 +386,9 @@ export function ModerationDashboard() {
       const full = await supabase
         .from("posts")
         .select(POSTS_SELECT_FULL)
-        .or("is_flagged.eq.true,risk_level.in.(HIGH,CRITICAL),moderation_status.in.(pending_review,escalated)")
+        .or(
+          `is_flagged.eq.true,risk_score.gte.${MODERATION_RISK_SCORE_THRESHOLD},risk_level.in.(HIGH,CRITICAL),moderation_status.in.(pending_review,escalated)`
+        )
         .order("risk_score", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false })
         .limit(MODERATION_QUEUE_LIMIT)
@@ -465,18 +401,32 @@ export function ModerationDashboard() {
       let removedByAuthor = new Map<string, number>()
 
       if (!full.error) {
-        const recent = await supabase
+        const platformRows = await supabase
           .from("posts")
           .select(POSTS_SELECT_FULL)
           .order("created_at", { ascending: false })
-          .limit(50)
+          .limit(1000)
+        const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+        const recentDecisions = await supabase
+          .from("posts")
+          .select(POSTS_SELECT_FULL)
+          .or(
+            `reviewed_at.gte.${dayAgo},removed_at.gte.${dayAgo},approved_at.gte.${dayAgo},escalated_at.gte.${dayAgo},moderation_status.in.(removed,approved,escalated)`
+          )
+          .order("reviewed_at", { ascending: false, nullsFirst: false })
+          .limit(1000)
 
         const byId = new Map<string, PostRow>()
         for (const row of (full.data ?? []) as PostRow[]) {
           byId.set(row.id, row)
         }
-        if (!recent.error) {
-          for (const row of (recent.data ?? []) as PostRow[]) {
+        if (!platformRows.error) {
+          for (const row of (platformRows.data ?? []) as PostRow[]) {
+            byId.set(row.id, row)
+          }
+        }
+        if (!recentDecisions.error) {
+          for (const row of (recentDecisions.data ?? []) as PostRow[]) {
             byId.set(row.id, row)
           }
         }
@@ -524,7 +474,7 @@ export function ModerationDashboard() {
         rows = (legacy.data ?? []) as PostRow[]
       }
 
-      const filteredRows = rows.filter(rowNeedsReview)
+      const filteredRows = rows
       const usernames = Array.from(
         new Set(filteredRows.map((row) => row.username?.trim() || "unknown_user"))
       )
@@ -551,12 +501,10 @@ export function ModerationDashboard() {
         )
       }
 
-      const stats = await loadStats(filteredRows.length)
-
       if (!cancelled) {
         setState({
           status: "ready",
-          data: buildQueueData(rows, histories, stats, removedByAuthor),
+          data: buildQueueData(rows, histories, removedByAuthor),
           error: null,
         })
       }
@@ -567,7 +515,7 @@ export function ModerationDashboard() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [refreshToken])
 
   const summary = useMemo(() => {
     const items = state.data?.items ?? []
@@ -591,6 +539,96 @@ export function ModerationDashboard() {
       escalationsToday: stats?.escalationsToday ?? null,
     }
   }, [state.data])
+
+  const queueItems = useMemo(() => {
+    if (!state.data) return []
+    if (!activeFilter) return state.data.items
+    return (state.data.allItems ?? state.data.items).filter((item) =>
+      matchesModerationFilter(item, activeFilter)
+    )
+  }, [activeFilter, state.data])
+
+  const queueTitle = activeFilter
+    ? `${MODERATION_FILTER_LABELS[activeFilter]} Queue`
+    : "Flagged Queue"
+  const queueDescription = activeFilter
+    ? `${queueItems.length} matching Supabase post${queueItems.length === 1 ? "" : "s"}.`
+    : `${queueItems.length} Supabase post${queueItems.length === 1 ? "" : "s"} awaiting review.`
+  const emptyTitle = activeFilter
+    ? `No posts match ${MODERATION_FILTER_LABELS[activeFilter]}.`
+    : "No flagged posts awaiting review."
+
+  const metricCards: {
+    key: ModerationMetricFilter
+    label: string
+    value: number | string | null
+    detail: string
+    icon: typeof Clock3
+  }[] = [
+    {
+      key: "pending",
+      label: "Pending Review",
+      value: summary.pending,
+      detail: "Flagged or pending posts",
+      icon: Clock3,
+    },
+    {
+      key: "highRisk",
+      label: "High Risk",
+      value: summary.highRisk,
+      detail: "HIGH, CRITICAL, or score >= 60%",
+      icon: ShieldAlert,
+    },
+    {
+      key: "critical",
+      label: "Critical",
+      value: summary.critical,
+      detail: "CRITICAL or score >= 85%",
+      icon: AlertTriangle,
+    },
+    {
+      key: "reviewedToday",
+      label: "Reviewed Today",
+      value: summary.reviewedToday,
+      detail: "Reviewed in last 24h",
+      icon: CheckCircle2,
+    },
+    {
+      key: "flagsToday",
+      label: "Flags Today",
+      value: summary.flagsToday,
+      detail: "Analysis flags in last 24h",
+      icon: Flag,
+    },
+    {
+      key: "flagsThisWeek",
+      label: "Flags This Week",
+      value: summary.flagsThisWeek,
+      detail: "Analysis flags in last 7 days",
+      icon: CalendarDays,
+    },
+    {
+      key: "removalsToday",
+      label: "Removals Today",
+      value: summary.removalsToday,
+      detail: "Removed posts",
+      icon: Trash2,
+    },
+    {
+      key: "approvalsToday",
+      label: "Approvals Today",
+      value: summary.approvalsToday,
+      detail: "Approved in last 24h",
+      icon: CheckCircle2,
+    },
+    {
+      key: "escalationsToday",
+      label: "Escalations Today",
+      value: summary.escalationsToday,
+      detail: "Escalated in last 24h",
+      icon: Flag,
+    },
+  ]
 
   if (state.status === "loading") {
     return (
@@ -621,75 +659,58 @@ export function ModerationDashboard() {
   return (
     <div className="space-y-6">
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <SummaryCard
-          label="Pending Review"
-          value={summary.pending}
-          detail="Posts in queue"
-          icon={Clock3}
-        />
-        <SummaryCard
-          label="High Risk"
-          value={summary.highRisk}
-          detail="HIGH or CRITICAL risk"
-          icon={ShieldAlert}
-        />
-        <SummaryCard
-          label="Critical"
-          value={summary.critical}
-          detail="Highest-priority reviews"
-          icon={AlertTriangle}
-        />
-        <SummaryCard
-          label="Reviewed Today"
-          value={summary.reviewedToday}
-          detail="Resolved in last 24h"
-          icon={CheckCircle2}
-        />
-        <SummaryCard
-          label="Flags Today"
-          value={summary.flagsToday}
-          detail="Flagged in last 24h"
-          icon={Flag}
-        />
-        <SummaryCard
-          label="Flags This Week"
-          value={summary.flagsThisWeek}
-          detail="Flagged in last 7 days"
-          icon={CalendarDays}
-        />
-        <SummaryCard
-          label="Removals Today"
-          value={summary.removalsToday}
-          detail="Removed in last 24h"
-          icon={Trash2}
-        />
-        <SummaryCard
-          label="Approvals Today"
-          value={summary.approvalsToday}
-          detail="Approved in last 24h"
-          icon={CheckCircle2}
-        />
-        <SummaryCard
-          label="Escalations Today"
-          value={summary.escalationsToday}
-          detail="Escalated in last 24h"
-          icon={Flag}
-        />
+        {metricCards.map((card) => (
+          <SummaryCard
+            key={card.key}
+            label={card.label}
+            value={card.value}
+            detail={card.detail}
+            icon={card.icon}
+            active={activeFilter === card.key}
+            onClick={() =>
+              setActiveFilter((current) => (current === card.key ? null : card.key))
+            }
+          />
+        ))}
       </section>
 
-      {state.data.items.length === 0 ? (
+      {activeFilter ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 bg-card/80 px-4 py-3 shadow-sm">
+          <div>
+            <p className="text-sm font-semibold">{MODERATION_FILTER_LABELS[activeFilter]}</p>
+            <p className="text-xs text-muted-foreground">
+              Showing {queueItems.length} matching post{queueItems.length === 1 ? "" : "s"}.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveFilter(null)}
+            className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Clear filter
+          </button>
+        </div>
+      ) : null}
+
+      {queueItems.length === 0 ? (
         <div className="flex min-h-[360px] flex-col items-center justify-center rounded-xl border border-border/70 bg-card/80 px-6 text-center shadow-sm">
           <div className="flex size-12 items-center justify-center rounded-full border border-border bg-background">
             <Inbox className="size-6 text-muted-foreground" />
           </div>
-          <h2 className="mt-4 text-xl font-semibold">No flagged posts awaiting review.</h2>
+          <h2 className="mt-4 text-xl font-semibold">{emptyTitle}</h2>
           <p className="mt-2 max-w-md text-sm text-muted-foreground">
             Posts will appear here when Supabase rows are flagged, high risk, or
             contain manipulation and political misinformation signals.
           </p>
         </div>
       ) : (
-        <ModerationQueueLive items={state.data.items} />
+        <ModerationQueueLive
+          items={queueItems}
+          queueTitle={queueTitle}
+          queueDescription={queueDescription}
+          emptyTitle={emptyTitle}
+          onDecisionPersisted={() => setRefreshToken((token) => token + 1)}
+        />
       )}
     </div>
   )
@@ -700,22 +721,36 @@ function SummaryCard({
   value,
   detail,
   icon: Icon,
+  active,
+  onClick,
 }: {
   label: string
   value: number | string | null
   detail: string
   icon: typeof Clock3
+  active: boolean
+  onClick: () => void
 }) {
   const displayValue = value === null ? "Unavailable" : value
 
   return (
-    <div className="rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm">
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "cursor-pointer rounded-xl border bg-card/80 p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        active
+          ? "border-primary/60 bg-primary/10 ring-1 ring-primary/25"
+          : "border-border/70"
+      )}
+    >
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <Icon className="size-4 text-muted-foreground" />
+        <Icon className={cn("size-4", active ? "text-primary" : "text-muted-foreground")} />
       </div>
       <p className="mt-3 text-2xl font-semibold tracking-tight">{displayValue}</p>
       <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
-    </div>
+    </button>
   )
 }

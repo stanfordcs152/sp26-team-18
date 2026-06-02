@@ -24,6 +24,10 @@ import type { LiveQueueItem, RiskLevel, UserModerationHistory } from "@/lib/type
 
 interface Props {
   items: LiveQueueItem[]
+  queueTitle?: string
+  queueDescription?: string
+  emptyTitle?: string
+  onDecisionPersisted?: () => void
 }
 
 type ConsoleDecision = "pending" | "approved" | "removed" | "escalated"
@@ -181,7 +185,13 @@ function buildEvidence(item: LiveQueueItem): EvidenceItem[] {
   return rows
 }
 
-export function ModerationQueueLive({ items }: Props) {
+export function ModerationQueueLive({
+  items,
+  queueTitle = "Flagged Queue",
+  queueDescription = "Highest risk first, then newest.",
+  emptyTitle = "No flagged posts awaiting review.",
+  onDecisionPersisted,
+}: Props) {
   const [selectedId, setSelectedId] = useState(items[0]?.groupKey ?? "")
   const [decisions, setDecisions] = useState<Record<string, ConsoleDecision>>({})
   const [dismissedIds, setDismissedIds] = useState<Record<string, true>>({})
@@ -239,6 +249,7 @@ export function ModerationQueueLive({ items }: Props) {
       }
       setNote("")
       setPendingAction("pending")
+      onDecisionPersisted?.()
     }
   }
 
@@ -246,7 +257,7 @@ export function ModerationQueueLive({ items }: Props) {
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-border/70 bg-card/80 py-16 text-center shadow-sm">
         <Inbox className="mb-4 size-12 text-muted-foreground/50" />
-        <h3 className="text-lg font-medium text-foreground">No flagged posts awaiting review.</h3>
+        <h3 className="text-lg font-medium text-foreground">{emptyTitle}</h3>
         <p className="mt-1 text-sm text-muted-foreground">
           New flagged uploads will appear here after automated analysis.
         </p>
@@ -272,10 +283,10 @@ export function ModerationQueueLive({ items }: Props) {
         <aside className="overflow-hidden rounded-xl border border-border/70 bg-card/80 shadow-sm">
           <div className="border-b border-border/70 p-4">
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-              Flagged Queue
+              {queueTitle}
             </p>
             <p className="mt-1 text-sm leading-5 text-muted-foreground">
-              Highest risk first, then newest.
+              {queueDescription}
             </p>
           </div>
           <div className="max-h-[720px] space-y-2 overflow-auto p-2">
@@ -349,10 +360,12 @@ export function ModerationQueueLive({ items }: Props) {
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/70 p-4">
             <div className="flex items-start gap-3">
               <Avatar className="size-11">
-                <AvatarImage
-                  src={selected.post.author.avatarUrl}
-                  alt={selected.post.author.displayName}
-                />
+                {selected.post.author.avatarUrl ? (
+                  <AvatarImage
+                    src={selected.post.author.avatarUrl}
+                    alt={selected.post.author.displayName}
+                  />
+                ) : null}
                 <AvatarFallback>
                   {selected.post.author.displayName.slice(0, 2).toUpperCase()}
                 </AvatarFallback>

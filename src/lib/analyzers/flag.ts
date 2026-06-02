@@ -2,6 +2,7 @@ import type { PostAnalysis } from "@/lib/types";
 
 export const AI_GENERATED_FLAG_THRESHOLD = 0.6;
 export const POLITICAL_AI_REVIEW_THRESHOLD = 0.4;
+export const MODERATION_RISK_SCORE_THRESHOLD = 0.6;
 
 function numeric(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
@@ -42,14 +43,13 @@ export function shouldFlagAnalysis(
     hasPublicFigure(analysis);
 
   return (
-    analysis.vision?.appearsAIGenerated === true ||
-    (aiLikelihood !== null && aiLikelihood >= AI_GENERATED_FLAG_THRESHOLD) ||
+    highOrCritical(analysis.risk?.level) ||
+    (numeric(analysis.risk?.score) ?? 0) >= MODERATION_RISK_SCORE_THRESHOLD ||
     analysis.manipulationSignals?.possibleKnownManipulation === true ||
     analysis.vision?.possibleKnownManipulation === true ||
-    highOrCritical(analysis.risk?.level) ||
     highOrCritical(analysis.vision?.misinformationRisk) ||
     (politicalOrPublicFigure &&
-      aiLikelihood !== null &&
-      aiLikelihood >= POLITICAL_AI_REVIEW_THRESHOLD)
+      (analysis.vision?.appearsAIGenerated === true ||
+        (aiLikelihood !== null && aiLikelihood >= AI_GENERATED_FLAG_THRESHOLD)))
   );
 }
