@@ -2,10 +2,21 @@ import { SidebarNav } from "@/components/sidebar-nav"
 import { Feed } from "@/components/feed"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import Link from "next/link"
-import { Upload } from "lucide-react"
+import { LogIn, ShieldCheck, Upload } from "lucide-react"
 import { ModeSwitch } from "@/components/mode-switch"
+import { Button } from "@/components/ui/button"
+import { getModeratorProfile, getSupabaseEnv } from "@/lib/moderator-auth"
 
-export default function HomePage() {
+// Read fresh per request: the sign-in prompt depends on the session cookie.
+export const dynamic = "force-dynamic"
+
+export default async function HomePage() {
+  // Prompt anonymous visitors to sign in/up. Only meaningful when Supabase is
+  // configured; in demo mode there's no auth, so the prompt stays hidden.
+  const configured = Boolean(getSupabaseEnv())
+  const profile = configured ? await getModeratorProfile() : null
+  const showAuthPrompt = configured && !profile
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex max-w-6xl">
@@ -46,6 +57,22 @@ export default function HomePage() {
                   </div>
                 </Link>
               </div>
+              {showAuthPrompt ? (
+                <div className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card/60 p-3">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-foreground text-background">
+                    <LogIn className="size-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold">Join TruthGuard</p>
+                    <p className="text-xs text-muted-foreground">
+                      Sign up or log in to post and interact with the feed.
+                    </p>
+                  </div>
+                  <Button asChild size="sm">
+                    <Link href="/login?redirect=/">Sign up / Log in</Link>
+                  </Button>
+                </div>
+              ) : null}
             </div>
           </header>
 
