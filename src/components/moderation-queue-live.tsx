@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { resolvePostModeration } from "@/lib/moderation-actions"
+import { isRepeatOffender } from "@/lib/moderation-strikes"
 import type { LiveQueueItem, ReportResolution, RiskLevel } from "@/lib/types"
 
 interface Props {
@@ -25,15 +26,6 @@ interface Props {
 }
 
 type ConsoleDecision = "pending" | "approved" | "removed" | "escalated"
-
-// A flagged author reaches "repeat offender" status once moderators have
-// removed at least this many of their posts. Advisory only — it surfaces a
-// warning in the queue but does not block the account from uploading.
-const STRIKE_LIMIT = 3
-
-function isRepeatOffender(item: LiveQueueItem): boolean {
-  return (item.authorRemovedCount ?? 0) >= STRIKE_LIMIT
-}
 
 const RISK_CLASS: Record<RiskLevel, string> = {
   LOW: "border-slate-500/20 bg-slate-500/10 text-slate-500",
@@ -331,7 +323,7 @@ export function ModerationQueueLive({ items }: Props) {
                       })}
                     </span>
                   </div>
-                  {isRepeatOffender(item) ? (
+                  {isRepeatOffender(item.authorRemovedCount) ? (
                     <Badge
                       variant="outline"
                       className="mt-2 gap-1 border-red-500/30 bg-red-500/10 text-[10px] text-red-600 dark:text-red-400"
@@ -382,7 +374,7 @@ export function ModerationQueueLive({ items }: Props) {
             </span>
           </div>
 
-          {isRepeatOffender(selected) ? (
+          {isRepeatOffender(selected.authorRemovedCount) ? (
             <div className="flex items-start gap-2 border-b border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-300">
               <ShieldX className="mt-0.5 size-4 shrink-0" />
               <p>

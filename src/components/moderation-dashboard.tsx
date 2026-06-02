@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { ModerationQueueLive } from "@/components/moderation-queue-live"
 import { supabase } from "@/lib/supabase"
+import { countRemovedByAuthor, normalizeUsername } from "@/lib/moderation-strikes"
 import type {
   LiveQueueItem,
   ModerationQueueData,
@@ -156,10 +157,6 @@ function rowToPost(row: PostRow): Post {
   }
 }
 
-function normalizeUsername(username: string | null | undefined): string {
-  return username?.trim() || "unknown_user"
-}
-
 function buildQueueData(
   rows: PostRow[],
   removedByAuthor: Map<string, number>
@@ -248,7 +245,7 @@ export function ModerationDashboard() {
       // removed platform-wide. `posts` is publicly readable, so the anon client
       // can compute this. Only available on the full path (legacy schema may lack
       // the status column); failures are non-fatal — counts default to 0.
-      const removedByAuthor = new Map<string, number>()
+      let removedByAuthor = new Map<string, number>()
 
       if (!full.error) {
         rows = (full.data ?? []) as PostRow[]
@@ -261,15 +258,12 @@ export function ModerationDashboard() {
             .from("posts")
             .select("username, status")
             .in("username", queueAuthors)
-          for (const p of (authorPosts ?? []) as {
-            username: string | null
-            status: PostStatus | null
-          }[]) {
-            if (p.status === "removed") {
-              const u = normalizeUsername(p.username)
-              removedByAuthor.set(u, (removedByAuthor.get(u) ?? 0) + 1)
-            }
-          }
+          removedByAuthor = countRemovedByAuthor(
+            (authorPosts ?? []) as {
+              username: string | null
+              status: PostStatus | null
+            }[]
+          )
         }
       } else {
         const legacy = await supabase
