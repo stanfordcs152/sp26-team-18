@@ -93,7 +93,9 @@ async function loadApproach(
       llm: classifyLlmFree,
       hybrid: classifyHybridFree,
     } as const;
-    return approaches[approach];
+    const fn = approaches[approach as keyof typeof approaches];
+    if (!fn) throw new Error(`Unsupported approach for loadApproach: ${approach}`);
+    return fn;
   }
 
   const { classifyHeuristic, classifyHybrid, classifyLlm } = await import(
@@ -104,7 +106,9 @@ async function loadApproach(
     llm: (buf: Buffer, _name: string, _notes?: string) => classifyLlm(buf),
     hybrid: classifyHybrid,
   } as const;
-  return approaches[approach];
+  const fn = approaches[approach as keyof typeof approaches];
+  if (!fn) throw new Error(`Unsupported approach for loadApproach: ${approach}`);
+  return fn;
 }
 
 function selectedApproaches(

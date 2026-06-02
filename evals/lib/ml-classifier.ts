@@ -113,7 +113,7 @@ export async function buildMlClassifyFn(
     _buf: Buffer,
     _filename: string,
     _notes: string | undefined,
-    rowId: string
+    rowId?: string
   ) => Promise<ClassifierPrediction>
 > {
   const batchStart = performance.now();
@@ -122,6 +122,9 @@ export async function buildMlClassifyFn(
   const perItemMs = examples.length > 0 ? batchMs / examples.length : 0;
 
   return async (_buf, _filename, _notes, rowId) => {
+    if (!rowId) {
+      throw new Error("ML classifyFn missing rowId");
+    }
     const pred = predictions.get(rowId);
     if (!pred) {
       throw new Error(`ML classifier missing prediction for ${rowId}`);
