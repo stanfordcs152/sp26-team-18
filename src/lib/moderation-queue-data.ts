@@ -41,13 +41,15 @@ type PostRow = {
   analysis?: PostAnalysis | null
   risk_score?: number | null
   risk_level?: string | null
+  // Phase 8 (migration 0010) — may be null on legacy posts.
+  self_declared_ai?: boolean | null
 }
 
 const FALLBACK_AVATAR =
   "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
 
 const POSTS_SELECT_FULL =
-  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note, analysis, risk_score, risk_level"
+  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note, analysis, risk_score, risk_level, self_declared_ai"
 const POSTS_SELECT_LEGACY =
   "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note"
 
@@ -195,6 +197,7 @@ export async function loadModerationQueue(): Promise<ModerationQueueData | null>
         analysis,
         riskScore: postRow.risk_score ?? null,
         riskLevel,
+        selfDeclaredAi: postRow.self_declared_ai ?? null,
         confidenceScore: postRow.confidence_score ?? null,
         moderationStatus: null,
         reviewedAt: null,
@@ -208,6 +211,32 @@ export async function loadModerationQueue(): Promise<ModerationQueueData | null>
   const sorted = Array.from(grouped.values()).sort((a, b) =>
     a.newestReportAt < b.newestReportAt ? 1 : -1
   )
+
+  // Three-strikes signal (moderator-only, advisory): count how many of each
+  // queued author's posts have already been removed platform-wide. `posts` is
+  // moderator-readable, so this works with the signed-in moderator client.
+  // Failures are non-fatal — counts just default to 0.
+  const authorUsernames = Array.from(
+    new Set(sorted.map((it) => it.post.author.username))
+  )
+  if (authorUsernames.length > 0) {
+    const { data: authorPosts } = await supabase
+      .from("posts")
+      .select("username, status")
+      .in("username", authorUsernames)
+    const removedByAuthor = new Map<string, number>()
+    for (const p of (authorPosts ?? []) as {
+      username: string
+      status: PostStatus | null
+    }[]) {
+      if (p.status === "removed") {
+        removedByAuthor.set(p.username, (removedByAuthor.get(p.username) ?? 0) + 1)
+      }
+    }
+    for (const it of sorted) {
+      it.authorRemovedCount = removedByAuthor.get(it.post.author.username) ?? 0
+    }
+  }
 
   const highRisk = sorted.filter(
     (it) => it.riskLevel === "HIGH" || it.riskLevel === "CRITICAL"
