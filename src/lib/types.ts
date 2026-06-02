@@ -198,6 +198,7 @@ export interface LiveQueueItem {
   analysis: PostAnalysis | null
   riskScore: number | null
   riskLevel: RiskLevel | null
+  isFlagged: boolean
   // Phase 8: the uploader's own AI/authentic self-label (migration 0010).
   selfDeclaredAi?: boolean | null
   // Three-strikes signal: how many of this author's posts a moderator has
@@ -209,6 +210,8 @@ export interface LiveQueueItem {
   reviewedAt: string | null
   reviewedBy: string | null
   removedAt: string | null
+  approvedAt?: string | null
+  escalatedAt?: string | null
   userHistory?: UserModerationHistory | null
 }
 
@@ -228,6 +231,7 @@ export interface DashboardCounters {
 // Everything the dashboard needs from one server-side queue load.
 export interface ModerationQueueData {
   items: LiveQueueItem[]
+  allItems?: LiveQueueItem[]
   stats: ModerationStats
   counters: DashboardCounters
 }

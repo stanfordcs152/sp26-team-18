@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import {
@@ -173,15 +172,14 @@ export function PostCard({ post }: PostCardProps) {
           </p>
 
           {media && (
-            <div className="relative mt-3 overflow-hidden rounded-2xl border border-border/80 bg-muted">
-              <div className="relative aspect-video">
-                <Image
+            <div className="mt-3 overflow-hidden rounded-2xl border border-border/80 bg-black">
+              <div className="relative flex max-h-[560px] min-h-44 items-center justify-center">
+                <img
                   src={media.thumbnailUrl || media.url}
                   alt={media.altText || "Post media"}
-                  fill
-                  sizes="(max-width: 768px) calc(100vw - 5rem), 760px"
-                  quality={75}
-                  className="object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  className="max-h-[560px] max-w-full object-contain"
                 />
                 {media.type === "video" && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20">
