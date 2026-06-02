@@ -3,11 +3,14 @@
 import { useEffect, useMemo, useState } from "react"
 import {
   AlertTriangle,
+  CalendarDays,
   CheckCircle2,
   Clock3,
+  Flag,
   Inbox,
   Loader2,
   ShieldAlert,
+  Trash2,
 } from "lucide-react"
 import { ModerationQueueLive } from "@/components/moderation-queue-live"
 import { supabase } from "@/lib/supabase"
@@ -15,10 +18,14 @@ import type {
   LiveQueueItem,
   ModerationQueueData,
   ModerationStats,
+  ModerationActionRecord,
+  ModerationDecision,
+  ModerationStatus,
   Post,
   PostAnalysis,
   PostStatus,
   RiskLevel,
+  UserModerationHistory,
 } from "@/lib/types"
 
 type PostRow = {
@@ -30,10 +37,34 @@ type PostRow = {
   is_flagged: boolean | null
   confidence_score: number | null
   status?: PostStatus | null
+  moderation_status?: ModerationStatus | null
   moderator_note?: string | null
+  reviewed_at?: string | null
+  reviewed_by?: string | null
+  removed_at?: string | null
   analysis?: PostAnalysis | null
   risk_score?: number | null
   risk_level?: string | null
+}
+
+type ModerationActionRow = {
+  id: string
+  post_id: string
+  username: string | null
+  action: ModerationDecision
+  moderator: string | null
+  note: string | null
+  post_caption: string | null
+  created_at: string
+}
+
+type HistoryPostRow = {
+  id: string
+  username: string | null
+  is_flagged: boolean | null
+  status?: PostStatus | null
+  moderation_status?: ModerationStatus | null
+  reviewed_at?: string | null
 }
 
 type DashboardState =
@@ -42,7 +73,7 @@ type DashboardState =
   | { status: "error"; data: null; error: string }
 
 const POSTS_SELECT_FULL =
-  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note, analysis, risk_score, risk_level"
+  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderation_status, moderator_note, reviewed_at, reviewed_by, removed_at, analysis, risk_score, risk_level"
 const POSTS_SELECT_LEGACY =
   "id, created_at, image_url, caption, username, is_flagged, confidence_score"
 const MODERATION_QUEUE_LIMIT = 20
@@ -76,7 +107,16 @@ function analysisNeedsReview(analysis: PostAnalysis | null | undefined) {
 }
 
 function rowNeedsReview(row: PostRow) {
-  const alreadyReviewed = row.status === "removed" || row.status === "labeled" || Boolean(row.moderator_note)
+  if (row.moderation_status === "pending_review" || row.moderation_status === "escalated") {
+    return true
+  }
+
+  const alreadyReviewed =
+    row.moderation_status === "approved" ||
+    row.moderation_status === "removed" ||
+    row.status === "removed" ||
+    row.status === "labeled" ||
+    Boolean(row.moderator_note)
   if (alreadyReviewed) return false
 
   return (
@@ -109,7 +149,10 @@ function rowToPost(row: PostRow): Post {
         ? score * 100
         : 0
   )
-  const detectionStatus = isFlagged
+  const detectionStatus =
+    row.moderation_status === "pending_review" || row.moderation_status === "escalated"
+      ? "under_review"
+      : isFlagged
     ? confidence >= 90
       ? "confirmed_ai"
       : "likely_ai"
@@ -150,56 +193,230 @@ function rowToPost(row: PostRow): Post {
     shares: 0,
     isLiked: false,
     isBookmarked: false,
-    status: row.status ?? "visible",
+    status:
+      row.moderation_status === "removed"
+        ? "removed"
+        : row.status ?? "visible",
     moderatorNote: row.moderator_note ?? null,
   }
 }
 
-function buildQueueData(rows: PostRow[]): ModerationQueueData {
+function actionRecord(row: ModerationActionRow): ModerationActionRecord {
+  return {
+    id: row.id,
+    postId: row.post_id,
+    username: row.username?.trim() || "unknown_user",
+    action: row.action,
+    moderator: row.moderator?.trim() || "demo-moderator",
+    note: row.note,
+    postCaption: row.post_caption,
+    createdAt: row.created_at,
+  }
+}
+
+function buildUserHistories(
+  posts: HistoryPostRow[],
+  actions: ModerationActionRow[]
+): Map<string, UserModerationHistory> {
+  const usernames = new Set<string>()
+  for (const post of posts) usernames.add(post.username?.trim() || "unknown_user")
+  for (const action of actions) usernames.add(action.username?.trim() || "unknown_user")
+
+  const byUsername = new Map<string, UserModerationHistory>()
+
+  for (const username of usernames) {
+    const userPosts = posts.filter(
+      (post) => (post.username?.trim() || "unknown_user") === username
+    )
+    const userActions = actions
+      .filter((action) => (action.username?.trim() || "unknown_user") === username)
+      .map(actionRecord)
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+
+    const flaggedIds = new Set<string>()
+    for (const post of userPosts) {
+      if (
+        post.is_flagged === true ||
+        post.moderation_status === "pending_review" ||
+        post.moderation_status === "escalated"
+      ) {
+        flaggedIds.add(post.id)
+      }
+    }
+    for (const action of userActions) flaggedIds.add(action.postId)
+
+    byUsername.set(username, {
+      username,
+      totalFlagged: flaggedIds.size,
+      totalRemoved:
+        userActions.filter((action) => action.action === "removed").length ||
+        userPosts.filter(
+          (post) => post.moderation_status === "removed" || post.status === "removed"
+        ).length,
+      totalApproved:
+        userActions.filter((action) => action.action === "approved").length ||
+        userPosts.filter(
+          (post) => post.moderation_status === "approved" && Boolean(post.reviewed_at)
+        ).length,
+      totalEscalated:
+        userActions.filter((action) => action.action === "escalated").length ||
+        userPosts.filter((post) => post.moderation_status === "escalated").length,
+      mostRecentAction: userActions[0] ?? null,
+      recentActions: userActions.slice(0, 5),
+    })
+  }
+
+  return byUsername
+}
+
+function buildQueueData(
+  rows: PostRow[],
+  histories: Map<string, UserModerationHistory>,
+  stats: ModerationStats
+): ModerationQueueData {
   const items: LiveQueueItem[] = rows
     .filter(rowNeedsReview)
     .slice(0, MODERATION_QUEUE_LIMIT)
-    .map((row) => ({
-      groupKey: row.id,
-      post: rowToPost(row),
-      postStatus: row.status ?? "visible",
-      reports: [],
-      newestReportAt: row.created_at,
-      oldestReportAt: row.created_at,
-      analysis: row.analysis ?? null,
-      riskScore: riskScore(row),
-      riskLevel: riskLevel(row),
-    }))
+    .map((row) => {
+      const username = row.username?.trim() || "unknown_user"
 
-  const reviewedToday = rows.filter((row) => {
-    if (!row.moderator_note) return false
-    return Date.now() - new Date(row.created_at).getTime() < 24 * 60 * 60 * 1000
-  }).length
-
-  const removedToday = rows.filter((row) => {
-    if (row.status !== "removed") return false
-    return Date.now() - new Date(row.created_at).getTime() < 24 * 60 * 60 * 1000
-  }).length
-
-  const stats: ModerationStats = {
-    pending: items.length,
-    reviewedToday,
-    removedToday,
-    escalated: items.filter((item) => item.riskLevel === "CRITICAL").length,
-    avgReviewTime: "—",
-  }
+      return {
+        groupKey: row.id,
+        post: rowToPost(row),
+        postStatus: row.status ?? "visible",
+        reports: [],
+        newestReportAt: row.created_at,
+        oldestReportAt: row.created_at,
+        analysis: row.analysis ?? null,
+        riskScore: riskScore(row),
+        riskLevel: riskLevel(row),
+        confidenceScore: row.confidence_score,
+        moderationStatus: row.moderation_status ?? null,
+        reviewedAt: row.reviewed_at ?? null,
+        reviewedBy: row.reviewed_by ?? null,
+        removedAt: row.removed_at ?? null,
+        userHistory: histories.get(username) ?? null,
+      }
+    })
 
   return {
     items,
     stats,
     counters: {
-      pending: items.length,
-      highRisk: items.filter(
-        (item) => item.riskLevel === "HIGH" || item.riskLevel === "CRITICAL"
-      ).length,
-      approvedToday: Math.max(0, reviewedToday - removedToday),
+      pending: stats.pending,
+      highRisk:
+        stats?.highRisk ??
+        items.filter(
+          (item) => item.riskLevel === "HIGH" || item.riskLevel === "CRITICAL"
+        ).length,
+      critical:
+        stats?.critical ??
+        items.filter((item) => item.riskLevel === "CRITICAL").length,
+      approvedToday: stats.approvalsToday ?? 0,
       escalated: stats.escalated,
+      flagsToday: stats.flagsToday,
+      flagsThisWeek: stats.flagsThisWeek,
+      removalsToday: stats.removedToday,
+      escalationsToday: stats.escalationsToday,
     },
+  }
+}
+
+async function loadStats(fallbackPending: number): Promise<ModerationStats> {
+  if (!supabase) {
+    return {
+      pending: fallbackPending,
+      reviewedToday: 0,
+      removedToday: 0,
+      escalated: 0,
+      avgReviewTime: "—",
+      flagsToday: null,
+      flagsThisWeek: null,
+      approvalsToday: null,
+      escalationsToday: null,
+    }
+  }
+
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+
+  const [
+    pendingRes,
+    highRiskRes,
+    criticalRes,
+    reviewedTodayRes,
+    flagsTodayRes,
+    flagsThisWeekRes,
+    removalsTodayRes,
+    approvalsTodayRes,
+    escalationsTodayRes,
+  ] = await Promise.all([
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .or("is_flagged.eq.true,moderation_status.in.(pending_review,escalated)"),
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .in("risk_level", ["HIGH", "CRITICAL"]),
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("risk_level", "CRITICAL"),
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .not("reviewed_at", "is", null)
+      .gte("reviewed_at", dayAgo),
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("is_flagged", true)
+      .gte("created_at", dayAgo),
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("is_flagged", true)
+      .gte("created_at", weekAgo),
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("moderation_status", "removed")
+      .gte("reviewed_at", dayAgo),
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("moderation_status", "approved")
+      .gte("reviewed_at", dayAgo),
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("moderation_status", "escalated")
+      .gte("reviewed_at", dayAgo),
+  ])
+
+  const pending = pendingRes.error ? null : pendingRes.count ?? 0
+  const highRisk = highRiskRes.error ? null : highRiskRes.count ?? 0
+  const critical = criticalRes.error ? null : criticalRes.count ?? 0
+  const reviewedToday = reviewedTodayRes.error ? null : reviewedTodayRes.count ?? 0
+  const flagsToday = flagsTodayRes.error ? null : flagsTodayRes.count ?? 0
+  const flagsThisWeek = flagsThisWeekRes.error ? null : flagsThisWeekRes.count ?? 0
+  const removalsToday = removalsTodayRes.error ? null : removalsTodayRes.count ?? 0
+  const approvalsToday = approvalsTodayRes.error ? null : approvalsTodayRes.count ?? 0
+  const escalationsToday = escalationsTodayRes.error ? null : escalationsTodayRes.count ?? 0
+
+  return {
+    pending: pending ?? fallbackPending,
+    highRisk,
+    critical,
+    reviewedToday: reviewedToday ?? 0,
+    removedToday: removalsToday ?? 0,
+    escalated: escalationsToday ?? 0,
+    avgReviewTime: "—",
+    flagsToday,
+    flagsThisWeek,
+    approvalsToday,
+    escalationsToday,
   }
 }
 
@@ -228,7 +445,7 @@ export function ModerationDashboard() {
       const full = await supabase
         .from("posts")
         .select(POSTS_SELECT_FULL)
-        .or("is_flagged.eq.true,risk_level.in.(HIGH,CRITICAL)")
+        .or("is_flagged.eq.true,risk_level.in.(HIGH,CRITICAL),moderation_status.in.(pending_review,escalated)")
         .order("risk_score", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false })
         .limit(MODERATION_QUEUE_LIMIT)
@@ -259,10 +476,39 @@ export function ModerationDashboard() {
         rows = (legacy.data ?? []) as PostRow[]
       }
 
+      const filteredRows = rows.filter(rowNeedsReview)
+      const usernames = Array.from(
+        new Set(filteredRows.map((row) => row.username?.trim() || "unknown_user"))
+      )
+
+      let histories = new Map<string, UserModerationHistory>()
+      if (usernames.length > 0) {
+        const [historyPosts, historyActions] = await Promise.all([
+          supabase
+            .from("posts")
+            .select("id, username, is_flagged, status, moderation_status, reviewed_at")
+            .in("username", usernames)
+            .limit(1000),
+          supabase
+            .from("moderation_actions")
+            .select("id, post_id, username, action, moderator, note, post_caption, created_at")
+            .in("username", usernames)
+            .order("created_at", { ascending: false })
+            .limit(100),
+        ])
+
+        histories = buildUserHistories(
+          historyPosts.error ? [] : ((historyPosts.data ?? []) as HistoryPostRow[]),
+          historyActions.error ? [] : ((historyActions.data ?? []) as ModerationActionRow[])
+        )
+      }
+
+      const stats = await loadStats(filteredRows.length)
+
       if (!cancelled) {
         setState({
           status: "ready",
-          data: buildQueueData(rows),
+          data: buildQueueData(rows, histories, stats),
           error: null,
         })
       }
@@ -277,14 +523,24 @@ export function ModerationDashboard() {
 
   const summary = useMemo(() => {
     const items = state.data?.items ?? []
+    const stats = state.data?.stats
 
     return {
-      pending: items.length,
-      highRisk: items.filter(
-        (item) => item.riskLevel === "HIGH" || item.riskLevel === "CRITICAL"
-      ).length,
-      critical: items.filter((item) => item.riskLevel === "CRITICAL").length,
-      reviewedToday: state.data?.stats.reviewedToday ?? 0,
+      pending: stats?.pending ?? items.length,
+      highRisk:
+        stats?.highRisk ??
+        items.filter(
+          (item) => item.riskLevel === "HIGH" || item.riskLevel === "CRITICAL"
+        ).length,
+      critical:
+        stats?.critical ??
+        items.filter((item) => item.riskLevel === "CRITICAL").length,
+      reviewedToday: stats?.reviewedToday ?? 0,
+      flagsToday: stats?.flagsToday ?? null,
+      flagsThisWeek: stats?.flagsThisWeek ?? null,
+      removalsToday: stats?.removedToday ?? null,
+      approvalsToday: stats?.approvalsToday ?? null,
+      escalationsToday: stats?.escalationsToday ?? null,
     }
   }, [state.data])
 
@@ -316,7 +572,7 @@ export function ModerationDashboard() {
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-3 md:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <SummaryCard
           label="Pending Review"
           value={summary.pending}
@@ -340,6 +596,36 @@ export function ModerationDashboard() {
           value={summary.reviewedToday}
           detail="Resolved in last 24h"
           icon={CheckCircle2}
+        />
+        <SummaryCard
+          label="Flags Today"
+          value={summary.flagsToday}
+          detail="Flagged in last 24h"
+          icon={Flag}
+        />
+        <SummaryCard
+          label="Flags This Week"
+          value={summary.flagsThisWeek}
+          detail="Flagged in last 7 days"
+          icon={CalendarDays}
+        />
+        <SummaryCard
+          label="Removals Today"
+          value={summary.removalsToday}
+          detail="Removed in last 24h"
+          icon={Trash2}
+        />
+        <SummaryCard
+          label="Approvals Today"
+          value={summary.approvalsToday}
+          detail="Approved in last 24h"
+          icon={CheckCircle2}
+        />
+        <SummaryCard
+          label="Escalations Today"
+          value={summary.escalationsToday}
+          detail="Escalated in last 24h"
+          icon={Flag}
         />
       </section>
 
@@ -368,17 +654,19 @@ function SummaryCard({
   icon: Icon,
 }: {
   label: string
-  value: number | string
+  value: number | string | null
   detail: string
   icon: typeof Clock3
 }) {
+  const displayValue = value === null ? "Unavailable" : value
+
   return (
     <div className="rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <Icon className="size-4 text-muted-foreground" />
       </div>
-      <p className="mt-3 text-3xl font-semibold tracking-tight">{value}</p>
+      <p className="mt-3 text-2xl font-semibold tracking-tight">{displayValue}</p>
       <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
     </div>
   )

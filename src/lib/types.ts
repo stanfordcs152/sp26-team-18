@@ -101,6 +101,8 @@ export type ModerationAction = "approve" | "remove" | "escalate" | "pending"
 
 // Phase 4: Reports + post moderation status
 export type PostStatus = "visible" | "labeled" | "removed"
+export type ModerationStatus = "pending_review" | "approved" | "removed" | "escalated"
+export type ModerationDecision = "approved" | "removed" | "escalated"
 
 export type ReportReason = "ai_generated_political" | "other"
 export type ReportStatus = "open" | "resolved"
@@ -138,10 +140,37 @@ export interface ModerationQueueItem {
 
 export interface ModerationStats {
   pending: number
+  highRisk?: number | null
+  critical?: number | null
   reviewedToday: number
   removedToday: number
   escalated: number
   avgReviewTime: string
+  flagsToday?: number | null
+  flagsThisWeek?: number | null
+  approvalsToday?: number | null
+  escalationsToday?: number | null
+}
+
+export interface ModerationActionRecord {
+  id: string
+  postId: string
+  username: string
+  action: ModerationDecision
+  moderator: string
+  note: string | null
+  postCaption: string | null
+  createdAt: string
+}
+
+export interface UserModerationHistory {
+  username: string
+  totalFlagged: number
+  totalRemoved: number
+  totalApproved: number
+  totalEscalated: number
+  mostRecentAction: ModerationActionRecord | null
+  recentActions: ModerationActionRecord[]
 }
 
 // Phase 6: a single post in the live moderation queue, grouping every open
@@ -165,6 +194,12 @@ export interface LiveQueueItem {
   analysis: PostAnalysis | null
   riskScore: number | null
   riskLevel: RiskLevel | null
+  confidenceScore: number | null
+  moderationStatus: ModerationStatus | null
+  reviewedAt: string | null
+  reviewedBy: string | null
+  removedAt: string | null
+  userHistory?: UserModerationHistory | null
 }
 
 // Top-level counters shown on the moderation dashboard tiles.
@@ -173,6 +208,11 @@ export interface DashboardCounters {
   highRisk: number
   approvedToday: number
   escalated: number
+  critical?: number
+  flagsToday?: number | null
+  flagsThisWeek?: number | null
+  removalsToday?: number | null
+  escalationsToday?: number | null
 }
 
 // Everything the dashboard needs from one server-side queue load.

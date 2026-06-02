@@ -7,6 +7,7 @@ import {
   Clock,
   FileText,
   Flag,
+  History,
   Inbox,
   ShieldAlert,
   XCircle,
@@ -17,7 +18,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { resolvePostModeration } from "@/lib/moderation-actions"
-import type { LiveQueueItem, ReportResolution, RiskLevel } from "@/lib/types"
+import type { LiveQueueItem, RiskLevel, UserModerationHistory } from "@/lib/types"
 
 interface Props {
   items: LiveQueueItem[]
@@ -34,6 +35,10 @@ const RISK_CLASS: Record<RiskLevel, string> = {
 
 function scoreLabel(score: number | null) {
   return score === null ? "—" : `${Math.round(score * 100)}%`
+}
+
+function confidenceLabel(score: number | null) {
+  return score === null ? "—" : `${Math.round(score)}%`
 }
 
 function decisionCopy(decision: ConsoleDecision) {
@@ -81,11 +86,17 @@ type EvidenceItem = {
 function buildRiskSummary(item: LiveQueueItem): EvidenceItem[] {
   const rows: EvidenceItem[] = []
 
+  rows.push({
+    label: "Created at",
+    value: new Date(item.post.createdAt).toLocaleString(),
+  })
   if (item.riskLevel) {
     rows.push({ label: "Risk level", value: item.riskLevel })
   }
   if (typeof item.riskScore === "number") {
     rows.push({ label: "Risk score", value: scoreLabel(item.riskScore) })
+  } else if (typeof item.confidenceScore === "number") {
+    rows.push({ label: "Confidence score", value: confidenceLabel(item.confidenceScore) })
   }
   if (item.analysis?.risk?.reasons?.length) {
     rows.push({ label: "Risk reasons", value: item.analysis.risk.reasons.join("; ") })
@@ -192,16 +203,9 @@ export function ModerationQueueLive({ items }: Props) {
     setError(null)
     setWarning(null)
 
-    const resolution: ReportResolution =
-      pendingAction === "removed"
-        ? "removed"
-        : pendingAction === "escalated"
-          ? "labeled"
-          : "no_action"
-
     const result = await resolvePostModeration({
       postId: selected.post.id,
-      resolution,
+      action: pendingAction,
       moderatorNote:
         note.trim() || `${decisionCopy(pendingAction).label} from moderator console`,
     })
@@ -216,7 +220,9 @@ export function ModerationQueueLive({ items }: Props) {
     if (result.warning) setWarning(result.warning)
 
     setDecisions((prev) => ({ ...prev, [selected.groupKey]: pendingAction }))
-    setDismissedIds((prev) => ({ ...prev, [selected.groupKey]: true }))
+    if (pendingAction !== "escalated") {
+      setDismissedIds((prev) => ({ ...prev, [selected.groupKey]: true }))
+    }
     setNote("")
     setPendingAction("pending")
   }
@@ -488,6 +494,8 @@ export function ModerationQueueLive({ items }: Props) {
               </p>
             )}
           </section>
+
+          <HistoryPanel history={selected.userHistory ?? null} />
         </aside>
       </div>
     </div>
@@ -521,6 +529,93 @@ function EvidenceRow({ label, value }: { label: string; value: string }) {
       <p className="mt-1 max-h-28 overflow-auto text-xs leading-relaxed text-foreground">
         {value}
       </p>
+    </div>
+  )
+}
+
+function HistoryPanel({ history }: { history: UserModerationHistory | null }) {
+  return (
+    <section className="rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm">
+      <div className="mb-3 flex items-center gap-2">
+        <History className="size-4 text-primary" />
+        <h3 className="text-sm font-semibold">User History</h3>
+      </div>
+
+      {history ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-2">
+            <HistoryStat label="Flagged" value={history.totalFlagged} />
+            <HistoryStat label="Approved" value={history.totalApproved} />
+            <HistoryStat label="Removed" value={history.totalRemoved} />
+            <HistoryStat label="Escalated" value={history.totalEscalated} />
+          </div>
+
+          {history.mostRecentAction ? (
+            <div className="rounded-lg border border-border/70 bg-background/70 p-3">
+              <p className="text-xs font-medium text-muted-foreground">
+                Most recent action
+              </p>
+              <p className="mt-1 text-sm font-semibold capitalize">
+                {history.mostRecentAction.action}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {formatDistanceToNow(new Date(history.mostRecentAction.createdAt), {
+                  addSuffix: true,
+                })}{" "}
+                by {history.mostRecentAction.moderator}
+              </p>
+            </div>
+          ) : null}
+
+          {history.recentActions.length > 0 ? (
+            <div className="space-y-2">
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                Recent actions
+              </p>
+              {history.recentActions.map((action) => (
+                <div
+                  key={action.id}
+                  className="rounded-lg border border-border/70 bg-background/70 p-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold capitalize">{action.action}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {formatDistanceToNow(new Date(action.createdAt), {
+                        addSuffix: true,
+                      })}
+                    </p>
+                  </div>
+                  {hasText(action.postCaption) ? (
+                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                      {action.postCaption}
+                    </p>
+                  ) : null}
+                  {hasText(action.note) ? (
+                    <p className="mt-2 text-xs leading-5">{action.note}</p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-lg border border-border/70 bg-background/70 p-3 text-sm text-muted-foreground">
+              No previous moderation actions for this user.
+            </p>
+          )}
+        </div>
+      ) : (
+        <p className="rounded-lg border border-border/70 bg-background/70 p-3 text-sm text-muted-foreground">
+          User history unavailable.
+        </p>
+      )}
+    </section>
+  )
+}
+
+function HistoryStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg border border-border/70 bg-background/70 p-3">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="mt-1 text-lg font-semibold">{value}</p>
     </div>
   )
 }

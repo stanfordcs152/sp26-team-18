@@ -6,7 +6,15 @@ import {
   getSupabaseEnv,
   isModeratorRole,
 } from "@/lib/moderator-auth"
-import type { PostStatus, ReportReason, ReportResolution } from "@/lib/types"
+import type {
+  ModerationActionRecord,
+  ModerationDecision,
+  ModerationStatus,
+  PostStatus,
+  ReportReason,
+  ReportResolution,
+  RiskLevel,
+} from "@/lib/types"
 
 export interface SubmitReportInput {
   postId: string
@@ -51,7 +59,8 @@ export interface ResolveReportInput {
 
 export interface ResolvePostModerationInput {
   postId: string
-  resolution: ReportResolution
+  action?: ModerationDecision
+  resolution?: ReportResolution
   moderatorNote: string
 }
 
@@ -79,10 +88,27 @@ async function getModerationWriteClient() {
   }
 }
 
-function postStatusForResolution(resolution: ReportResolution): PostStatus {
-  return resolution === "labeled"
+function actionForInput(input: ResolvePostModerationInput): ModerationDecision {
+  if (input.action) return input.action
+  return input.resolution === "removed"
+    ? "removed"
+    : input.resolution === "labeled"
+      ? "escalated"
+      : "approved"
+}
+
+function moderationStatusForAction(action: ModerationDecision): ModerationStatus {
+  return action
+}
+
+function reportResolutionForAction(action: ModerationDecision): ReportResolution {
+  return action === "removed" ? "removed" : action === "escalated" ? "labeled" : "no_action"
+}
+
+function postStatusForAction(action: ModerationDecision): PostStatus {
+  return action === "escalated"
     ? "labeled"
-    : resolution === "removed"
+    : action === "removed"
       ? "removed"
       : "visible"
 }
@@ -95,37 +121,94 @@ async function updatePostModerationStatus(
     return { ok: false, error: "Supabase is not configured." }
   }
 
-  const newPostStatus = postStatusForResolution(input.resolution)
+  const action = actionForInput(input)
+  const now = new Date().toISOString()
+  const newPostStatus = postStatusForAction(action)
+  const newModerationStatus = moderationStatusForAction(action)
+  const newReportResolution = reportResolutionForAction(action)
+  const note = input.moderatorNote.trim()
 
-  // TODO: replace moderator_note-as-reviewed-marker with a dedicated
-  // reviewed_at / reviewed_by column if the schema adds one. That would let an
-  // approved high-risk post stay visible without re-entering the review queue.
+  const { data: currentPost } = await writeClient.client
+    .from("posts")
+    .select("id, username, caption, moderation_status, risk_level, risk_score")
+    .eq("id", input.postId)
+    .maybeSingle()
+
   const { data: updatedPosts, error: postErr } = await writeClient.client
     .from("posts")
     .update({
       status: newPostStatus,
-      moderator_note: input.moderatorNote.trim(),
-      is_flagged: false,
+      moderation_status: newModerationStatus,
+      moderator_note: note,
+      is_flagged: action === "escalated",
+      reviewed_at: now,
+      reviewed_by: writeClient.resolvedBy,
+      removed_at: action === "removed" ? now : null,
     })
     .eq("id", input.postId)
-    .select("id, status")
+    .select("id, status, moderation_status")
 
   if (postErr || !updatedPosts || updatedPosts.length === 0) {
+    const legacy = await writeClient.client
+      .from("posts")
+      .update({
+        status: newPostStatus,
+        moderator_note: note,
+        is_flagged: action === "escalated",
+      })
+      .eq("id", input.postId)
+      .select("id, status")
+
+    if (legacy.error || !legacy.data || legacy.data.length === 0) {
+      return {
+        ok: false,
+        error:
+          postErr?.message ??
+          legacy.error?.message ??
+          "Post update affected 0 rows. Check moderation RLS policies.",
+      }
+    }
+
     return {
       ok: true,
-      persisted: false,
+      persisted: true,
       warning:
-        "Decision recorded for this session only. Supabase RLS blocked anonymous moderation writes; add SUPABASE_SERVICE_ROLE_KEY or sign in as a moderator to persist decisions.",
+        "Decision saved using legacy post status fields. Apply migration 0009 to enable moderation_actions history.",
     }
   }
+
+  const postRow = currentPost as
+    | {
+        username?: string | null
+        caption?: string | null
+        moderation_status?: string | null
+        risk_level?: RiskLevel | null
+        risk_score?: number | null
+      }
+    | null
+
+  const { error: actionErr } = await writeClient.client
+    .from("moderation_actions")
+    .insert({
+      post_id: input.postId,
+      username: postRow?.username?.trim() || "unknown_user",
+      action,
+      moderator: writeClient.resolvedBy,
+      note: note || null,
+      post_caption: postRow?.caption ?? null,
+      previous_status: postRow?.moderation_status ?? null,
+      new_status: newModerationStatus,
+      risk_level: postRow?.risk_level ?? null,
+      risk_score: postRow?.risk_score ?? null,
+    })
 
   const { error: reportErr } = await writeClient.client
     .from("reports")
     .update({
       status: "resolved",
-      resolution: input.resolution,
+      resolution: newReportResolution,
       resolved_by: writeClient.resolvedBy,
-      resolved_at: new Date().toISOString(),
+      resolved_at: now,
     })
     .eq("post_id", input.postId)
     .eq("status", "open")
@@ -133,9 +216,11 @@ async function updatePostModerationStatus(
   return {
     ok: true,
     persisted: true,
-    warning: reportErr
-      ? "Post decision saved. Matching reports could not be resolved, likely because report RLS is restricted."
-      : undefined,
+    warning: actionErr
+      ? "Post decision saved, but moderation_actions history could not be written. Apply migration 0009."
+      : reportErr
+        ? "Post decision saved. Matching reports could not be resolved, likely because report RLS is restricted."
+        : undefined,
   }
 }
 
@@ -143,6 +228,40 @@ export async function resolvePostModeration(
   input: ResolvePostModerationInput
 ): Promise<ModerationActionResult> {
   return updatePostModerationStatus(input)
+}
+
+export async function exportRecentModerationExamples(limit = 50): Promise<
+  | { ok: true; examples: ModerationActionRecord[] }
+  | { ok: false; error: string }
+> {
+  const writeClient = await getModerationWriteClient()
+  if (!writeClient) {
+    return { ok: false, error: "Supabase is not configured." }
+  }
+
+  const { data, error } = await writeClient.client
+    .from("moderation_actions")
+    .select("id, post_id, username, action, moderator, note, post_caption, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    return { ok: false, error: error.message }
+  }
+
+  return {
+    ok: true,
+    examples: (data ?? []).map((row) => ({
+      id: String(row.id),
+      postId: String(row.post_id),
+      username: String(row.username),
+      action: row.action as ModerationDecision,
+      moderator: String(row.moderator),
+      note: typeof row.note === "string" ? row.note : null,
+      postCaption: typeof row.post_caption === "string" ? row.post_caption : null,
+      createdAt: String(row.created_at),
+    })),
+  }
 }
 
 /**

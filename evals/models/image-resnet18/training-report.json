@@ -5,9 +5,9 @@
   "valCount": 40,
   "allowCount": 100,
   "unallowCount": 100,
-  "holdoutValF1Unallow": 0.6545454545454545,
+  "holdoutValF1Unallow": 0.65,
   "device": "cpu",
-  "epochsRan": 6,
+  "epochsRan": 11,
   "positiveClass": "unallow",
   "note": "Trained on 160 images; npm run eval -- --approach ml scores the 40 held-out test IDs in split.json."
 }
