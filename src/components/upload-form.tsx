@@ -84,6 +84,7 @@ export function UploadForm({
       username: username.trim(),
       is_political: isPolitical,
       is_flagged: isFlagged,
+      moderation_status: isFlagged ? "pending_review" : "approved",
       confidence_score: analysis ? Math.round(analysis.risk.score * 100) : 0,
       analysis,
       risk_score: analysis ? analysis.risk.score : null,
@@ -98,6 +99,10 @@ export function UploadForm({
     if (!supabase) return { error: { message: "Supabase not configured" } }
     const full = await supabase.from("posts").insert(row)
     if (!full.error) return full
+
+    const { moderation_status: _moderationStatus, ...withoutModerationStatus } = row
+    const phase5 = await supabase.from("posts").insert(withoutModerationStatus)
+    if (!phase5.error) return phase5
 
     const legacy = await supabase.from("posts").insert({
       image_url: row.image_url,
