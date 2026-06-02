@@ -421,10 +421,10 @@ export function UploadForm({
                 <label
                   key={option.label}
                   className={cn(
-                    "flex flex-1 cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors",
+                    "flex flex-1 cursor-pointer items-center justify-center rounded-md border px-3 py-2 text-center text-sm transition-colors",
                     checked
-                      ? "border-primary bg-primary/10 font-medium"
-                      : "border-border bg-card/60 hover:bg-muted/50"
+                      ? "border-primary bg-primary/10 font-medium text-foreground"
+                      : "border-border bg-card/60 text-muted-foreground hover:bg-muted/50"
                   )}
                 >
                   <input
@@ -432,7 +432,7 @@ export function UploadForm({
                     name="self-declared-ai"
                     checked={checked}
                     onChange={() => setSelfDeclaredAi(option.value)}
-                    className="size-4 accent-primary"
+                    className="sr-only"
                   />
                   {option.label}
                 </label>
