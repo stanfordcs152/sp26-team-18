@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { ModeSwitch } from "@/components/mode-switch"
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -24,7 +25,6 @@ const navItems = [
   { href: "/messages", label: "Messages", icon: Mail },
   { href: "/bookmarks", label: "Bookmarks", icon: Bookmark },
   { href: "/upload", label: "Upload", icon: PlusSquare },
-  { href: "/moderation", label: "Moderation", icon: Shield },
   { href: "/profile", label: "Profile", icon: User },
   { href: "/settings", label: "Settings", icon: Settings },
 ]
@@ -33,15 +33,19 @@ export function SidebarNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="flex flex-col gap-1 p-2">
+    <nav className="flex h-full flex-col gap-1 p-2">
       {/* Logo */}
       <Link
         href="/"
-        className="flex items-center gap-2 px-3 py-3 mb-2 text-foreground"
+        className="mb-2 flex items-center gap-2 rounded-full px-3 py-3 text-foreground transition-colors hover:bg-muted/50"
       >
         <Shield className="size-8 text-primary" />
         <span className="text-xl font-bold hidden xl:inline">TruthGuard</span>
       </Link>
+
+      <div className="mb-3 hidden xl:block">
+        <ModeSwitch />
+      </div>
 
       {/* Nav Items */}
       {navItems.map((item) => {
@@ -53,10 +57,10 @@ export function SidebarNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex items-center gap-4 px-3 py-3 rounded-full text-lg transition-colors",
+              "flex items-center gap-4 rounded-full px-3 py-3 text-[17px] transition-colors",
               isActive
                 ? "font-bold text-foreground"
-                : "text-foreground/80 hover:bg-accent"
+                : "text-foreground/80 hover:bg-muted/60"
             )}
           >
             <Icon className="size-6" />
@@ -66,7 +70,7 @@ export function SidebarNav() {
       })}
 
       {/* Create Post Button */}
-      <Button asChild className="mt-4 w-full rounded-full py-6 text-base font-bold hidden xl:flex">
+      <Button asChild className="mt-4 hidden w-full rounded-full py-6 text-base font-bold xl:flex">
         <Link href="/upload">
         <PenSquare className="size-5 mr-2" />
         Create Post

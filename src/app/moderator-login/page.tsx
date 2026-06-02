@@ -9,14 +9,11 @@ import { Input } from "@/components/ui/input"
 function LoginForm() {
   const params = useSearchParams()
   const redirect = params.get("redirect") || "/moderation"
-  const initialError =
-    params.get("error") === "unconfigured"
-      ? "Moderator gate is not configured. Set MODERATOR_PASSWORD and MODERATOR_SESSION_SECRET."
-      : null
 
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(initialError)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,7 +23,7 @@ function LoginForm() {
     const res = await fetch("/api/moderator/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ email, password }),
     })
 
     if (res.ok) {
@@ -54,9 +51,23 @@ function LoginForm() {
           <div>
             <h1 className="text-lg font-semibold">Moderator sign-in</h1>
             <p className="text-xs text-muted-foreground">
-              Shared password required to view the moderation dashboard.
+              Sign in with your moderator account to view the dashboard.
             </p>
           </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label htmlFor="email" className="text-sm font-medium">
+            Email
+          </label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
 
         <div className="space-y-1.5">

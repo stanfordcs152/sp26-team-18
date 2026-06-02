@@ -1,9 +1,16 @@
 import OpenAI from "openai";
 import { detectCelebrities } from "./celebrity";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazily constructed so importing this module (e.g. during `next build` page
+// data collection) doesn't throw when OPENAI_API_KEY is unset. The client is
+// only needed at request time.
+let client: OpenAI | null = null;
+function getClient(): OpenAI {
+  if (!client) {
+    client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return client;
+}
 
 export type VisionAnalysisResult = {
   visibleText: string;
@@ -26,7 +33,9 @@ export async function extractImageText(
 
     const celebrityMatches = await detectCelebrities(imageBuffer);
 
-    const response = await client.chat.completions.create({
+    console.log("AWS CELEBRITY MATCHES:", celebrityMatches);
+
+    const response = await getClient().chat.completions.create({
       model: "gpt-4.1",
       response_format: { type: "json_object" },
       messages: [

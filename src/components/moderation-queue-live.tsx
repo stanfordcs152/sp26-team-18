@@ -1,364 +1,566 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Inbox, AlertCircle } from "lucide-react"
-import { supabase } from "@/lib/supabase"
-import { ModerationQueue } from "@/components/moderation-queue"
+import { useMemo, useState } from "react"
+import { formatDistanceToNow } from "date-fns"
 import {
-  ModerationCardLive,
-  type LiveQueueItem,
-} from "@/components/moderation-card-live"
-import { mockModerationQueue } from "@/lib/mock-data"
+  CheckCircle2,
+  Clock,
+  FileText,
+  Flag,
+  History,
+  Inbox,
+  ScanText,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
+  XCircle,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { resolveReport } from "@/lib/moderation-actions"
 import type {
-  ModerationStats,
-  Post,
-  PostAnalysis,
-  PostStatus,
+  LiveQueueItem,
   ReportReason,
+  ReportResolution,
+  RiskLevel,
 } from "@/lib/types"
-import type { DashboardCounters } from "@/components/moderation-dashboard"
 
-type ReportRow = {
-  id: string
-  post_id: string
-  reporter_username: string
-  reason: ReportReason
-  details: string | null
-  created_at: string
+interface Props {
+  items: LiveQueueItem[]
 }
 
-type PostRow = {
-  id: string
-  created_at: string
-  image_url: string | null
-  caption: string | null
-  username: string
-  is_flagged: boolean
-  confidence_score: number | null
-  status: PostStatus | null
-  moderator_note: string | null
-  // Phase 5 (migration 0004) — may be null on legacy posts.
-  analysis?: PostAnalysis | null
-  risk_score?: number | null
-  risk_level?: string | null
+type ConsoleDecision = "pending" | "approved" | "removed" | "escalated"
+
+const REASON_LABELS: Record<ReportReason, string> = {
+  ai_generated_political: "AI-generated political media",
+  other: "Other",
 }
 
-const FALLBACK_AVATAR =
-  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+const RISK_CLASS: Record<RiskLevel, string> = {
+  LOW: "border-slate-500/20 bg-slate-500/10 text-slate-400",
+  MEDIUM: "border-amber-500/25 bg-amber-500/10 text-amber-500",
+  HIGH: "border-orange-500/25 bg-orange-500/10 text-orange-500",
+  CRITICAL: "border-red-500/30 bg-red-500/10 text-red-500",
+}
 
-function rowToPost(row: PostRow): Post {
-  const isFlagged = Boolean(row.is_flagged)
-  const confidence = Math.round(Number(row.confidence_score ?? 0))
-  const aiStatus = isFlagged
-    ? confidence >= 90
-      ? "confirmed_ai"
-      : "likely_ai"
-    : "authentic"
+function scoreLabel(score: number | null) {
+  return score === null ? "—" : `${Math.round(score * 100)}%`
+}
 
-  return {
-    id: row.id,
-    author: {
-      id: row.username,
-      username: row.username,
-      displayName: row.username,
-      avatarUrl: FALLBACK_AVATAR,
-      verified: false,
-    },
-    content: row.caption ?? "",
-    media: row.image_url
-      ? [
-          {
-            id: `${row.id}-media`,
-            type: "image",
-            url: row.image_url,
-            altText: row.caption ?? "Reported image",
-            aiDetection: {
-              status: aiStatus,
-              confidence,
-              flags: isFlagged ? ["Potential AI-generated content"] : [],
-              analyzedAt: row.created_at,
-            },
-          },
-        ]
-      : [],
-    createdAt: row.created_at,
-    likes: 0,
-    comments: 0,
-    shares: 0,
-    isLiked: false,
-    isBookmarked: false,
-    status: row.status ?? "visible",
-    moderatorNote: row.moderator_note,
+function recommendationFor(item: LiveQueueItem) {
+  if (item.riskLevel === "CRITICAL") return "Escalate and apply public label"
+  if (item.riskLevel === "HIGH") return "Remove or label after review"
+  if (item.riskLevel === "MEDIUM") return "Review evidence before labeling"
+  return "Approve if no policy issue is found"
+}
+
+function decisionCopy(decision: ConsoleDecision) {
+  switch (decision) {
+    case "approved":
+      return {
+        label: "Approved",
+        className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500",
+        icon: CheckCircle2,
+      }
+    case "removed":
+      return {
+        label: "Removed",
+        className: "border-red-500/30 bg-red-500/10 text-red-500",
+        icon: XCircle,
+      }
+    case "escalated":
+      return {
+        label: "Escalated",
+        className: "border-amber-500/30 bg-amber-500/10 text-amber-500",
+        icon: Flag,
+      }
+    default:
+      return {
+        label: "Pending review",
+        className: "border-border bg-muted/40 text-muted-foreground",
+        icon: Clock,
+      }
   }
 }
 
-interface Props {
-  /**
-   * Called whenever the queue refetches. Lets a parent dashboard surface
-   * top-level counters and stat tiles without re-fetching itself.
-   */
-  onStats?: (stats: ModerationStats, counters: DashboardCounters) => void
+function primaryReason(item: LiveQueueItem) {
+  const reason = item.reports[0]?.reason
+  return reason ? REASON_LABELS[reason] : "Automated risk signal"
 }
 
-const POSTS_SELECT_FULL =
-  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note, analysis, risk_score, risk_level"
-const POSTS_SELECT_LEGACY =
-  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderator_note"
-
-export function ModerationQueueLive({ onStats }: Props = {}) {
-  const [items, setItems] = useState<LiveQueueItem[]>([])
-  // When Supabase isn't configured we render the mock fallback immediately,
-  // so initial loading is only true when we actually intend to fetch.
-  const [loading, setLoading] = useState<boolean>(() => Boolean(supabase))
+export function ModerationQueueLive({ items }: Props) {
+  const [selectedId, setSelectedId] = useState(items[0]?.groupKey ?? "")
+  const [decisions, setDecisions] = useState<Record<string, ConsoleDecision>>({})
+  const [pendingAction, setPendingAction] = useState<ConsoleDecision>("pending")
+  const [note, setNote] = useState("")
+  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [resolvedKeys, setResolvedKeys] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    if (!supabase) {
+  const sortedItems = useMemo(() => {
+    const riskRank: Record<RiskLevel, number> = {
+      CRITICAL: 0,
+      HIGH: 1,
+      MEDIUM: 2,
+      LOW: 3,
+    }
+    return [...items].sort((a, b) => {
+      const aRank = a.riskLevel ? riskRank[a.riskLevel] : 4
+      const bRank = b.riskLevel ? riskRank[b.riskLevel] : 4
+      if (aRank !== bRank) return aRank - bRank
+      if (a.reports.length !== b.reports.length) {
+        return b.reports.length - a.reports.length
+      }
+      return a.newestReportAt < b.newestReportAt ? 1 : -1
+    })
+  }, [items])
+
+  const selected = sortedItems.find((item) => item.groupKey === selectedId) ?? sortedItems[0]
+  const selectedDecision = selected
+    ? decisions[selected.groupKey] ?? "pending"
+    : "pending"
+
+  const localStats = useMemo(() => {
+    const values = Object.values(decisions)
+    return {
+      pending: Math.max(0, items.length - values.filter((v) => v !== "pending").length),
+      approved: values.filter((v) => v === "approved").length,
+      removed: values.filter((v) => v === "removed").length,
+      escalated: values.filter((v) => v === "escalated").length,
+    }
+  }, [decisions, items.length])
+
+  const chooseAction = (action: ConsoleDecision) => {
+    setPendingAction(action)
+    setError(null)
+  }
+
+  const submitDecision = async () => {
+    if (!selected || pendingAction === "pending") return
+    if (!note.trim()) {
+      setError("Add a short moderator note before confirming.")
       return
     }
 
-    let cancelled = false
-    const run = async () => {
-      const { data: reportData, error: reportErr } = await supabase!
-        .from("reports")
-        .select(
-          "id, post_id, reporter_username, reason, details, created_at"
-        )
-        .eq("status", "open")
-        .order("created_at", { ascending: false })
+    setSubmitting(true)
+    setError(null)
 
-      if (reportErr) {
-        if (!cancelled) {
-          setError(reportErr.message)
-          setLoading(false)
-        }
-        return
-      }
+    const resolution: ReportResolution =
+      pendingAction === "removed"
+        ? "removed"
+        : pendingAction === "escalated"
+          ? "labeled"
+          : "no_action"
 
-      const reports = (reportData ?? []) as ReportRow[]
-      if (reports.length === 0) {
-        if (!cancelled) {
-          setItems([])
-          setLoading(false)
-          onStats?.(
-            {
-              pending: 0,
-              reviewedToday: 0,
-              removedToday: 0,
-              escalated: 0,
-              avgReviewTime: "—",
-            },
-            { pending: 0, highRisk: 0, approvedToday: 0, escalated: 0 }
-          )
-        }
-        return
-      }
+    let lastError: string | null = null
+    const realReports = selected.reports.filter((r) => !r.id.startsWith("mock-"))
 
-      const postIds = Array.from(new Set(reports.map((r) => r.post_id)))
-
-      // Try the full select first; if migration 0004 hasn't run yet, fall
-      // back to the legacy column set so the queue still renders.
-      let postData: PostRow[] | null = null
-      let postErr: { message: string } | null = null
-      const fullRes = await supabase!
-        .from("posts")
-        .select(POSTS_SELECT_FULL)
-        .in("id", postIds)
-      if (fullRes.error) {
-        const legacyRes = await supabase!
-          .from("posts")
-          .select(POSTS_SELECT_LEGACY)
-          .in("id", postIds)
-        postData = (legacyRes.data ?? null) as PostRow[] | null
-        postErr = legacyRes.error
-      } else {
-        postData = (fullRes.data ?? null) as PostRow[] | null
-      }
-
-      if (postErr) {
-        if (!cancelled) {
-          setError(postErr.message)
-          setLoading(false)
-        }
-        return
-      }
-
-      const postsById = new Map<string, PostRow>()
-      for (const p of (postData ?? []) as PostRow[]) {
-        postsById.set(p.id, p)
-      }
-
-      const grouped = new Map<string, LiveQueueItem>()
-      for (const r of reports) {
-        const postRow = postsById.get(r.post_id)
-        if (!postRow) continue
-
-        const existing = grouped.get(r.post_id)
-        const reportEntry = {
-          id: r.id,
-          reason: r.reason,
-          details: r.details,
-          reporterUsername: r.reporter_username,
-          createdAt: r.created_at,
-        }
-
-        if (existing) {
-          existing.reports.push(reportEntry)
-          if (r.created_at > existing.newestReportAt) {
-            existing.newestReportAt = r.created_at
-          }
-          if (r.created_at < existing.oldestReportAt) {
-            existing.oldestReportAt = r.created_at
-          }
-        } else {
-          const analysis = (postRow.analysis ?? null) as PostAnalysis | null
-          const riskLevel =
-            (postRow.risk_level as LiveQueueItem["riskLevel"]) ?? null
-          grouped.set(r.post_id, {
-            groupKey: r.post_id,
-            post: rowToPost(postRow),
-            postStatus: postRow.status ?? "visible",
-            reports: [reportEntry],
-            newestReportAt: r.created_at,
-            oldestReportAt: r.created_at,
-            analysis,
-            riskScore: postRow.risk_score ?? null,
-            riskLevel,
-          })
-        }
-      }
-
-      const sorted = Array.from(grouped.values()).sort((a, b) =>
-        a.newestReportAt < b.newestReportAt ? 1 : -1
-      )
-
-      // Derive dashboard counters + stats from the live queue.
-      const highRisk = sorted.filter(
-        (it) => it.riskLevel === "HIGH" || it.riskLevel === "CRITICAL"
-      ).length
-      const escalated = sorted.filter(
-        (it) => it.riskLevel === "CRITICAL"
-      ).length
-
-      // Cheap "today" counters, scoped to resolved reports + removed posts in
-      // the last 24h. Failures here are non-fatal — we just default to 0.
-      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-      let reviewedToday = 0
-      let removedToday = 0
-      const resolvedRes = await supabase!
-        .from("reports")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "resolved")
-        .gte("resolved_at", since)
-      if (typeof resolvedRes.count === "number") {
-        reviewedToday = resolvedRes.count
-      }
-      const removedRes = await supabase!
-        .from("posts")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "removed")
-        .gte("created_at", since)
-      if (typeof removedRes.count === "number") {
-        removedToday = removedRes.count
-      }
-
-      const stats: ModerationStats = {
-        pending: sorted.length,
-        reviewedToday,
-        removedToday,
-        escalated,
-        avgReviewTime: "—",
-      }
-      const counters: DashboardCounters = {
-        pending: sorted.length,
-        highRisk,
-        approvedToday: Math.max(0, reviewedToday - removedToday),
-        escalated,
-      }
-
-      if (!cancelled) {
-        setItems(sorted)
-        setLoading(false)
-        onStats?.(stats, counters)
+    for (const report of realReports) {
+      const result = await resolveReport({
+        reportId: report.id,
+        postId: selected.post.id,
+        resolution,
+        moderatorNote: note,
+      })
+      if (!result.ok) {
+        lastError = result.error
+        break
       }
     }
 
-    void run()
-    return () => {
-      cancelled = true
+    setSubmitting(false)
+    if (lastError) {
+      setError(lastError)
+      return
     }
-    // The fetch only runs once on mount; the parent already wraps `onStats`
-    // in `useCallback`, so a missing-dep warning here would be misleading.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
-  const markResolved = (postId: string) => {
-    setResolvedKeys((prev) => new Set(prev).add(postId))
+    setDecisions((prev) => ({
+      ...prev,
+      [selected.groupKey]: pendingAction,
+    }))
+    setNote("")
+    setPendingAction("pending")
   }
 
-  // Fallback to mock data if Supabase is not configured at all.
-  if (!supabase) {
+  if (!selected) {
     return (
-      <div className="space-y-3">
-        <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
-          <AlertCircle className="size-3.5 mt-0.5 shrink-0" />
-          <span>
-            Supabase is not configured. Showing mock data; reports submitted
-            from the feed won&apos;t appear here until env vars are set.
-          </span>
-        </div>
-        <ModerationQueue items={mockModerationQueue} />
-      </div>
-    )
-  }
-
-  if (loading) {
-    return (
-      <div className="px-4 py-10 text-sm text-muted-foreground">
-        Loading reports...
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-3">
-        <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-          Failed to load reports: {error}. Falling back to mock data — make
-          sure migration <code>0002_phase4_reports_and_status.sql</code> has
-          been applied.
-        </div>
-        <ModerationQueue items={mockModerationQueue} />
-      </div>
-    )
-  }
-
-  const visibleItems = items.filter((it) => !resolvedKeys.has(it.groupKey))
-
-  if (visibleItems.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <Inbox className="size-12 text-muted-foreground/50 mb-4" />
-        <h3 className="text-lg font-medium text-foreground">
-          No open reports
-        </h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          When users report posts, they&apos;ll appear here.
+      <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16 text-center">
+        <Inbox className="mb-4 size-12 text-muted-foreground/50" />
+        <h3 className="text-lg font-medium text-foreground">No open reports</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Flagged uploads and user reports will appear here for review.
         </p>
       </div>
     )
   }
 
+  const media = selected.post.media[0]
+  const decision = decisionCopy(selectedDecision)
+  const DecisionIcon = decision.icon
+
   return (
     <div className="space-y-4">
-      {visibleItems.map((item) => (
-        <ModerationCardLive
-          key={item.groupKey}
-          item={item}
-          onResolved={markResolved}
-        />
-      ))}
+      <div className="grid gap-3 sm:grid-cols-4">
+        <ConsoleStat label="Pending" value={localStats.pending} icon={Clock} />
+        <ConsoleStat label="Approved" value={localStats.approved} icon={ShieldCheck} />
+        <ConsoleStat label="Removed" value={localStats.removed} icon={XCircle} />
+        <ConsoleStat label="Escalated" value={localStats.escalated} icon={Flag} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[292px_minmax(0,1fr)_320px]">
+        <aside className="overflow-hidden rounded-2xl border border-border/70 bg-card/75 shadow-sm">
+          <div className="border-b border-border/70 p-4">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              Flagged Queue
+            </p>
+            <p className="mt-1 text-sm leading-5 text-muted-foreground">
+              Sorted by risk, reports, and recency.
+            </p>
+          </div>
+          <div className="max-h-[720px] space-y-2 overflow-auto p-2">
+            {sortedItems.map((item) => {
+              const isActive = item.groupKey === selected.groupKey
+              const itemDecision = decisionCopy(decisions[item.groupKey] ?? "pending")
+              const ItemDecisionIcon = itemDecision.icon
+              return (
+                <button
+                  key={item.groupKey}
+                  type="button"
+                  onClick={() => {
+                    setSelectedId(item.groupKey)
+                    setPendingAction("pending")
+                    setNote("")
+                    setError(null)
+                  }}
+                  className={cn(
+                    "w-full rounded-xl border p-3 text-left transition-all",
+                    isActive
+                      ? "border-foreground/25 bg-muted/70 shadow-sm"
+                      : "border-transparent bg-transparent hover:bg-muted/45"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">
+                        @{item.post.author.username}
+                      </p>
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                        {item.post.content}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "shrink-0 text-[10px]",
+                        item.riskLevel
+                          ? RISK_CLASS[item.riskLevel]
+                          : "border-border text-muted-foreground"
+                      )}
+                    >
+                      {item.riskLevel ?? "NEW"}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                    <span>Risk {scoreLabel(item.riskScore)}</span>
+                    <span>{item.reports.length} report{item.reports.length === 1 ? "" : "s"}</span>
+                    <span>Image</span>
+                    <span>{formatDistanceToNow(new Date(item.newestReportAt), { addSuffix: true })}</span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <span className="truncate text-[11px] text-muted-foreground">
+                      {primaryReason(item)}
+                    </span>
+                    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px]", itemDecision.className)}>
+                      <ItemDecisionIcon className="size-3" />
+                      {itemDecision.label}
+                    </span>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </aside>
+
+        <section className="overflow-hidden rounded-2xl border border-border/70 bg-card/75 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/70 p-4">
+            <div className="flex items-start gap-3">
+              <Avatar className="size-11">
+                <AvatarImage
+                  src={selected.post.author.avatarUrl}
+                  alt={selected.post.author.displayName}
+                />
+                <AvatarFallback>
+                  {selected.post.author.displayName.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                  Review Detail
+                </p>
+                <h3 className="text-lg font-semibold">@{selected.post.author.username}</h3>
+                <p className="text-xs text-muted-foreground">
+                  Posted {formatDistanceToNow(new Date(selected.post.createdAt), { addSuffix: true })}
+                </p>
+              </div>
+            </div>
+            <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium", decision.className)}>
+              <DecisionIcon className="size-3.5" />
+              {decision.label}
+            </span>
+          </div>
+
+          {media ? (
+            <div className="relative aspect-video bg-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={media.thumbnailUrl || media.url}
+                alt={media.altText || "Flagged media"}
+                className="absolute inset-0 size-full object-cover"
+              />
+            </div>
+          ) : null}
+
+          <div className="space-y-4 p-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                Caption
+              </p>
+              <p className="mt-1 whitespace-pre-wrap text-sm">{selected.post.content}</p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <EvidenceMetric
+                label="Risk score"
+                value={scoreLabel(selected.riskScore)}
+                icon={ShieldAlert}
+              />
+              <EvidenceMetric
+                label="AI likelihood"
+                value={
+                  selected.analysis
+                    ? `${Math.round(selected.analysis.ai.aiProbability * 100)}%`
+                    : "—"
+                }
+                icon={Sparkles}
+              />
+              <EvidenceMetric
+                label="Recommendation"
+                value={recommendationFor(selected)}
+                icon={Flag}
+              />
+            </div>
+
+            <div className="rounded-2xl border border-border/70 bg-muted/25 p-4">
+              <p className="text-sm font-medium">Decision workflow</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant={pendingAction === "approved" ? "default" : "outline"}
+                  onClick={() => chooseAction("approved")}
+                >
+                  <CheckCircle2 className="size-4" />
+                  Approve
+                </Button>
+                <Button
+                  size="sm"
+                  variant={pendingAction === "removed" ? "default" : "outline"}
+                  className={cn(
+                    pendingAction !== "removed" &&
+                      "border-red-500/30 text-red-500 hover:bg-red-500/10"
+                  )}
+                  onClick={() => chooseAction("removed")}
+                >
+                  <XCircle className="size-4" />
+                  Remove
+                </Button>
+                <Button
+                  size="sm"
+                  variant={pendingAction === "escalated" ? "default" : "outline"}
+                  className={cn(
+                    pendingAction !== "escalated" &&
+                      "border-amber-500/40 text-amber-500 hover:bg-amber-500/10"
+                  )}
+                  onClick={() => chooseAction("escalated")}
+                >
+                  <Flag className="size-4" />
+                  Escalate
+                </Button>
+              </div>
+
+              {pendingAction !== "pending" ? (
+                <div className="mt-3 space-y-2">
+                  <label className="text-xs font-medium">Moderator note</label>
+                  <Textarea
+                    value={note}
+                    onChange={(event) => setNote(event.target.value)}
+                    rows={3}
+                    placeholder="Document the decision for audit and downstream labels."
+                  />
+                  {error ? <p className="text-xs text-destructive">{error}</p> : null}
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setPendingAction("pending")
+                        setNote("")
+                        setError(null)
+                      }}
+                      disabled={submitting}
+                    >
+                      Cancel
+                    </Button>
+                    <Button size="sm" onClick={submitDecision} disabled={submitting}>
+                      {submitting ? "Saving..." : "Confirm decision"}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </section>
+
+        <aside className="space-y-4">
+          <section className="rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <FileText className="size-4 text-primary" />
+              <h3 className="text-sm font-semibold">Evidence</h3>
+            </div>
+            <div className="space-y-3 text-sm">
+              <EvidenceRow
+                label="C2PA provenance"
+                value={
+                  selected.analysis?.provenance.verified
+                    ? "Verified"
+                    : selected.analysis?.provenance.present
+                      ? "Present, not verified"
+                      : "Missing or unavailable"
+                }
+              />
+              <EvidenceRow
+                label="OCR text"
+                value={selected.analysis?.ocr.text || "No visible text extracted"}
+              />
+              <EvidenceRow
+                label="Public figures"
+                value={
+                  selected.analysis?.politicians.detected.length
+                    ? selected.analysis.politicians.detected.join(", ")
+                    : "None detected"
+                }
+              />
+              <EvidenceRow
+                label="Classifier reasoning"
+                value={selected.analysis?.vision.reasoning || "No classifier reasoning available"}
+              />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <History className="size-4 text-primary" />
+              <h3 className="text-sm font-semibold">User & Content History</h3>
+            </div>
+            <ol className="space-y-3 text-sm">
+              <HistoryItem
+                icon={UserRound}
+                title={`${selected.reports.length} open report${selected.reports.length === 1 ? "" : "s"}`}
+                detail={`First flagged ${formatDistanceToNow(new Date(selected.oldestReportAt), { addSuffix: true })}`}
+              />
+              <HistoryItem
+                icon={ScanText}
+                title="Analysis completed"
+                detail={`${scoreLabel(selected.riskScore)} risk score stored with this post`}
+              />
+              <HistoryItem
+                icon={decision.icon}
+                title={decision.label}
+                detail={
+                  selectedDecision === "pending"
+                    ? "Awaiting moderator decision"
+                    : "Decision reflected locally and persisted when backed by reports"
+                }
+              />
+            </ol>
+          </section>
+        </aside>
+      </div>
     </div>
+  )
+}
+
+function ConsoleStat({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string
+  value: number
+  icon: typeof Clock
+}) {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <Icon className="size-4 text-muted-foreground" />
+      </div>
+      <p className="mt-2 text-2xl font-bold">{value}</p>
+    </div>
+  )
+}
+
+function EvidenceMetric({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string
+  value: string
+  icon: typeof ShieldAlert
+}) {
+  return (
+    <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Icon className="size-3.5" />
+        {label}
+      </div>
+      <p className="mt-1 text-sm font-semibold">{value}</p>
+    </div>
+  )
+}
+
+function EvidenceRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="mt-1 max-h-28 overflow-auto text-xs leading-relaxed text-foreground">
+        {value}
+      </p>
+    </div>
+  )
+}
+
+function HistoryItem({
+  icon: Icon,
+  title,
+  detail,
+}: {
+  icon: typeof History
+  title: string
+  detail: string
+}) {
+  return (
+    <li className="flex gap-3">
+      <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border border-border bg-background">
+        <Icon className="size-3.5 text-muted-foreground" />
+      </span>
+      <span>
+        <span className="block font-medium">{title}</span>
+        <span className="block text-xs text-muted-foreground">{detail}</span>
+      </span>
+    </li>
   )
 }

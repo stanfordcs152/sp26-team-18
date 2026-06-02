@@ -2,9 +2,12 @@
 
 import { FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft, FileCheck2, SearchCheck, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { ModeSwitch } from "@/components/mode-switch"
 import { supabase } from "@/lib/supabase"
 import type { PostAnalysis } from "@/lib/types"
 import { shouldFlagAnalysis } from "@/lib/analyzers/flag"
@@ -103,6 +106,7 @@ export default function UploadPage() {
 
     const analysisFormData = new FormData()
     analysisFormData.append("image", file)
+    analysisFormData.append("username", username.trim())
 
     const analysisResponse = await fetch("/api/analyze", {
       method: "POST",
@@ -110,6 +114,16 @@ export default function UploadPage() {
     })
 
     const analysisData = await analysisResponse.json()
+
+    // Account-age upload throttle (HTTP 429). Surface the server's message.
+    if (analysisResponse.status === 429) {
+      setError(
+        analysisData.error ?? "Upload limit reached. Please try again later."
+      )
+      setSubmitting(false)
+      setIsAnalyzing(false)
+      return
+    }
 
     if (!analysisResponse.ok || !analysisData.success) {
       setError("Failed to analyze uploaded image.")
@@ -167,13 +181,49 @@ export default function UploadPage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-xl px-4 py-6">
-      <h1 className="text-2xl font-bold">Upload Post</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Share an image and caption to add a new post.
-      </p>
+    <main className="mx-auto min-h-screen w-full max-w-3xl px-4 py-6">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Button variant="ghost" size="sm" asChild className="w-fit">
+          <Link href="/">
+            <ArrowLeft className="size-4" />
+            Feed
+          </Link>
+        </Button>
+        <div className="w-full sm:min-w-72 sm:max-w-xs">
+          <ModeSwitch compact />
+        </div>
+      </div>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-xl border border-border p-4 sm:p-6">
+      <div className="rounded-xl border border-border bg-card p-5">
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+          Create Mode
+        </p>
+        <h1 className="mt-1 text-2xl font-bold">Upload Post</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Share an image and caption. TruthGuard analyzes provenance, AI risk,
+          OCR, and political context before the post enters the feed.
+        </p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          {[
+            { label: "Upload", icon: FileCheck2 },
+            { label: "Analyze", icon: SearchCheck },
+            { label: "Label or Review", icon: ShieldAlert },
+          ].map((step) => {
+            const Icon = step.icon
+            return (
+              <div
+                key={step.label}
+                className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm"
+              >
+                <Icon className="size-4 text-primary" />
+                {step.label}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
         <div className="space-y-2">
           <label htmlFor="username" className="text-sm font-medium">
             Username

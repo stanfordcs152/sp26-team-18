@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { MODERATOR_COOKIE } from "@/lib/moderator-session"
+import { MODERATOR_COOKIE } from "@/lib/moderator-cookie"
 
 export async function POST(request: Request) {
   // The Sign Out form posts here; redirect back to login afterwards so the

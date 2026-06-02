@@ -16,36 +16,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
 import { resolveReport } from "@/lib/moderation-actions"
 import type {
-  Post,
-  PostAnalysis,
+  LiveQueueItem,
   ReportReason,
   ReportResolution,
-  PostStatus,
   RiskLevel,
 } from "@/lib/types"
 
-export interface LiveQueueItem {
-  groupKey: string // post id
-  post: Post
-  postStatus: PostStatus
-  reports: {
-    id: string
-    reason: ReportReason
-    details: string | null
-    reporterUsername: string
-    createdAt: string
-  }[]
-  newestReportAt: string
-  oldestReportAt: string
-  // Phase 5: AI image-classifier result, persisted on `posts.analysis`.
-  // Null on legacy posts uploaded before migration 0004.
-  analysis: PostAnalysis | null
-  riskScore: number | null
-  riskLevel: RiskLevel | null
-}
+export type { LiveQueueItem }
 
 const RISK_BADGE_CLASS: Record<RiskLevel, string> = {
   LOW: "bg-slate-500/10 text-slate-400 border-slate-500/20",
@@ -104,7 +83,6 @@ export function ModerationCardLive({
     null
   )
   const [note, setNote] = useState("")
-  const [moderator, setModerator] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<ReportResolution | null>(null)
@@ -134,7 +112,6 @@ export function ModerationCardLive({
         reportId: r.id,
         postId: post.id,
         resolution: pendingAction,
-        moderatorUsername: moderator,
         moderatorNote: note,
       })
       if (!result.ok) {
@@ -461,16 +438,6 @@ export function ModerationCardLive({
 
           {pendingAction && (
             <>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium">
-                  Moderator username
-                </label>
-                <Input
-                  value={moderator}
-                  onChange={(e) => setModerator(e.target.value)}
-                  placeholder="moderator_username"
-                />
-              </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium">
                   Note (required)
