@@ -1,4 +1,4 @@
-export type AIDetectionStatus = "authentic" | "under_review" | "likely_ai" | "confirmed_ai"
+export type AIDetectionStatus = "authentic" | "under_review" | "likely_ai" | "confirmed_ai" | "unverified"
 
 export type MediaType = "image" | "video"
 
@@ -43,6 +43,7 @@ export interface PostAnalysis {
     publicFigures: string[]
     publicFigureConfidence: number
     appearsAIGenerated: boolean
+    aiConfidence?: number
     syntheticMediaConfidence: number
     politicalContext: boolean
     politicalContextConfidence: number

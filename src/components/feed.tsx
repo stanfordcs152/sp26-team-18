@@ -7,8 +7,9 @@ import { FeedFilters, type FilterType } from "@/components/feed-filters"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import { mockPosts } from "@/lib/mock-data"
+import { deriveFeedLabel } from "@/lib/feed-label"
 import { isHighRiskLockedForViewer } from "@/lib/post-visibility"
-import type { Post } from "@/lib/types"
+import type { Post, PostAnalysis } from "@/lib/types"
 
 type FeedTab = "forYou" | "following"
 
@@ -23,11 +24,12 @@ type SupabasePostRow = {
   risk_level?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | null
   status?: "visible" | "labeled" | "removed" | null
   moderation_status?: "pending_review" | "approved" | "removed" | "escalated" | null
+  analysis?: PostAnalysis | null
 }
 
 const FEED_LIMIT = 20
 const FEED_SELECT =
-  "id, username, caption, image_url, created_at, is_flagged, risk_level, confidence_score, status, moderation_status"
+  "id, username, caption, image_url, created_at, is_flagged, risk_level, confidence_score, status, moderation_status, analysis"
 
 export function Feed({
   followingUsernames = [],
@@ -124,18 +126,14 @@ export function Feed({
       }
 
       const mappedPosts: Post[] = data.map((row) => {
-        const isFlagged = Boolean(row.is_flagged)
-        const confidence = Math.round(Number(row.confidence_score ?? 0))
-        const isUnderReview =
-          row.moderation_status === "pending_review" ||
-          row.moderation_status === "escalated"
-        const status = isUnderReview
-          ? "under_review"
-          : isFlagged
-          ? confidence >= 90
-            ? "confirmed_ai"
-            : "likely_ai"
-          : "authentic"
+        const detection = deriveFeedLabel({
+          isFlagged: row.is_flagged,
+          riskLevel: row.risk_level ?? null,
+          confidenceScore: row.confidence_score,
+          moderationStatus: row.moderation_status ?? null,
+          status: row.status ?? null,
+          analysis: row.analysis ?? null,
+        })
 
         return {
           id: row.id,
@@ -155,9 +153,9 @@ export function Feed({
               url: row.image_url,
               altText: row.caption || "Uploaded image",
               aiDetection: {
-                status,
-                confidence,
-                flags: isFlagged ? ["Potential AI-generated content"] : [],
+                status: detection.status,
+                confidence: detection.confidence,
+                flags: detection.flags,
                 analyzedAt: row.created_at,
               },
             },
@@ -207,7 +205,10 @@ export function Feed({
     const friendSet = new Set(friendUsernames)
     return posts.filter((post) => {
       const isHighRisk = post.media.some(
-        (m) => m.aiDetection.status !== "authentic"
+        (m) =>
+          m.aiDetection.status === "likely_ai" ||
+          m.aiDetection.status === "confirmed_ai" ||
+          m.aiDetection.status === "under_review"
       )
       const locked = isHighRiskLockedForViewer({
         isHighRisk,
@@ -236,7 +237,12 @@ export function Feed({
       )
     }
     return scoped.filter((post) =>
-      post.media.some((m) => m.aiDetection.status !== "authentic")
+      post.media.some(
+        (m) =>
+          m.aiDetection.status === "likely_ai" ||
+          m.aiDetection.status === "confirmed_ai" ||
+          m.aiDetection.status === "under_review"
+      )
     )
   }, [filter, visiblePosts, tab, followingUsernames])
 

@@ -16,6 +16,7 @@ import {
   Bot,
   ShieldCheck,
   Clock3,
+  ShieldQuestion,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Post } from "@/lib/types"
@@ -71,6 +72,13 @@ export function PostCard({ post }: PostCardProps) {
         icon: Clock3,
         className: "border-amber-500/30 bg-amber-500/10 text-amber-500",
       }
+    : media?.aiDetection.status === "unverified"
+      ? {
+          label: "Unverified",
+          description: "Authenticity has not been verified.",
+          icon: ShieldQuestion,
+          className: "border-slate-500/30 bg-slate-500/10 text-slate-500",
+        }
     : hasAIFlags
       ? {
           label: "AI-Generated",

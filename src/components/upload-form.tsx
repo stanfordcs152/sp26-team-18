@@ -19,6 +19,7 @@ import { ModeSwitch } from "@/components/mode-switch"
 import { supabase } from "@/lib/supabase"
 import type { PostAnalysis } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { shouldFlagAnalysis } from "@/lib/analyzers/flag"
 
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`
@@ -74,11 +75,7 @@ export function UploadForm({
     imageUrl: string,
     analysis: PostAnalysis | null
   ) => {
-    const isFlagged = analysis
-      ? analysis.risk.level === "HIGH" ||
-        analysis.risk.level === "CRITICAL" ||
-        analysis.manipulationSignals?.possibleKnownManipulation === true
-      : false
+    const isFlagged = shouldFlagAnalysis(analysis)
 
     return {
       image_url: imageUrl,
@@ -189,10 +186,7 @@ export function UploadForm({
 
     const moderationAnalysis = analysisData.analysis as PostAnalysis
 
-    const shouldWarn =
-      moderationAnalysis.risk.level === "HIGH" ||
-      moderationAnalysis.risk.level === "CRITICAL" ||
-      moderationAnalysis.manipulationSignals?.possibleKnownManipulation === true
+    const shouldWarn = shouldFlagAnalysis(moderationAnalysis)
 
     if (shouldWarn) {
       setPendingModeration(moderationAnalysis)
