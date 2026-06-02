@@ -203,6 +203,38 @@ export async function loadModerationQueue(): Promise<ModerationQueueData | null>
     a.newestReportAt < b.newestReportAt ? 1 : -1
   )
 
+  // Per-author malicious-post history (moderator-only — this loader only runs
+  // for signed-in moderators). Counts span every post by the author, separating
+  // moderator-confirmed removals from auto-flagged high-risk uploads.
+  const authorUsernames = Array.from(
+    new Set(sorted.map((it) => it.post.author.username))
+  )
+  if (authorUsernames.length > 0) {
+    const removedByAuthor = new Map<string, number>()
+    const flaggedByAuthor = new Map<string, number>()
+    const { data: authorPosts } = await supabase
+      .from("posts")
+      .select("username, is_flagged, status")
+      .in("username", authorUsernames)
+    for (const p of (authorPosts ?? []) as {
+      username: string
+      is_flagged: boolean | null
+      status: PostStatus | null
+    }[]) {
+      if (p.status === "removed") {
+        removedByAuthor.set(p.username, (removedByAuthor.get(p.username) ?? 0) + 1)
+      }
+      if (p.is_flagged) {
+        flaggedByAuthor.set(p.username, (flaggedByAuthor.get(p.username) ?? 0) + 1)
+      }
+    }
+    for (const it of sorted) {
+      const name = it.post.author.username
+      it.authorRemovedCount = removedByAuthor.get(name) ?? 0
+      it.authorFlaggedCount = flaggedByAuthor.get(name) ?? 0
+    }
+  }
+
   const highRisk = sorted.filter(
     (it) => it.riskLevel === "HIGH" || it.riskLevel === "CRITICAL"
   ).length

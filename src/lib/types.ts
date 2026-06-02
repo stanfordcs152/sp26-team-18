@@ -165,6 +165,11 @@ export interface LiveQueueItem {
   analysis: PostAnalysis | null
   riskScore: number | null
   riskLevel: RiskLevel | null
+  // Moderator-only author history, populated server-side for the live queue.
+  // Counts span all of the author's posts, not just this report group.
+  // Undefined on the public demo/mock queue so the stat stays moderator-only.
+  authorRemovedCount?: number // posts a moderator confirmed + removed
+  authorFlaggedCount?: number // posts auto-flagged high-risk at upload
 }
 
 // Top-level counters shown on the moderation dashboard tiles.
