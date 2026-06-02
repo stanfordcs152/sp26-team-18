@@ -468,72 +468,60 @@ export function UploadForm({
       </form>
 
       {showModerationWarning && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4">
-          <div className="w-full max-w-lg rounded-xl border border-red-500 bg-black p-6 text-white shadow-2xl">
-            <h2 className="mb-4 text-2xl font-bold text-red-400">
-              Post Requires Additional Review
-            </h2>
-
-            <p className="mb-4 text-gray-300">
-              Our integrity systems detected signals commonly associated with
-              manipulated political or public-figure content.
-            </p>
-
-            <div className="mb-4 rounded-lg bg-red-950/40 p-4 text-red-200">
-              This post may contain misleading, synthetic, or reputationally harmful
-              media involving an influential individual. To help protect platform
-              authenticity and public trust, this upload may require additional
-              moderation review before becoming publicly visible.
-            </div>
-
-            <p className="mb-6 text-gray-400">
-              You can still continue with the upload, but the content may be flagged,
-              limited in distribution, or held for manual review.
-            </p>
-
-            {pendingImageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={pendingImageUrl}
-                alt="Upload preview"
-                className="mb-4 max-h-64 w-full rounded-lg object-cover"
-              />
-            )}
-
-            {pendingModeration && (
-              <div className="mb-4 rounded-lg border border-yellow-500/30 bg-yellow-950/20 p-4 text-sm text-yellow-100">
-                <p className="font-semibold text-yellow-300">Moderation Confidence</p>
-                <p className="mt-1">Risk Level: {pendingModeration.risk.level}</p>
-                <p>
-                  Confidence Score: {(pendingModeration.risk.score * 100).toFixed(0)}%
-                </p>
-                <p className="mt-3 font-semibold text-yellow-300">
-                  Detection Reasoning
-                </p>
-                <p className="mt-1 text-yellow-100/90">
-                  {pendingModeration.vision?.reasoning}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 py-6 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="review-warning-title"
+            className="max-h-[80vh] w-full max-w-[520px] overflow-y-auto rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl sm:p-6"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-400">
+                <ShieldAlert className="size-5" />
+              </div>
+              <div>
+                <h2 id="review-warning-title" className="text-xl font-semibold">
+                  Post needs review
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  This image may include AI-generated or manipulated political
+                  content. You can submit it for review, or go back and choose
+                  another image.
                 </p>
               </div>
-            )}
+            </div>
 
-            <div className="flex gap-3">
+            {pendingImageUrl ? (
+              <div className="mt-5 overflow-hidden rounded-xl border border-border bg-black">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={pendingImageUrl}
+                  alt="Upload preview"
+                  className="mx-auto max-h-[220px] max-w-full object-contain"
+                />
+              </div>
+            ) : null}
+
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1"
+                className="sm:min-w-40"
                 onClick={() => {
                   setShowModerationWarning(false)
+                  setPendingModeration(null)
+                  setPendingImageUrl("")
                 }}
               >
-                Cancel Upload
+                Choose another image
               </Button>
 
               <Button
                 type="button"
-                className="flex-1 bg-red-600 hover:bg-red-700"
+                className="sm:min-w-40"
                 onClick={handleSubmitForReview}
               >
-                Submit for Review
+                Submit for review
               </Button>
             </div>
           </div>
