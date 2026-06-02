@@ -1,0 +1,144 @@
+{
+  "generatedAt": "2026-06-01T17:27:52.508Z",
+  "dataset": "OpenFake core/validation — 100 allow (real) + 100 unallow (synthetic)",
+  "paidMode": true,
+  "approaches": [
+    {
+      "id": "heuristic",
+      "sourceFile": "heuristic-openfake-200.json",
+      "evalSet": "openfake-200",
+      "allowCount": 100,
+      "unallowCount": 100,
+      "precision": 0.47058823529411764,
+      "recall": 0.16,
+      "f1": 0.23880597014925375,
+      "confusion": {
+        "tp": 16,
+        "fp": 18,
+        "tn": 82,
+        "fn": 84
+      },
+      "latencyMs": {
+        "median": 423.40409999999974,
+        "p99": 2354.374299999996
+      },
+      "costUsdPer1000": 1,
+      "llmCalls": 0
+    },
+    {
+      "id": "llm",
+      "sourceFile": "llm-openfake-200.json",
+      "evalSet": "openfake-200",
+      "allowCount": 100,
+      "unallowCount": 100,
+      "precision": 1,
+      "recall": 0.03,
+      "f1": 0.058252427184466014,
+      "confusion": {
+        "tp": 3,
+        "fp": 0,
+        "tn": 100,
+        "fn": 97
+      },
+      "latencyMs": {
+        "median": 3797.0420999999915,
+        "p99": 10545.16109999991
+      },
+      "costUsdPer1000": 13.000000000000002,
+      "llmCalls": 200,
+      "notes": "Uses visionShouldFlag (political disinfo), not OpenFake synthetic labels."
+    },
+    {
+      "id": "hybrid",
+      "sourceFile": "hybrid-openfake-200.json",
+      "evalSet": "openfake-200",
+      "allowCount": 100,
+      "unallowCount": 100,
+      "precision": 1,
+      "recall": 0.03,
+      "f1": 0.058252427184466014,
+      "confusion": {
+        "tp": 3,
+        "fp": 0,
+        "tn": 100,
+        "fn": 97
+      },
+      "latencyMs": {
+        "median": 4674.583600000013,
+        "p99": 10046.084600000002
+      },
+      "costUsdPer1000": 13.000000000000002,
+      "llmCalls": 200,
+      "notes": "Uses visionShouldFlag (political disinfo), not OpenFake synthetic labels."
+    },
+    {
+      "id": "production",
+      "sourceFile": "production-openfake-200.json",
+      "evalSet": "openfake-200",
+      "allowCount": 100,
+      "unallowCount": 100,
+      "precision": 1,
+      "recall": 0.47,
+      "f1": 0.6394557823129251,
+      "confusion": {
+        "tp": 47,
+        "fp": 0,
+        "tn": 100,
+        "fn": 53
+      },
+      "latencyMs": {
+        "median": 3431.789999999979,
+        "p99": 7285.498499999987
+      },
+      "costUsdPer1000": 13.000000000000002,
+      "llmCalls": 200,
+      "notes": "Exact upload pipeline (GPT-4.1 Vision + Rekognition + shouldFlagAnalysis)."
+    },
+    {
+      "id": "ml",
+      "sourceFile": "ml-openfake-holdout-40.json",
+      "evalSet": "openfake-holdout-40",
+      "allowCount": 20,
+      "unallowCount": 20,
+      "precision": 0.7058823529411765,
+      "recall": 0.6,
+      "f1": 0.6486486486486486,
+      "confusion": {
+        "tp": 12,
+        "fp": 5,
+        "tn": 15,
+        "fn": 8
+      },
+      "latencyMs": {
+        "median": 277.2219675,
+        "p99": 277.2219675
+      },
+      "costUsdPer1000": 0,
+      "llmCalls": 0,
+      "notes": "ResNet18 trained on 160 images; evaluated on 40 held-out IDs (split.json, seed 42). No API calls."
+    },
+    {
+      "id": "ml_hybrid",
+      "sourceFile": "ml-hybrid-openfake-holdout-40.json",
+      "evalSet": "openfake-holdout-40",
+      "allowCount": 20,
+      "unallowCount": 20,
+      "precision": 0.7692307692307693,
+      "recall": 0.5,
+      "f1": 0.6060606060606061,
+      "confusion": {
+        "tp": 10,
+        "fp": 3,
+        "tn": 17,
+        "fn": 10
+      },
+      "latencyMs": {
+        "median": 760.25531,
+        "p99": 7295.484710000004
+      },
+      "costUsdPer1000": 3.2500000000000004,
+      "llmCalls": 10,
+      "notes": "ResNet18 trained on 160 images; evaluated on 40 held-out IDs (split.json, seed 42). Paid OpenAI for ml_hybrid escalations."
+    }
+  ]
+}
