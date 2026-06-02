@@ -15,6 +15,7 @@ import {
 import { ModerationQueueLive } from "@/components/moderation-queue-live"
 import { supabase } from "@/lib/supabase"
 import { shouldFlagAnalysis } from "@/lib/analyzers/flag"
+import { countRemovedByAuthor, normalizeUsername } from "@/lib/moderation-strikes"
 import type {
   LiveQueueItem,
   ModerationQueueData,
@@ -485,6 +486,22 @@ export function ModerationDashboard() {
           if (scoreDiff !== 0) return scoreDiff
           return a.created_at < b.created_at ? 1 : -1
         })
+
+        const queueAuthors = Array.from(
+          new Set(rows.filter(rowNeedsReview).map((r) => normalizeUsername(r.username)))
+        )
+        if (queueAuthors.length > 0) {
+          const { data: authorPosts } = await supabase
+            .from("posts")
+            .select("username, status")
+            .in("username", queueAuthors)
+          removedByAuthor = countRemovedByAuthor(
+            (authorPosts ?? []) as {
+              username: string | null
+              status: PostStatus | null
+            }[]
+          )
+        }
       } else {
         const legacy = await supabase
           .from("posts")
