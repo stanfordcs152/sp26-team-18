@@ -93,6 +93,18 @@ const POSTS_SELECT_LEGACY =
   "id, created_at, image_url, caption, username, is_flagged, confidence_score"
 const MODERATION_QUEUE_LIMIT = 20
 
+const FILTER_EMPTY_COPY: Record<ModerationMetricFilter, string> = {
+  pending: "No posts are awaiting moderator review.",
+  highRisk: "No high-risk posts currently require review.",
+  critical: "No critical-risk posts are in the queue.",
+  reviewedToday: "No posts were reviewed in the last 24 hours.",
+  flagsToday: "No posts were flagged in the last 24 hours.",
+  flagsThisWeek: "No posts were flagged in the last 7 days.",
+  removalsToday: "No posts were removed in the last 24 hours.",
+  approvalsToday: "No posts were approved in the last 24 hours.",
+  escalationsToday: "No posts were escalated in the last 24 hours.",
+}
+
 function isRiskLevel(value: string | null | undefined): value is RiskLevel {
   return value === "LOW" || value === "MEDIUM" || value === "HIGH" || value === "CRITICAL"
 }
@@ -555,8 +567,8 @@ export function ModerationDashboard() {
     ? `${queueItems.length} matching Supabase post${queueItems.length === 1 ? "" : "s"}.`
     : `${queueItems.length} Supabase post${queueItems.length === 1 ? "" : "s"} awaiting review.`
   const emptyTitle = activeFilter
-    ? `No posts match ${MODERATION_FILTER_LABELS[activeFilter]}.`
-    : "No flagged posts awaiting review."
+    ? FILTER_EMPTY_COPY[activeFilter]
+    : "No flagged content currently requires moderator review."
 
   const metricCards: {
     key: ModerationMetricFilter
@@ -698,10 +710,12 @@ export function ModerationDashboard() {
             <Inbox className="size-6 text-muted-foreground" />
           </div>
           <h2 className="mt-4 text-xl font-semibold">{emptyTitle}</h2>
-          <p className="mt-2 max-w-md text-sm text-muted-foreground">
-            Posts will appear here when Supabase rows are flagged, high risk, or
-            contain manipulation and political misinformation signals.
-          </p>
+          {!activeFilter ? (
+            <p className="mt-2 max-w-md text-sm text-muted-foreground">
+              Posts will appear here when Supabase rows are flagged, high risk, or
+              contain manipulation and political misinformation signals.
+            </p>
+          ) : null}
         </div>
       ) : (
         <ModerationQueueLive
@@ -709,6 +723,11 @@ export function ModerationDashboard() {
           queueTitle={queueTitle}
           queueDescription={queueDescription}
           emptyTitle={emptyTitle}
+          emptyDescription={
+            activeFilter
+              ? null
+              : "New flagged uploads will appear here after automated analysis."
+          }
           onDecisionPersisted={() => setRefreshToken((token) => token + 1)}
         />
       )}

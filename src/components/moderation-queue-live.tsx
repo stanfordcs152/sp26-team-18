@@ -27,6 +27,7 @@ interface Props {
   queueTitle?: string
   queueDescription?: string
   emptyTitle?: string
+  emptyDescription?: string | null
   onDecisionPersisted?: () => void
 }
 
@@ -190,6 +191,7 @@ export function ModerationQueueLive({
   queueTitle = "Flagged Queue",
   queueDescription = "Highest risk first, then newest.",
   emptyTitle = "No flagged posts awaiting review.",
+  emptyDescription = "New flagged uploads will appear here after automated analysis.",
   onDecisionPersisted,
 }: Props) {
   const [selectedId, setSelectedId] = useState(items[0]?.groupKey ?? "")
@@ -258,9 +260,9 @@ export function ModerationQueueLive({
       <div className="flex flex-col items-center justify-center rounded-xl border border-border/70 bg-card/80 py-16 text-center shadow-sm">
         <Inbox className="mb-4 size-12 text-muted-foreground/50" />
         <h3 className="text-lg font-medium text-foreground">{emptyTitle}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          New flagged uploads will appear here after automated analysis.
-        </p>
+        {emptyDescription ? (
+          <p className="mt-1 text-sm text-muted-foreground">{emptyDescription}</p>
+        ) : null}
       </div>
     )
   }
