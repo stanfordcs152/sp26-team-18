@@ -94,6 +94,9 @@ export interface Post {
   // Phase 3 (retroactive): C2PA + political flag.
   c2paStatus?: C2paStatus
   isPolitical?: boolean
+  // Phase 8: uploader's own "AI-generated vs authentic" declaration. Null on
+  // legacy posts uploaded before migration 0010.
+  selfDeclaredAi?: boolean | null
 }
 
 // Moderator-specific types
@@ -165,6 +168,12 @@ export interface LiveQueueItem {
   analysis: PostAnalysis | null
   riskScore: number | null
   riskLevel: RiskLevel | null
+  // Phase 8: the uploader's own AI/authentic self-label (migration 0010).
+  selfDeclaredAi?: boolean | null
+  // Three-strikes signal: how many of this author's posts a moderator has
+  // removed across the whole platform. Populated server-side for the live
+  // queue; advisory only (does not block uploads).
+  authorRemovedCount?: number
 }
 
 // Top-level counters shown on the moderation dashboard tiles.

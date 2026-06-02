@@ -9,6 +9,7 @@ import {
   Flag,
   Inbox,
   ShieldAlert,
+  ShieldX,
   XCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -24,6 +25,15 @@ interface Props {
 }
 
 type ConsoleDecision = "pending" | "approved" | "removed" | "escalated"
+
+// A flagged author reaches "repeat offender" status once moderators have
+// removed at least this many of their posts. Advisory only — it surfaces a
+// warning in the queue but does not block the account from uploading.
+const STRIKE_LIMIT = 3
+
+function isRepeatOffender(item: LiveQueueItem): boolean {
+  return (item.authorRemovedCount ?? 0) >= STRIKE_LIMIT
+}
 
 const RISK_CLASS: Record<RiskLevel, string> = {
   LOW: "border-slate-500/20 bg-slate-500/10 text-slate-500",
@@ -89,6 +99,12 @@ function buildRiskSummary(item: LiveQueueItem): EvidenceItem[] {
   }
   if (item.analysis?.risk?.reasons?.length) {
     rows.push({ label: "Risk reasons", value: item.analysis.risk.reasons.join("; ") })
+  }
+  if (typeof item.selfDeclaredAi === "boolean") {
+    rows.push({
+      label: "Uploader self-label",
+      value: item.selfDeclaredAi ? "AI-generated" : "Not AI-generated",
+    })
   }
 
   return rows
@@ -309,6 +325,15 @@ export function ModerationQueueLive({ items }: Props) {
                       })}
                     </span>
                   </div>
+                  {isRepeatOffender(item) ? (
+                    <Badge
+                      variant="outline"
+                      className="mt-2 gap-1 border-red-500/30 bg-red-500/10 text-[10px] text-red-600 dark:text-red-400"
+                    >
+                      <ShieldX className="size-3" />
+                      Repeat offender · {item.authorRemovedCount}
+                    </Badge>
+                  ) : null}
                 </button>
               )
             })}
@@ -350,6 +375,18 @@ export function ModerationQueueLive({ items }: Props) {
               {decision.label}
             </span>
           </div>
+
+          {isRepeatOffender(selected) ? (
+            <div className="flex items-start gap-2 border-b border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+              <ShieldX className="mt-0.5 size-4 shrink-0" />
+              <p>
+                <span className="font-semibold">Repeat offender.</span>{" "}
+                Moderators have removed {selected.authorRemovedCount} of
+                @{selected.post.author.username}&apos;s posts (3-strike
+                threshold reached).
+              </p>
+            </div>
+          ) : null}
 
           {media ? (
             <div className="relative aspect-video bg-muted">
