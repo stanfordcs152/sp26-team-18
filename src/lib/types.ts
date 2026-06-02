@@ -180,9 +180,36 @@ export interface DashboardCounters {
   escalated: number
 }
 
+// One week's tally for a moderator analytics chart.
+export interface WeeklyCountPoint {
+  weekStart: string // ISO date (Monday) — stable key
+  label: string // short display label, e.g. "Apr 1"
+  count: number
+}
+
+// One week's moderator decisions, split by outcome.
+export interface DecisionTrendPoint {
+  weekStart: string
+  label: string
+  approved: number // resolution = no_action
+  labeled: number // resolution = labeled
+  removed: number // resolution = removed
+}
+
+// Historical moderator statistics (moderator-only — computed server-side).
+export interface ModeratorAnalytics {
+  weeklyFlags: WeeklyCountPoint[] // posts auto-flagged per week
+  decisionTrend: DecisionTrendPoint[] // resolved reports per week, by outcome
+  falsePositiveRate: number | null // 0..1; reviewed reports cleared / reviewed
+  reviewedTotal: number // all resolved reports
+  backlog: number // currently open reports
+  avgReviewMs: number | null // mean created_at -> resolved_at
+}
+
 // Everything the dashboard needs from one server-side queue load.
 export interface ModerationQueueData {
   items: LiveQueueItem[]
   stats: ModerationStats
   counters: DashboardCounters
+  analytics: ModeratorAnalytics
 }
