@@ -134,6 +134,20 @@ export async function getFollowingUsernames(
   return following.map((p) => p.username)
 }
 
+// Usernames of the given user's friends (mutual follows) — used to gate
+// friends-only visibility of high-risk posts.
+export async function getFriendUsernames(
+  client: SupabaseClient,
+  userId: string
+): Promise<string[]> {
+  const [following, followers] = await Promise.all([
+    getFollowing(client, userId),
+    getFollowers(client, userId),
+  ])
+  const followerIds = new Set(followers.map((p) => p.id))
+  return following.filter((p) => followerIds.has(p.id)).map((p) => p.username)
+}
+
 export async function getRelationship(
   client: SupabaseClient,
   viewerId: string,

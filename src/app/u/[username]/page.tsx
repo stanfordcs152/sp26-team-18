@@ -19,6 +19,7 @@ import {
   getReadClient,
   getRelationship,
 } from "@/lib/follows"
+import { isHighRiskLockedForViewer } from "@/lib/post-visibility"
 
 export const dynamic = "force-dynamic"
 
@@ -57,7 +58,18 @@ export default async function UserProfilePage({
     .select("id, created_at, image_url, caption, is_flagged")
     .eq("username", profile.username)
     .order("created_at", { ascending: false })
-  const posts = (data ?? []) as PostRow[]
+  const allPosts = (data ?? []) as PostRow[]
+
+  // High-risk posts stay friends-only for a window after posting.
+  const posts = allPosts.filter(
+    (post) =>
+      !isHighRiskLockedForViewer({
+        isHighRisk: Boolean(post.is_flagged),
+        createdAt: post.created_at,
+        isAuthor: isSelf,
+        isFriendOfAuthor: relationship?.isFriend ?? false,
+      })
+  )
 
   return (
     <div className="min-h-screen bg-background">

@@ -7,6 +7,7 @@ import { FeedFilters, type FilterType } from "@/components/feed-filters"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import { mockPosts } from "@/lib/mock-data"
+import { isHighRiskLockedForViewer } from "@/lib/post-visibility"
 import type { Post } from "@/lib/types"
 
 type FeedTab = "forYou" | "following"
@@ -29,14 +30,19 @@ const FEED_SELECT =
 
 export function Feed({
   followingUsernames = [],
+  friendUsernames = [],
+  currentUsername = null,
   isAuthed = false,
 }: {
   followingUsernames?: string[]
+  friendUsernames?: string[]
+  currentUsername?: string | null
   isAuthed?: boolean
 }) {
   const [filter, setFilter] = useState<FilterType>("all")
   const [tab, setTab] = useState<FeedTab>("forYou")
   const [posts, setPosts] = useState<Post[]>([])
+  const [isDemoFeed, setIsDemoFeed] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -48,6 +54,7 @@ export function Feed({
     const showDemoFeed = (message: string) => {
       if (cancelled) return
       setPosts(mockPosts.filter((post) => post.status !== "removed"))
+      setIsDemoFeed(true)
       setNotice(message)
       setError(null)
       setIsLoading(false)
@@ -170,6 +177,7 @@ export function Feed({
       }
 
       setPosts(mappedPosts.filter((post) => post.status !== "removed"))
+      setIsDemoFeed(false)
       setNotice(null)
       setIsLoading(false)
     }
@@ -182,13 +190,33 @@ export function Feed({
     }
   }, [])
 
+  // High-risk posts are quarantined to the author + their friends for a window
+  // after posting (see HIGH_RISK_FRIENDS_ONLY_WINDOW_MS). Demo/mock posts are
+  // not gated so the walkthrough still shows flagged examples.
+  const visiblePosts = useMemo(() => {
+    if (isDemoFeed) return posts
+    const friendSet = new Set(friendUsernames)
+    return posts.filter((post) => {
+      const isHighRisk = post.media.some(
+        (m) => m.aiDetection.status !== "authentic"
+      )
+      const locked = isHighRiskLockedForViewer({
+        isHighRisk,
+        createdAt: post.createdAt,
+        isAuthor: post.author.username === currentUsername,
+        isFriendOfAuthor: friendSet.has(post.author.username),
+      })
+      return !locked
+    })
+  }, [posts, isDemoFeed, friendUsernames, currentUsername])
+
   const filteredPosts = useMemo(() => {
     // "Following" tab: keep only posts authored by people the user follows.
     const followingSet = new Set(followingUsernames)
     const scoped =
       tab === "following"
-        ? posts.filter((post) => followingSet.has(post.author.username))
-        : posts
+        ? visiblePosts.filter((post) => followingSet.has(post.author.username))
+        : visiblePosts
 
     if (filter === "all") {
       return scoped
@@ -201,7 +229,7 @@ export function Feed({
     return scoped.filter((post) =>
       post.media.some((m) => m.aiDetection.status !== "authentic")
     )
-  }, [filter, posts, tab, followingUsernames])
+  }, [filter, visiblePosts, tab, followingUsernames])
 
   const skeletons = [0, 1, 2]
 
