@@ -198,6 +198,12 @@ export async function loadModerationQueue(): Promise<ModerationQueueData | null>
         riskScore: postRow.risk_score ?? null,
         riskLevel,
         selfDeclaredAi: postRow.self_declared_ai ?? null,
+        confidenceScore: postRow.confidence_score ?? null,
+        moderationStatus: null,
+        reviewedAt: null,
+        reviewedBy: null,
+        removedAt: null,
+        userHistory: null,
       })
     }
   }

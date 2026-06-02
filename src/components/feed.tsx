@@ -22,11 +22,12 @@ type SupabasePostRow = {
   confidence_score: number
   risk_level?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | null
   status?: "visible" | "labeled" | "removed" | null
+  moderation_status?: "pending_review" | "approved" | "removed" | "escalated" | null
 }
 
 const FEED_LIMIT = 20
 const FEED_SELECT =
-  "id, username, caption, image_url, created_at, is_flagged, risk_level, confidence_score, status"
+  "id, username, caption, image_url, created_at, is_flagged, risk_level, confidence_score, status, moderation_status"
 
 export function Feed({
   followingUsernames = [],
@@ -125,7 +126,12 @@ export function Feed({
       const mappedPosts: Post[] = data.map((row) => {
         const isFlagged = Boolean(row.is_flagged)
         const confidence = Math.round(Number(row.confidence_score ?? 0))
-        const status = isFlagged
+        const isUnderReview =
+          row.moderation_status === "pending_review" ||
+          row.moderation_status === "escalated"
+        const status = isUnderReview
+          ? "under_review"
+          : isFlagged
           ? confidence >= 90
             ? "confirmed_ai"
             : "likely_ai"
@@ -162,7 +168,10 @@ export function Feed({
           shares: 0,
           isLiked: false,
           isBookmarked: false,
-          status: row.status ?? "visible",
+          status:
+            row.moderation_status === "removed"
+              ? "removed"
+              : row.status ?? "visible",
         }
       })
 
