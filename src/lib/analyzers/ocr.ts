@@ -1,5 +1,9 @@
 import OpenAI from "openai";
 import { detectCelebrities } from "./celebrity";
+import {
+  getRecentModeratorExamples,
+  formatModeratorExamples,
+} from "./feedback";
 
 // Lazily constructed so importing this module (e.g. during `next build` page
 // data collection) doesn't throw when OPENAI_API_KEY is unset. The client is
@@ -87,6 +91,12 @@ export async function extractImageText(
     console.log("[analyze] classifier path:", "openai-vision-gpt-4.1");
     console.log("[analyze] AWS celebrity matches:", celebrityMatches);
 
+    // Feedback loop: recent moderator decisions, rendered as text-only few-shot
+    // calibration examples. Non-fatal and cached; empty string when unavailable.
+    const feedbackSection = formatModeratorExamples(
+      await getRecentModeratorExamples()
+    );
+
     const response = await getClient().chat.completions.create({
       model: "gpt-4.1",
       response_format: { type: "json_object" },
@@ -106,7 +116,7 @@ ${JSON.stringify(celebrityMatches)}
 
 Use these candidate matches as additional evidence, but verify visually before concluding identities.
 
-Return STRICT JSON with this schema:
+${feedbackSection ? `${feedbackSection}\n\n` : ""}Return STRICT JSON with this schema:
 {
   "visibleText": string,
   "publicFigures": string[],

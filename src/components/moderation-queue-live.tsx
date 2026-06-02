@@ -10,6 +10,7 @@ import {
   History,
   Inbox,
   ShieldAlert,
+  ShieldX,
   XCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -18,6 +19,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { resolvePostModeration } from "@/lib/moderation-actions"
+import { isRepeatOffender } from "@/lib/moderation-strikes"
 import type { LiveQueueItem, RiskLevel, UserModerationHistory } from "@/lib/types"
 
 interface Props {
@@ -100,6 +102,12 @@ function buildRiskSummary(item: LiveQueueItem): EvidenceItem[] {
   }
   if (item.analysis?.risk?.reasons?.length) {
     rows.push({ label: "Risk reasons", value: item.analysis.risk.reasons.join("; ") })
+  }
+  if (typeof item.selfDeclaredAi === "boolean") {
+    rows.push({
+      label: "Uploader self-label",
+      value: item.selfDeclaredAi ? "AI-generated" : "Not AI-generated",
+    })
   }
 
   return rows
@@ -220,11 +228,18 @@ export function ModerationQueueLive({ items }: Props) {
     if (result.warning) setWarning(result.warning)
 
     setDecisions((prev) => ({ ...prev, [selected.groupKey]: pendingAction }))
-    if (pendingAction !== "escalated") {
-      setDismissedIds((prev) => ({ ...prev, [selected.groupKey]: true }))
+    // Only clear the row from the queue when the decision actually persisted.
+    // An unpersisted write (no moderator session / RLS-blocked) leaves the post
+    // unchanged in the DB, so it would reappear on reload — keep it visible with
+    // the warning instead of optimistically hiding it.
+    if (result.persisted) {
+      // Escalated posts stay in the queue for continued attention.
+      if (pendingAction !== "escalated") {
+        setDismissedIds((prev) => ({ ...prev, [selected.groupKey]: true }))
+      }
+      setNote("")
+      setPendingAction("pending")
     }
-    setNote("")
-    setPendingAction("pending")
   }
 
   if (!selected) {
@@ -315,6 +330,15 @@ export function ModerationQueueLive({ items }: Props) {
                       })}
                     </span>
                   </div>
+                  {isRepeatOffender(item.authorRemovedCount) ? (
+                    <Badge
+                      variant="outline"
+                      className="mt-2 gap-1 border-red-500/30 bg-red-500/10 text-[10px] text-red-600 dark:text-red-400"
+                    >
+                      <ShieldX className="size-3" />
+                      Repeat offender · {item.authorRemovedCount}
+                    </Badge>
+                  ) : null}
                 </button>
               )
             })}
@@ -356,6 +380,18 @@ export function ModerationQueueLive({ items }: Props) {
               {decision.label}
             </span>
           </div>
+
+          {isRepeatOffender(selected.authorRemovedCount) ? (
+            <div className="flex items-start gap-2 border-b border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+              <ShieldX className="mt-0.5 size-4 shrink-0" />
+              <p>
+                <span className="font-semibold">Repeat offender.</span>{" "}
+                Moderators have removed {selected.authorRemovedCount} of
+                @{selected.post.author.username}&apos;s posts (3-strike
+                threshold reached).
+              </p>
+            </div>
+          ) : null}
 
           {media ? (
             <div className="relative aspect-video bg-muted">

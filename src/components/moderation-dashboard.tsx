@@ -46,6 +46,7 @@ type PostRow = {
   analysis?: PostAnalysis | null
   risk_score?: number | null
   risk_level?: string | null
+  self_declared_ai?: boolean | null
 }
 
 type ModerationActionRow = {
@@ -74,7 +75,7 @@ type DashboardState =
   | { status: "error"; data: null; error: string }
 
 const POSTS_SELECT_FULL =
-  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderation_status, moderator_note, reviewed_at, reviewed_by, removed_at, analysis, risk_score, risk_level"
+  "id, created_at, image_url, caption, username, is_flagged, confidence_score, status, moderation_status, moderator_note, reviewed_at, reviewed_by, removed_at, analysis, risk_score, risk_level, self_declared_ai"
 const POSTS_SELECT_LEGACY =
   "id, created_at, image_url, caption, username, is_flagged, confidence_score"
 const MODERATION_QUEUE_LIMIT = 20
@@ -274,7 +275,8 @@ function buildUserHistories(
 function buildQueueData(
   rows: PostRow[],
   histories: Map<string, UserModerationHistory>,
-  stats: ModerationStats
+  stats: ModerationStats,
+  removedByAuthor: Map<string, number>
 ): ModerationQueueData {
   const items: LiveQueueItem[] = rows
     .filter(rowNeedsReview)
@@ -298,6 +300,8 @@ function buildQueueData(
         reviewedBy: row.reviewed_by ?? null,
         removedAt: row.removed_at ?? null,
         userHistory: histories.get(username) ?? null,
+        selfDeclaredAi: row.self_declared_ai ?? null,
+        authorRemovedCount: removedByAuthor.get(normalizeUsername(row.username)) ?? 0,
       }
     })
 
@@ -453,6 +457,11 @@ export function ModerationDashboard() {
         .limit(MODERATION_QUEUE_LIMIT)
 
       let rows: PostRow[] | null = null
+      // Three-strikes signal: how many of each queued author's posts are already
+      // removed platform-wide. `posts` is publicly readable, so the anon client
+      // can compute this. Only available on the full path (legacy schema may lack
+      // the status column); failures are non-fatal — counts default to 0.
+      let removedByAuthor = new Map<string, number>()
 
       if (!full.error) {
         const recent = await supabase
@@ -530,7 +539,7 @@ export function ModerationDashboard() {
       if (!cancelled) {
         setState({
           status: "ready",
-          data: buildQueueData(rows, histories, stats),
+          data: buildQueueData(rows, histories, stats, removedByAuthor),
           error: null,
         })
       }

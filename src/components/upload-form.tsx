@@ -41,6 +41,8 @@ export function UploadForm({
   const [caption, setCaption] = useState("")
   const [file, setFile] = useState<File | null>(null)
   const [isPolitical, setIsPolitical] = useState(false)
+  // Uploader's required AI/authentic self-declaration. Null until they pick one.
+  const [selfDeclaredAi, setSelfDeclaredAi] = useState<boolean | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showModerationWarning, setShowModerationWarning] = useState(false)
@@ -80,6 +82,7 @@ export function UploadForm({
       caption: caption.trim(),
       username: username.trim(),
       is_political: isPolitical,
+      self_declared_ai: selfDeclaredAi,
       is_flagged: isFlagged,
       moderation_status: isFlagged ? "pending_review" : "approved",
       confidence_score: analysis ? Math.round(analysis.risk.score * 100) : 0,
@@ -121,6 +124,11 @@ export function UploadForm({
 
     if (!username.trim() || !caption.trim() || !file) {
       setError("Username, caption, and image are required.")
+      return
+    }
+
+    if (selfDeclaredAi === null) {
+      setError("Please indicate whether this image is AI-generated.")
       return
     }
 
@@ -393,6 +401,44 @@ export function UploadForm({
             political media.
           </p>
         </div>
+
+        <fieldset className="space-y-2 rounded-md border border-border bg-muted/30 px-3 py-2.5">
+          <legend className="text-sm font-medium">
+            Is this image AI-generated? <span className="text-destructive">*</span>
+          </legend>
+          <p className="text-xs text-muted-foreground">
+            Required. Label your own content so viewers and moderators have your
+            declaration.
+          </p>
+          <div className="mt-1 flex flex-wrap gap-2">
+            {[
+              { label: "AI-generated", value: true },
+              { label: "Not AI-generated", value: false },
+            ].map((option) => {
+              const checked = selfDeclaredAi === option.value
+              return (
+                <label
+                  key={option.label}
+                  className={cn(
+                    "flex flex-1 cursor-pointer items-center justify-center rounded-md border px-3 py-2 text-center text-sm transition-colors",
+                    checked
+                      ? "border-primary bg-primary/10 font-medium text-foreground"
+                      : "border-border bg-card/60 text-muted-foreground hover:bg-muted/50"
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="self-declared-ai"
+                    checked={checked}
+                    onChange={() => setSelfDeclaredAi(option.value)}
+                    className="sr-only"
+                  />
+                  {option.label}
+                </label>
+              )
+            })}
+          </div>
+        </fieldset>
 
         <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 px-3 py-2.5">
           <input
