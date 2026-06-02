@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import {
   Heart,
@@ -95,25 +96,33 @@ export function PostCard({ post }: PostCardProps) {
       )}
     >
       <div className="flex gap-3 px-4 py-4">
-        <Avatar className="size-10 shrink-0 ring-1 ring-border/60">
-          <AvatarImage src={post.author.avatarUrl} alt={post.author.displayName} />
-          <AvatarFallback>
-            {post.author.displayName.slice(0, 2).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <Link href={`/u/${post.author.username}`} className="shrink-0">
+          <Avatar className="size-10 ring-1 ring-border/60">
+            <AvatarImage src={post.author.avatarUrl} alt={post.author.displayName} />
+            <AvatarFallback>
+              {post.author.displayName.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </Link>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-              <span className="font-semibold text-foreground truncate">
+              <Link
+                href={`/u/${post.author.username}`}
+                className="font-semibold text-foreground truncate hover:underline"
+              >
                 {post.author.displayName}
-              </span>
+              </Link>
               {post.author.verified && (
                 <BadgeCheck className="size-4 text-blue-500 shrink-0" />
               )}
-              <span className="text-muted-foreground text-sm">
+              <Link
+                href={`/u/${post.author.username}`}
+                className="text-muted-foreground text-sm hover:underline"
+              >
                 @{post.author.username}
-              </span>
+              </Link>
               <span className="text-muted-foreground text-sm">·</span>
               <time className="text-muted-foreground text-sm">
                 {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}

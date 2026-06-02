@@ -6,6 +6,7 @@ import { LogIn, ShieldCheck, Upload } from "lucide-react"
 import { ModeSwitch } from "@/components/mode-switch"
 import { Button } from "@/components/ui/button"
 import { getModeratorProfile, getSupabaseEnv } from "@/lib/moderator-auth"
+import { getFollowingUsernames, getReadClient } from "@/lib/follows"
 
 // Read fresh per request: the sign-in prompt depends on the session cookie.
 export const dynamic = "force-dynamic"
@@ -16,6 +17,12 @@ export default async function HomePage() {
   const configured = Boolean(getSupabaseEnv())
   const profile = configured ? await getModeratorProfile() : null
   const showAuthPrompt = configured && !profile
+
+  // The feed runs client-side with the anon key and can't read the session, so
+  // resolve the signed-in user's following list here and hand it down.
+  const client = profile ? await getReadClient() : null
+  const followingUsernames =
+    client && profile ? await getFollowingUsernames(client, profile.id) : []
 
   return (
     <div className="min-h-screen bg-background">
@@ -76,7 +83,10 @@ export default async function HomePage() {
             </div>
           </header>
 
-          <Feed />
+          <Feed
+            followingUsernames={followingUsernames}
+            isAuthed={Boolean(profile)}
+          />
         </main>
       </div>
       <MobileBottomNav />

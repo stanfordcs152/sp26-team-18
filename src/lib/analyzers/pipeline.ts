@@ -33,7 +33,6 @@ export async function runAnalysisPipeline(imageBuffer: Buffer) {
   };
 
   const ai = buildAIDetectionResult(
-    vision.appearsAIGenerated,
     vision.syntheticMediaConfidence,
     vision.reasoning
   );
