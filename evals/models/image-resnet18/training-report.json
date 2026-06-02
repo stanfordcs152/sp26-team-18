@@ -1,0 +1,13 @@
+{
+  "model": "resnet18-transfer-learning",
+  "features": "image pixels (224x224 RGB)",
+  "trainCount": 160,
+  "valCount": 40,
+  "allowCount": 100,
+  "unallowCount": 100,
+  "holdoutValF1Unallow": 0.6545454545454545,
+  "device": "cpu",
+  "epochsRan": 6,
+  "positiveClass": "unallow",
+  "note": "Trained on 160 images; npm run eval -- --approach ml scores the 40 held-out test IDs in split.json."
+}

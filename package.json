@@ -7,7 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "eval:train-ml": "python evals/scripts/train_image_classifier.py",
+    "eval": "tsx --env-file=.env.local evals/run.ts",
+    "eval:free": "tsx --env-file=.env.local evals/run.ts --free --concurrency 1",
+    "eval:production": "tsx --env-file=.env.local evals/run.ts --approach production --concurrency 1",
+    "eval:setup-openfake": "python evals/scripts/setup_openfake.py",
+    "eval:setup-deepfake-eval": "python evals/scripts/setup_deepfake_eval_2024.py"
   },
   "dependencies": {
     "@aws-sdk/client-rekognition": "^3.1045.0",
@@ -77,6 +83,7 @@
     "eslint-config-next": "16.2.6",
     "postcss": "^8.5.14",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "tw-animate-css": "^1.4.0",
     "typescript": "^5",
     "vitest": "^4.1.5"

@@ -1,0 +1,3025 @@
+{
+  "generatedAt": "2026-06-01T00:36:29.241Z",
+  "stats": {
+    "approach": "hybrid",
+    "allowCount": 100,
+    "unallowCount": 100,
+    "precision": 1,
+    "recall": 0.03,
+    "f1": 0.058252427184466014,
+    "confusion": {
+      "tp": 3,
+      "fp": 0,
+      "tn": 100,
+      "fn": 97
+    },
+    "latencyMs": {
+      "median": 4674.583600000013,
+      "p99": 10046.084600000002
+    },
+    "costUsdPer1000": 13.000000000000002,
+    "llmCalls": 200
+  },
+  "results": [
+    {
+      "id": "openfake-core-validation-allow-0001",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0001.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 8026.238300000001,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0002",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0002.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5984.391300000001,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0003",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0003.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3060.241400000001,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0004",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0004.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3162.358500000002,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0005",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0005.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4015.810599999997,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0006",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0006.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7323.952300000001,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0007",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0007.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 2779.369700000003,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0008",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0008.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5499.756499999996,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0009",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0009.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3213.9983999999968,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0010",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0010.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4231.7022,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0011",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0011.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 2981.6321000000025,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0012",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0012.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5358.963400000001,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0013",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0013.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4445.108800000002,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0014",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0014.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3632.2118000000046,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0015",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0015.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3480.263300000006,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0016",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0016.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4442.403299999991,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0017",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0017.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5501.685499999992,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0018",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0018.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6173.949899999992,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0019",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0019.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 8631.560600000012,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0020",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0020.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6313.723899999997,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0021",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0021.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5497.834700000007,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0022",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0022.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6514.834700000007,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0023",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0023.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4243.535499999998,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0024",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0024.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4277.430000000008,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0025",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0025.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5952.794699999999,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0026",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0026.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4140.657400000011,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0027",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0027.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4129.512699999992,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0028",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0028.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3692.012400000007,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0029",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0029.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3053.8782000000065,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0030",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0030.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 9541.09229999999,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0031",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0031.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3607.8291000000027,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0032",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0032.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7154.53820000001,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0033",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0033.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3271.5734999999986,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0034",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0034.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4531.305099999998,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0035",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0035.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4006.9683999999834,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0036",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0036.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3729.7748999999894,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0037",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0037.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3444.0687000000034,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0038",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0038.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5703.304600000003,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0039",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0039.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5132.4018000000215,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0040",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0040.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4754.532199999987,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0041",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0041.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7580.421300000016,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0042",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0042.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6629.177100000001,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0043",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0043.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6003.977799999993,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0044",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0044.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7782.635900000023,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0045",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0045.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4303.412000000011,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0046",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0046.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3528.396700000012,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0047",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0047.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4494.58719999998,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0048",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0048.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7191.392199999973,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0049",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0049.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5706.741699999984,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0050",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0050.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5103.670899999997,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0051",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0051.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5120.424799999979,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0052",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0052.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3382.8111999999965,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0053",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0053.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3456.622800000012,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0054",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0054.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 10718.19260000001,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0055",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0055.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5179.383600000001,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "MEDIUM"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0056",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0056.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4908.265100000019,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0057",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0057.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6406.400299999979,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0058",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0058.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5475.937199999986,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0059",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0059.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5332.126900000032,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0060",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0060.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7122.291200000036,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0061",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0061.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3816.7626000000164,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0062",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0062.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3539.935300000012,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0063",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0063.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5560.988499999978,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0064",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0064.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4461.3833999999915,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0065",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0065.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4300.256200000003,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0066",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0066.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7802.49040000001,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0067",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0067.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4821.880799999984,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0068",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0068.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5235.5848000000115,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0069",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0069.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5821.046900000016,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0070",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0070.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7748.472300000023,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0071",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0071.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4993.7502000000095,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0072",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0072.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7790.718499999959,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0073",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0073.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3449.963700000022,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0074",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0074.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3153.427299999981,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0075",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0075.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4034.115599999961,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0076",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0076.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3835.272799999977,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0077",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0077.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5420.675100000051,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0078",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0078.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4874.841199999966,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0079",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0079.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3420.7836000000243,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0080",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0080.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5829.002299999993,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0081",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0081.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4422.545600000012,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0082",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0082.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6621.715199999977,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0083",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0083.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4101.0466000000015,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0084",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0084.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4811.896500000032,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0085",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0085.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5189.880599999975,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0086",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0086.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4819.435300000012,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0087",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0087.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7279.131400000013,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0088",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0088.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 8583.103200000012,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0089",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0089.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5054.978000000003,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0090",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0090.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4644.708299999998,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0091",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0091.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4487.5013000000035,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0092",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0092.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3391.59580000001,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0093",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0093.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 9307.96590000001,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0094",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0094.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4108.446400000015,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0095",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0095.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5148.731099999975,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0096",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0096.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4256.194199999969,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0097",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0097.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 10046.084600000002,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0098",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0098.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5084.669999999984,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0099",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0099.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4139.180599999963,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "MEDIUM"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-allow-0100",
+      "label": "allow",
+      "path": "images/openfake-core-validation-allow-0100.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4467.992900000012,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0001",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0001.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3216.4200999999885,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0002",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0002.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4102.947000000044,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0003",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0003.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3130.1154999999562,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0004",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0004.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7873.224600000074,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0005",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0005.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 2826.842699999921,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0006",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0006.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7035.110800000024,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0007",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0007.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3386.866299999994,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0008",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0008.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6412.408899999922,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0009",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0009.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4179.03879999998,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0010",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0010.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3541.0740000000224,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0011",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0011.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 6334.307299999986,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "HIGH"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0012",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0012.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5265.625,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0013",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0013.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7056.732000000076,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "MEDIUM"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0014",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0014.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4925.954099999974,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0015",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0015.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5066.68339999998,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0016",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0016.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4133.552000000025,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0017",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0017.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4764.455599999987,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0018",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0018.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4466.1720000000205,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0019",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0019.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4589.086699999985,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0020",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0020.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 8296.500700000091,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0021",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0021.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3039.565900000045,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0022",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0022.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3143.305800000089,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0023",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0023.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5279.064699999988,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0024",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0024.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6822.600600000005,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0025",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0025.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6065.553899999941,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "MEDIUM"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0026",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0026.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3083.772799999919,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0027",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0027.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 3276.3779000000795,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "HIGH"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0028",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0028.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3814.4333000000333,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0029",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0029.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4409.429800000042,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0030",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0030.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3297.1489000000292,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0031",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0031.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3103.165099999984,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0032",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0032.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3771.101000000024,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0033",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0033.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6068.539799999911,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0034",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0034.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7739.506900000037,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "MEDIUM"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0035",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0035.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4910.415800000075,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0036",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0036.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4076.9921999999788,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0037",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0037.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6799.609300000011,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "MEDIUM"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0038",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0038.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4353.696699999971,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0039",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0039.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4793.9377000000095,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0040",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0040.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5330.854500000016,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0041",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0041.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4606.780700000003,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0042",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0042.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4524.052200000035,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0043",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0043.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 8641.917400000035,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "MEDIUM"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0044",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0044.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3833.4741999999387,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0045",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0045.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5055.699600000051,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0046",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0046.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4194.231900000013,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0047",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0047.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5369.420900000026,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0048",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0048.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6579.370499999961,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0049",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0049.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3610.0625999999465,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0050",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0050.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3367.336899999995,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0051",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0051.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3691.4517000000924,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0052",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0052.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6841.124599999981,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0053",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0053.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5411.491600000067,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0054",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0054.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4521.96379999991,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0055",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0055.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4511.825500000035,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0056",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0056.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3186.3660999999847,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0057",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0057.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5298.439999999944,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "MEDIUM"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0058",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0058.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7484.988099999959,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "MEDIUM"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0059",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0059.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3626.612899999949,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0060",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0060.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3583.940900000045,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0061",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0061.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4757.700500000035,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0062",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0062.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4768.7349000000395,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0063",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0063.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7020.026599999983,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0064",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0064.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6450.611600000062,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0065",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0065.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4674.583600000013,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0066",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0066.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4074.485299999942,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0067",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0067.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6136.248800000059,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "MEDIUM"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0068",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0068.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4696.536399999983,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "MEDIUM"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0069",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0069.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6099.878900000011,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0070",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0070.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3791.943100000033,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0071",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0071.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3883.286599999992,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0072",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0072.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4516.095499999938,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0073",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0073.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3276.504500000039,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0074",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0074.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3933.097700000042,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0075",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0075.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5551.494999999995,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0076",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0076.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5590.4277,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0077",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0077.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3236.8537999999244,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0078",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0078.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3822.5101000000723,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0079",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0079.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4358.034599999897,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0080",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0080.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4396.62799999991,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0081",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0081.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6249.087300000014,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0082",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0082.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3676.160499999998,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0083",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0083.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4179.190199999954,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0084",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0084.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5334.653900000034,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0085",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0085.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3790.8498999999138,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0086",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0086.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4366.5764999999665,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0087",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0087.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5008.519300000044,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0088",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0088.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5174.111999999965,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0089",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0089.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 5316.621700000018,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0090",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0090.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4120.099599999958,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.6300000000000001,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0091",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0091.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3789.7894000000088,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0092",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0092.jpg",
+      "prediction": {
+        "flagged": true,
+        "latencyMs": 4601.121399999945,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "MEDIUM"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0093",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0093.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 6236.837300000014,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0094",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0094.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3775.1108999999706,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0095",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0095.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 7696.809100000071,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "MEDIUM"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0096",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0096.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4733.707300000009,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0097",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0097.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4742.896899999934,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0098",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0098.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 17561.69750000001,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0099",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0099.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 4536.95849999995,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    },
+    {
+      "id": "openfake-core-validation-unallow-0100",
+      "label": "unallow",
+      "path": "images/openfake-core-validation-unallow-0100.jpg",
+      "prediction": {
+        "flagged": false,
+        "latencyMs": 3493.7514000000665,
+        "usedLlm": true,
+        "meta": {
+          "route": "llm-adjudication",
+          "heuristicRiskScore": 0.43000000000000005,
+          "misinformationRisk": "LOW"
+        }
+      }
+    }
+  ]
+}
