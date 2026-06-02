@@ -26,7 +26,7 @@ interface ReportModalProps {
 const REASON_OPTIONS: { value: ReportReason; label: string }[] = [
   {
     value: "ai_generated_political",
-    label: "AI-generated political media",
+    label: "AI-generated media",
   },
   { value: "other", label: "Other" },
 ]
@@ -83,16 +83,14 @@ export function ReportModal({ postId, open, onOpenChange }: ReportModalProps) {
             Report post
           </DialogTitle>
           <DialogDescription>
-            Tell us why this post should be reviewed. Reports go to our
-            moderation team.
+            Tell us what seems wrong with this post.
           </DialogDescription>
         </DialogHeader>
 
         {submitted ? (
           <div className="space-y-4">
             <p className="text-sm">
-              Thanks — your report has been submitted. A moderator will review
-              this post.
+              Thanks - your report has been submitted.
             </p>
             <DialogFooter>
               <DialogClose render={<Button />}>Close</DialogClose>
@@ -139,7 +137,7 @@ export function ReportModal({ postId, open, onOpenChange }: ReportModalProps) {
                 id="report-details"
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
-                placeholder="Anything else that helps the moderator?"
+                placeholder="Anything else we should know?"
                 rows={4}
               />
             </div>

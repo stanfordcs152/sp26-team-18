@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { ShieldCheck, ShieldAlert, Layers } from "lucide-react"
+import { Bot, Layers, ShieldCheck } from "lucide-react"
 
 export type FilterType = "all" | "authentic" | "flagged"
 
@@ -13,7 +13,7 @@ interface FeedFiltersProps {
 const filters: { value: FilterType; label: string; icon: typeof Layers }[] = [
   { value: "all", label: "All Posts", icon: Layers },
   { value: "authentic", label: "Verified Authentic", icon: ShieldCheck },
-  { value: "flagged", label: "Flagged Content", icon: ShieldAlert },
+  { value: "flagged", label: "AI-Generated", icon: Bot },
 ]
 
 export function FeedFilters({ activeFilter, onFilterChange }: FeedFiltersProps) {

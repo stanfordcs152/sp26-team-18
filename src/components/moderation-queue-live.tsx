@@ -7,13 +7,8 @@ import {
   Clock,
   FileText,
   Flag,
-  History,
   Inbox,
-  ScanText,
   ShieldAlert,
-  ShieldCheck,
-  Sparkles,
-  UserRound,
   XCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -21,13 +16,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { resolveReport } from "@/lib/moderation-actions"
-import type {
-  LiveQueueItem,
-  ReportReason,
-  ReportResolution,
-  RiskLevel,
-} from "@/lib/types"
+import { resolvePostModeration } from "@/lib/moderation-actions"
+import type { LiveQueueItem, ReportResolution, RiskLevel } from "@/lib/types"
 
 interface Props {
   items: LiveQueueItem[]
@@ -35,27 +25,15 @@ interface Props {
 
 type ConsoleDecision = "pending" | "approved" | "removed" | "escalated"
 
-const REASON_LABELS: Record<ReportReason, string> = {
-  ai_generated_political: "AI-generated political media",
-  other: "Other",
-}
-
 const RISK_CLASS: Record<RiskLevel, string> = {
-  LOW: "border-slate-500/20 bg-slate-500/10 text-slate-400",
-  MEDIUM: "border-amber-500/25 bg-amber-500/10 text-amber-500",
-  HIGH: "border-orange-500/25 bg-orange-500/10 text-orange-500",
-  CRITICAL: "border-red-500/30 bg-red-500/10 text-red-500",
+  LOW: "border-slate-500/20 bg-slate-500/10 text-slate-500",
+  MEDIUM: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  HIGH: "border-orange-500/25 bg-orange-500/10 text-orange-600 dark:text-orange-400",
+  CRITICAL: "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400",
 }
 
 function scoreLabel(score: number | null) {
   return score === null ? "—" : `${Math.round(score * 100)}%`
-}
-
-function recommendationFor(item: LiveQueueItem) {
-  if (item.riskLevel === "CRITICAL") return "Escalate and apply public label"
-  if (item.riskLevel === "HIGH") return "Remove or label after review"
-  if (item.riskLevel === "MEDIUM") return "Review evidence before labeling"
-  return "Approve if no policy issue is found"
 }
 
 function decisionCopy(decision: ConsoleDecision) {
@@ -63,19 +41,19 @@ function decisionCopy(decision: ConsoleDecision) {
     case "approved":
       return {
         label: "Approved",
-        className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-500",
+        className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
         icon: CheckCircle2,
       }
     case "removed":
       return {
         label: "Removed",
-        className: "border-red-500/30 bg-red-500/10 text-red-500",
+        className: "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400",
         icon: XCircle,
       }
     case "escalated":
       return {
         label: "Escalated",
-        className: "border-amber-500/30 bg-amber-500/10 text-amber-500",
+        className: "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
         icon: Flag,
       }
     default:
@@ -87,66 +65,132 @@ function decisionCopy(decision: ConsoleDecision) {
   }
 }
 
-function primaryReason(item: LiveQueueItem) {
-  const reason = item.reports[0]?.reason
-  return reason ? REASON_LABELS[reason] : "Automated risk signal"
+function formatPercent(value: number) {
+  return `${Math.round(value * 100)}%`
+}
+
+function hasText(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0
+}
+
+type EvidenceItem = {
+  label: string
+  value: string
+}
+
+function buildRiskSummary(item: LiveQueueItem): EvidenceItem[] {
+  const rows: EvidenceItem[] = []
+
+  if (item.riskLevel) {
+    rows.push({ label: "Risk level", value: item.riskLevel })
+  }
+  if (typeof item.riskScore === "number") {
+    rows.push({ label: "Risk score", value: scoreLabel(item.riskScore) })
+  }
+  if (item.analysis?.risk?.reasons?.length) {
+    rows.push({ label: "Risk reasons", value: item.analysis.risk.reasons.join("; ") })
+  }
+
+  return rows
+}
+
+function buildEvidence(item: LiveQueueItem): EvidenceItem[] {
+  const analysis = item.analysis
+  if (!analysis) return []
+
+  const rows: EvidenceItem[] = []
+
+  if (analysis.provenance?.verified) {
+    rows.push({ label: "C2PA/provenance", value: "Verified" })
+  } else if (analysis.provenance?.present) {
+    rows.push({ label: "C2PA/provenance", value: "Present" })
+  }
+
+  const ocrText = hasText(analysis.ocr?.text)
+    ? analysis.ocr.text
+    : hasText(analysis.vision?.visibleText)
+      ? analysis.vision.visibleText
+      : null
+  if (ocrText) {
+    rows.push({ label: "OCR text", value: ocrText })
+  }
+
+  const publicFigures = analysis.politicians?.detected?.length
+    ? analysis.politicians.detected
+    : analysis.vision?.publicFigures ?? []
+  if (publicFigures.length > 0) {
+    const confidence =
+      typeof analysis.politicians?.confidence === "number"
+        ? ` (${formatPercent(analysis.politicians.confidence)})`
+        : ""
+    rows.push({ label: "Public figures", value: `${publicFigures.join(", ")}${confidence}` })
+  }
+
+  if (typeof analysis.ai?.aiProbability === "number") {
+    rows.push({ label: "AI generated probability", value: formatPercent(analysis.ai.aiProbability) })
+  } else if (typeof analysis.vision?.syntheticMediaConfidence === "number") {
+    rows.push({
+      label: "Synthetic media confidence",
+      value: formatPercent(analysis.vision.syntheticMediaConfidence),
+    })
+  }
+
+  if (analysis.manipulationSignals?.politicalContext || analysis.vision?.politicalContext) {
+    const confidence =
+      typeof analysis.manipulationSignals?.politicalContextConfidence === "number"
+        ? ` (${formatPercent(analysis.manipulationSignals.politicalContextConfidence)})`
+        : ""
+    rows.push({ label: "Political context", value: `Detected${confidence}` })
+  }
+
+  if (analysis.vision?.misinformationRisk) {
+    rows.push({ label: "Misinformation risk", value: analysis.vision.misinformationRisk })
+  }
+
+  if (analysis.manipulationSignals?.possibleKnownManipulation || analysis.vision?.possibleKnownManipulation) {
+    rows.push({ label: "Manipulation signal", value: "Possible known manipulation pattern" })
+  }
+
+  if (analysis.ocr?.matchedKeywords?.length) {
+    rows.push({ label: "Matched keywords", value: analysis.ocr.matchedKeywords.join(", ") })
+  }
+
+  if (hasText(analysis.vision?.reasoning)) {
+    rows.push({ label: "Classifier reasoning", value: analysis.vision.reasoning })
+  }
+
+  return rows
 }
 
 export function ModerationQueueLive({ items }: Props) {
   const [selectedId, setSelectedId] = useState(items[0]?.groupKey ?? "")
   const [decisions, setDecisions] = useState<Record<string, ConsoleDecision>>({})
+  const [dismissedIds, setDismissedIds] = useState<Record<string, true>>({})
   const [pendingAction, setPendingAction] = useState<ConsoleDecision>("pending")
   const [note, setNote] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [warning, setWarning] = useState<string | null>(null)
 
   const sortedItems = useMemo(() => {
-    const riskRank: Record<RiskLevel, number> = {
-      CRITICAL: 0,
-      HIGH: 1,
-      MEDIUM: 2,
-      LOW: 3,
-    }
-    return [...items].sort((a, b) => {
-      const aRank = a.riskLevel ? riskRank[a.riskLevel] : 4
-      const bRank = b.riskLevel ? riskRank[b.riskLevel] : 4
-      if (aRank !== bRank) return aRank - bRank
-      if (a.reports.length !== b.reports.length) {
-        return b.reports.length - a.reports.length
-      }
-      return a.newestReportAt < b.newestReportAt ? 1 : -1
-    })
-  }, [items])
+    return items.filter((item) => !dismissedIds[item.groupKey])
+  }, [dismissedIds, items])
 
   const selected = sortedItems.find((item) => item.groupKey === selectedId) ?? sortedItems[0]
-  const selectedDecision = selected
-    ? decisions[selected.groupKey] ?? "pending"
-    : "pending"
-
-  const localStats = useMemo(() => {
-    const values = Object.values(decisions)
-    return {
-      pending: Math.max(0, items.length - values.filter((v) => v !== "pending").length),
-      approved: values.filter((v) => v === "approved").length,
-      removed: values.filter((v) => v === "removed").length,
-      escalated: values.filter((v) => v === "escalated").length,
-    }
-  }, [decisions, items.length])
+  const selectedDecision = selected ? decisions[selected.groupKey] ?? "pending" : "pending"
 
   const chooseAction = (action: ConsoleDecision) => {
     setPendingAction(action)
     setError(null)
+    setWarning(null)
   }
 
   const submitDecision = async () => {
     if (!selected || pendingAction === "pending") return
-    if (!note.trim()) {
-      setError("Add a short moderator note before confirming.")
-      return
-    }
 
     setSubmitting(true)
     setError(null)
+    setWarning(null)
 
     const resolution: ReportResolution =
       pendingAction === "removed"
@@ -155,43 +199,35 @@ export function ModerationQueueLive({ items }: Props) {
           ? "labeled"
           : "no_action"
 
-    let lastError: string | null = null
-    const realReports = selected.reports.filter((r) => !r.id.startsWith("mock-"))
-
-    for (const report of realReports) {
-      const result = await resolveReport({
-        reportId: report.id,
-        postId: selected.post.id,
-        resolution,
-        moderatorNote: note,
-      })
-      if (!result.ok) {
-        lastError = result.error
-        break
-      }
-    }
+    const result = await resolvePostModeration({
+      postId: selected.post.id,
+      resolution,
+      moderatorNote:
+        note.trim() || `${decisionCopy(pendingAction).label} from moderator console`,
+    })
 
     setSubmitting(false)
-    if (lastError) {
-      setError(lastError)
+
+    if (!result.ok) {
+      setError(result.error)
       return
     }
 
-    setDecisions((prev) => ({
-      ...prev,
-      [selected.groupKey]: pendingAction,
-    }))
+    if (result.warning) setWarning(result.warning)
+
+    setDecisions((prev) => ({ ...prev, [selected.groupKey]: pendingAction }))
+    setDismissedIds((prev) => ({ ...prev, [selected.groupKey]: true }))
     setNote("")
     setPendingAction("pending")
   }
 
   if (!selected) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16 text-center">
+      <div className="flex flex-col items-center justify-center rounded-xl border border-border/70 bg-card/80 py-16 text-center shadow-sm">
         <Inbox className="mb-4 size-12 text-muted-foreground/50" />
-        <h3 className="text-lg font-medium text-foreground">No open reports</h3>
+        <h3 className="text-lg font-medium text-foreground">No flagged posts awaiting review.</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Flagged uploads and user reports will appear here for review.
+          New flagged uploads will appear here after automated analysis.
         </p>
       </div>
     )
@@ -200,31 +236,31 @@ export function ModerationQueueLive({ items }: Props) {
   const media = selected.post.media[0]
   const decision = decisionCopy(selectedDecision)
   const DecisionIcon = decision.icon
+  const riskSummary = buildRiskSummary(selected)
+  const evidence = buildEvidence(selected)
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-4">
-        <ConsoleStat label="Pending" value={localStats.pending} icon={Clock} />
-        <ConsoleStat label="Approved" value={localStats.approved} icon={ShieldCheck} />
-        <ConsoleStat label="Removed" value={localStats.removed} icon={XCircle} />
-        <ConsoleStat label="Escalated" value={localStats.escalated} icon={Flag} />
-      </div>
+      {warning ? (
+        <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
+          {warning}
+        </div>
+      ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[292px_minmax(0,1fr)_320px]">
-        <aside className="overflow-hidden rounded-2xl border border-border/70 bg-card/75 shadow-sm">
+      <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)_340px]">
+        <aside className="overflow-hidden rounded-xl border border-border/70 bg-card/80 shadow-sm">
           <div className="border-b border-border/70 p-4">
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
               Flagged Queue
             </p>
             <p className="mt-1 text-sm leading-5 text-muted-foreground">
-              Sorted by risk, reports, and recency.
+              Highest risk first, then newest.
             </p>
           </div>
           <div className="max-h-[720px] space-y-2 overflow-auto p-2">
             {sortedItems.map((item) => {
               const isActive = item.groupKey === selected.groupKey
-              const itemDecision = decisionCopy(decisions[item.groupKey] ?? "pending")
-              const ItemDecisionIcon = itemDecision.icon
+
               return (
                 <button
                   key={item.groupKey}
@@ -234,11 +270,12 @@ export function ModerationQueueLive({ items }: Props) {
                     setPendingAction("pending")
                     setNote("")
                     setError(null)
+                    setWarning(null)
                   }}
                   className={cn(
-                    "w-full rounded-xl border p-3 text-left transition-all",
+                    "w-full rounded-lg border p-3 text-left transition-all",
                     isActive
-                      ? "border-foreground/25 bg-muted/70 shadow-sm"
+                      ? "border-primary/40 bg-primary/10 shadow-sm ring-1 ring-primary/15"
                       : "border-transparent bg-transparent hover:bg-muted/45"
                   )}
                 >
@@ -247,35 +284,29 @@ export function ModerationQueueLive({ items }: Props) {
                       <p className="truncate text-sm font-semibold">
                         @{item.post.author.username}
                       </p>
-                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                        {item.post.content}
-                      </p>
+                      {hasText(item.post.content) ? (
+                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                          {item.post.content}
+                        </p>
+                      ) : null}
                     </div>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "shrink-0 text-[10px]",
-                        item.riskLevel
-                          ? RISK_CLASS[item.riskLevel]
-                          : "border-border text-muted-foreground"
-                      )}
-                    >
-                      {item.riskLevel ?? "NEW"}
-                    </Badge>
+                    {item.riskLevel ? (
+                      <Badge
+                        variant="outline"
+                        className={cn("shrink-0 text-[10px]", RISK_CLASS[item.riskLevel])}
+                      >
+                        {item.riskLevel}
+                      </Badge>
+                    ) : null}
                   </div>
-                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
-                    <span>Risk {scoreLabel(item.riskScore)}</span>
-                    <span>{item.reports.length} report{item.reports.length === 1 ? "" : "s"}</span>
-                    <span>Image</span>
-                    <span>{formatDistanceToNow(new Date(item.newestReportAt), { addSuffix: true })}</span>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between gap-2">
-                    <span className="truncate text-[11px] text-muted-foreground">
-                      {primaryReason(item)}
-                    </span>
-                    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px]", itemDecision.className)}>
-                      <ItemDecisionIcon className="size-3" />
-                      {itemDecision.label}
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                    {typeof item.riskScore === "number" ? (
+                      <span>Risk {scoreLabel(item.riskScore)}</span>
+                    ) : null}
+                    <span>
+                      {formatDistanceToNow(new Date(item.newestReportAt), {
+                        addSuffix: true,
+                      })}
                     </span>
                   </div>
                 </button>
@@ -284,7 +315,7 @@ export function ModerationQueueLive({ items }: Props) {
           </div>
         </aside>
 
-        <section className="overflow-hidden rounded-2xl border border-border/70 bg-card/75 shadow-sm">
+        <section className="overflow-hidden rounded-xl border border-border/70 bg-card/80 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/70 p-4">
             <div className="flex items-start gap-3">
               <Avatar className="size-11">
@@ -302,11 +333,19 @@ export function ModerationQueueLive({ items }: Props) {
                 </p>
                 <h3 className="text-lg font-semibold">@{selected.post.author.username}</h3>
                 <p className="text-xs text-muted-foreground">
-                  Posted {formatDistanceToNow(new Date(selected.post.createdAt), { addSuffix: true })}
+                  Posted{" "}
+                  {formatDistanceToNow(new Date(selected.post.createdAt), {
+                    addSuffix: true,
+                  })}
                 </p>
               </div>
             </div>
-            <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium", decision.className)}>
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium",
+                decision.className
+              )}
+            >
               <DecisionIcon className="size-3.5" />
               {decision.label}
             </span>
@@ -324,70 +363,78 @@ export function ModerationQueueLive({ items }: Props) {
           ) : null}
 
           <div className="space-y-4 p-4">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                Caption
-              </p>
-              <p className="mt-1 whitespace-pre-wrap text-sm">{selected.post.content}</p>
-            </div>
+            {hasText(selected.post.content) ? (
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                  Caption
+                </p>
+                <p className="mt-1 whitespace-pre-wrap text-sm leading-6">
+                  {selected.post.content}
+                </p>
+              </div>
+            ) : null}
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              <EvidenceMetric
-                label="Risk score"
-                value={scoreLabel(selected.riskScore)}
-                icon={ShieldAlert}
-              />
-              <EvidenceMetric
-                label="AI likelihood"
-                value={
-                  selected.analysis
-                    ? `${Math.round(selected.analysis.ai.aiProbability * 100)}%`
-                    : "—"
-                }
-                icon={Sparkles}
-              />
-              <EvidenceMetric
-                label="Recommendation"
-                value={recommendationFor(selected)}
-                icon={Flag}
-              />
-            </div>
+            {riskSummary.length > 0 ? (
+              <section className="rounded-xl border border-border/70 bg-muted/15 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <ShieldAlert className="size-4 text-primary" />
+                  <h3 className="text-sm font-semibold">Risk summary</h3>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {riskSummary.map((item) => (
+                    <EvidenceMetric
+                      key={item.label}
+                      label={item.label}
+                      value={item.value}
+                      icon={ShieldAlert}
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
-            <div className="rounded-2xl border border-border/70 bg-muted/25 p-4">
-              <p className="text-sm font-medium">Decision workflow</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  variant={pendingAction === "approved" ? "default" : "outline"}
-                  onClick={() => chooseAction("approved")}
-                >
-                  <CheckCircle2 className="size-4" />
-                  Approve
-                </Button>
-                <Button
-                  size="sm"
-                  variant={pendingAction === "removed" ? "default" : "outline"}
-                  className={cn(
-                    pendingAction !== "removed" &&
-                      "border-red-500/30 text-red-500 hover:bg-red-500/10"
-                  )}
-                  onClick={() => chooseAction("removed")}
-                >
-                  <XCircle className="size-4" />
-                  Remove
-                </Button>
-                <Button
-                  size="sm"
-                  variant={pendingAction === "escalated" ? "default" : "outline"}
-                  className={cn(
-                    pendingAction !== "escalated" &&
-                      "border-amber-500/40 text-amber-500 hover:bg-amber-500/10"
-                  )}
-                  onClick={() => chooseAction("escalated")}
-                >
-                  <Flag className="size-4" />
-                  Escalate
-                </Button>
+            <div className="rounded-xl border border-border/70 bg-muted/20 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">Decision</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Apply a review outcome to this post.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant={pendingAction === "approved" ? "default" : "outline"}
+                    onClick={() => chooseAction("approved")}
+                  >
+                    <CheckCircle2 className="size-4" />
+                    Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={pendingAction === "removed" ? "destructive" : "outline"}
+                    className={cn(
+                      pendingAction !== "removed" &&
+                        "border-red-500/30 text-red-500 hover:bg-red-500/10"
+                    )}
+                    onClick={() => chooseAction("removed")}
+                  >
+                    <XCircle className="size-4" />
+                    Remove
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={pendingAction === "escalated" ? "default" : "outline"}
+                    className={cn(
+                      pendingAction !== "escalated" &&
+                        "border-amber-500/40 text-amber-500 hover:bg-amber-500/10"
+                    )}
+                    onClick={() => chooseAction("escalated")}
+                  >
+                    <Flag className="size-4" />
+                    Escalate
+                  </Button>
+                </div>
               </div>
 
               {pendingAction !== "pending" ? (
@@ -397,7 +444,7 @@ export function ModerationQueueLive({ items }: Props) {
                     value={note}
                     onChange={(event) => setNote(event.target.value)}
                     rows={3}
-                    placeholder="Document the decision for audit and downstream labels."
+                    placeholder="Optional audit note."
                   />
                   {error ? <p className="text-xs text-destructive">{error}</p> : null}
                   <div className="flex justify-end gap-2">
@@ -414,7 +461,7 @@ export function ModerationQueueLive({ items }: Props) {
                       Cancel
                     </Button>
                     <Button size="sm" onClick={submitDecision} disabled={submitting}>
-                      {submitting ? "Saving..." : "Confirm decision"}
+                      {submitting ? "Saving..." : "Confirm"}
                     </Button>
                   </div>
                 </div>
@@ -424,90 +471,25 @@ export function ModerationQueueLive({ items }: Props) {
         </section>
 
         <aside className="space-y-4">
-          <section className="rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm">
+          <section className="rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm">
             <div className="mb-3 flex items-center gap-2">
               <FileText className="size-4 text-primary" />
               <h3 className="text-sm font-semibold">Evidence</h3>
             </div>
-            <div className="space-y-3 text-sm">
-              <EvidenceRow
-                label="C2PA provenance"
-                value={
-                  selected.analysis?.provenance.verified
-                    ? "Verified"
-                    : selected.analysis?.provenance.present
-                      ? "Present, not verified"
-                      : "Missing or unavailable"
-                }
-              />
-              <EvidenceRow
-                label="OCR text"
-                value={selected.analysis?.ocr.text || "No visible text extracted"}
-              />
-              <EvidenceRow
-                label="Public figures"
-                value={
-                  selected.analysis?.politicians.detected.length
-                    ? selected.analysis.politicians.detected.join(", ")
-                    : "None detected"
-                }
-              />
-              <EvidenceRow
-                label="Classifier reasoning"
-                value={selected.analysis?.vision.reasoning || "No classifier reasoning available"}
-              />
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm">
-            <div className="mb-3 flex items-center gap-2">
-              <History className="size-4 text-primary" />
-              <h3 className="text-sm font-semibold">User & Content History</h3>
-            </div>
-            <ol className="space-y-3 text-sm">
-              <HistoryItem
-                icon={UserRound}
-                title={`${selected.reports.length} open report${selected.reports.length === 1 ? "" : "s"}`}
-                detail={`First flagged ${formatDistanceToNow(new Date(selected.oldestReportAt), { addSuffix: true })}`}
-              />
-              <HistoryItem
-                icon={ScanText}
-                title="Analysis completed"
-                detail={`${scoreLabel(selected.riskScore)} risk score stored with this post`}
-              />
-              <HistoryItem
-                icon={decision.icon}
-                title={decision.label}
-                detail={
-                  selectedDecision === "pending"
-                    ? "Awaiting moderator decision"
-                    : "Decision reflected locally and persisted when backed by reports"
-                }
-              />
-            </ol>
+            {evidence.length > 0 ? (
+              <div className="space-y-3 text-sm">
+                {evidence.map((item) => (
+                  <EvidenceRow key={item.label} label={item.label} value={item.value} />
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-lg border border-border/70 bg-background/70 p-3 text-sm text-muted-foreground">
+                No evidence details available.
+              </p>
+            )}
           </section>
         </aside>
       </div>
-    </div>
-  )
-}
-
-function ConsoleStat({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string
-  value: number
-  icon: typeof Clock
-}) {
-  return (
-    <div className="rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <Icon className="size-4 text-muted-foreground" />
-      </div>
-      <p className="mt-2 text-2xl font-bold">{value}</p>
     </div>
   )
 }
@@ -522,45 +504,23 @@ function EvidenceMetric({
   icon: typeof ShieldAlert
 }) {
   return (
-    <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+    <div className="rounded-lg border border-border/70 bg-background/70 p-3">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <Icon className="size-3.5" />
         {label}
       </div>
-      <p className="mt-1 text-sm font-semibold">{value}</p>
+      <p className="mt-1 line-clamp-2 text-sm font-semibold">{value}</p>
     </div>
   )
 }
 
 function EvidenceRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border/70 bg-background/70 p-3">
+    <div className="rounded-lg border border-border/70 bg-background/70 p-3">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <p className="mt-1 max-h-28 overflow-auto text-xs leading-relaxed text-foreground">
         {value}
       </p>
     </div>
-  )
-}
-
-function HistoryItem({
-  icon: Icon,
-  title,
-  detail,
-}: {
-  icon: typeof History
-  title: string
-  detail: string
-}) {
-  return (
-    <li className="flex gap-3">
-      <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border border-border bg-background">
-        <Icon className="size-3.5 text-muted-foreground" />
-      </span>
-      <span>
-        <span className="block font-medium">{title}</span>
-        <span className="block text-xs text-muted-foreground">{detail}</span>
-      </span>
-    </li>
   )
 }
