@@ -1,11 +1,16 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 import { PostCard } from "@/components/post-card"
 import { FeedFilters, type FilterType } from "@/components/feed-filters"
+import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import { mockPosts } from "@/lib/mock-data"
+import { isHighRiskLockedForViewer } from "@/lib/post-visibility"
 import type { Post } from "@/lib/types"
+
+type FeedTab = "forYou" | "following"
 
 type SupabasePostRow = {
   id: string
@@ -23,9 +28,21 @@ const FEED_LIMIT = 20
 const FEED_SELECT =
   "id, username, caption, image_url, created_at, is_flagged, risk_level, confidence_score, status"
 
-export function Feed() {
+export function Feed({
+  followingUsernames = [],
+  friendUsernames = [],
+  currentUsername = null,
+  isAuthed = false,
+}: {
+  followingUsernames?: string[]
+  friendUsernames?: string[]
+  currentUsername?: string | null
+  isAuthed?: boolean
+}) {
   const [filter, setFilter] = useState<FilterType>("all")
+  const [tab, setTab] = useState<FeedTab>("forYou")
   const [posts, setPosts] = useState<Post[]>([])
+  const [isDemoFeed, setIsDemoFeed] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -37,6 +54,7 @@ export function Feed() {
     const showDemoFeed = (message: string) => {
       if (cancelled) return
       setPosts(mockPosts.filter((post) => post.status !== "removed"))
+      setIsDemoFeed(true)
       setNotice(message)
       setError(null)
       setIsLoading(false)
@@ -159,6 +177,7 @@ export function Feed() {
       }
 
       setPosts(mappedPosts.filter((post) => post.status !== "removed"))
+      setIsDemoFeed(false)
       setNotice(null)
       setIsLoading(false)
     }
@@ -171,24 +190,75 @@ export function Feed() {
     }
   }, [])
 
+  // High-risk posts are quarantined to the author + their friends for a window
+  // after posting (see HIGH_RISK_FRIENDS_ONLY_WINDOW_MS). Demo/mock posts are
+  // not gated so the walkthrough still shows flagged examples.
+  const visiblePosts = useMemo(() => {
+    if (isDemoFeed) return posts
+    const friendSet = new Set(friendUsernames)
+    return posts.filter((post) => {
+      const isHighRisk = post.media.some(
+        (m) => m.aiDetection.status !== "authentic"
+      )
+      const locked = isHighRiskLockedForViewer({
+        isHighRisk,
+        createdAt: post.createdAt,
+        isAuthor: post.author.username === currentUsername,
+        isFriendOfAuthor: friendSet.has(post.author.username),
+      })
+      return !locked
+    })
+  }, [posts, isDemoFeed, friendUsernames, currentUsername])
+
   const filteredPosts = useMemo(() => {
+    // "Following" tab: keep only posts authored by people the user follows.
+    const followingSet = new Set(followingUsernames)
+    const scoped =
+      tab === "following"
+        ? visiblePosts.filter((post) => followingSet.has(post.author.username))
+        : visiblePosts
+
     if (filter === "all") {
-      return posts
+      return scoped
     }
     if (filter === "authentic") {
-      return posts.filter((post) =>
+      return scoped.filter((post) =>
         post.media.every((m) => m.aiDetection.status === "authentic")
       )
     }
-    return posts.filter((post) =>
+    return scoped.filter((post) =>
       post.media.some((m) => m.aiDetection.status !== "authentic")
     )
-  }, [filter, posts])
+  }, [filter, visiblePosts, tab, followingUsernames])
 
   const skeletons = [0, 1, 2]
 
+  const tabs: { id: FeedTab; label: string }[] = [
+    { id: "forYou", label: "For You" },
+    { id: "following", label: "Following" },
+  ]
+
   return (
     <div className="flex flex-col">
+      <div className="sticky top-0 z-10 flex border-b border-border/70 bg-background/85 backdrop-blur-xl">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={cn(
+              "relative flex-1 py-3.5 text-sm font-semibold transition-colors hover:bg-muted/40",
+              tab === t.id ? "text-foreground" : "text-muted-foreground"
+            )}
+          >
+            {t.label}
+            {tab === t.id ? (
+              <span className="absolute inset-x-0 bottom-0 mx-auto h-1 w-12 rounded-full bg-primary" />
+            ) : null}
+          </button>
+        ))}
+      </div>
+
       <FeedFilters activeFilter={filter} onFilterChange={setFilter} />
 
       <div className="divide-y divide-border/70">
@@ -197,7 +267,19 @@ export function Feed() {
             {notice}
           </div>
         ) : null}
-        {isLoading ? (
+        {tab === "following" && !isAuthed ? (
+          <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
+            <p className="text-lg font-medium text-foreground">
+              See posts from people you follow
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              <Link href="/login?redirect=/" className="font-medium underline">
+                Sign in
+              </Link>{" "}
+              to build your following feed.
+            </p>
+          </div>
+        ) : isLoading ? (
           skeletons.map((item) => <FeedSkeleton key={item} />)
         ) : error ? (
           <div className="m-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-10 text-sm text-destructive">
@@ -209,7 +291,9 @@ export function Feed() {
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
             <p className="text-lg font-medium text-foreground">No posts found</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Try adjusting your filter to see more content.
+              {tab === "following"
+                ? "Follow people to see their posts here."
+                : "Try adjusting your filter to see more content."}
             </p>
           </div>
         )}

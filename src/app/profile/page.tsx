@@ -16,6 +16,7 @@ import {
   getSupabaseEnv,
   isModeratorRole,
 } from "@/lib/moderator-auth"
+import { getFollowStats, getReadClient } from "@/lib/follows"
 
 export const metadata = {
   title: "Profile - TruthGuard",
@@ -28,6 +29,9 @@ export const dynamic = "force-dynamic"
 export default async function ProfilePage() {
   const configured = Boolean(getSupabaseEnv())
   const profile = configured ? await getModeratorProfile() : null
+
+  const client = profile ? await getReadClient() : null
+  const stats = client && profile ? await getFollowStats(client, profile.id) : null
 
   return (
     <div className="min-h-screen bg-background">
@@ -57,19 +61,43 @@ export default async function ProfilePage() {
                     ) : null}
                   </div>
                 </CardHeader>
-                <CardContent className="flex items-center justify-between gap-4">
-                  <Badge
-                    variant={
-                      isModeratorRole(profile.role) ? "default" : "outline"
-                    }
-                  >
-                    {profile.role}
-                  </Badge>
-                  <form action="/api/auth/logout" method="post">
-                    <Button variant="outline" size="sm" type="submit">
-                      Sign out
-                    </Button>
-                  </form>
+                <CardContent className="space-y-4">
+                  {stats ? (
+                    <div className="flex gap-5 text-sm">
+                      <Link
+                        href={`/u/${profile.username}/following`}
+                        className="hover:underline"
+                      >
+                        <span className="font-bold">{stats.following}</span>{" "}
+                        <span className="text-muted-foreground">Following</span>
+                      </Link>
+                      <Link
+                        href={`/u/${profile.username}/followers`}
+                        className="hover:underline"
+                      >
+                        <span className="font-bold">{stats.followers}</span>{" "}
+                        <span className="text-muted-foreground">Followers</span>
+                      </Link>
+                      <span>
+                        <span className="font-bold">{stats.friends}</span>{" "}
+                        <span className="text-muted-foreground">Friends</span>
+                      </span>
+                    </div>
+                  ) : null}
+                  <div className="flex items-center justify-between gap-4">
+                    <Badge
+                      variant={
+                        isModeratorRole(profile.role) ? "default" : "outline"
+                      }
+                    >
+                      {profile.role}
+                    </Badge>
+                    <form action="/api/auth/logout" method="post">
+                      <Button variant="outline" size="sm" type="submit">
+                        Sign out
+                      </Button>
+                    </form>
+                  </div>
                 </CardContent>
               </Card>
             ) : (
