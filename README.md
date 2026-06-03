@@ -6,6 +6,9 @@ approach towards preventing this on our platform includes detection, provenance,
 for political disinformation, where a heauristic AI score and checks for a cryptographic signature provide moderators with more 
 data/information before they make their decision. 
 
+## Demo Video Link 
+https://youtu.be/m3BjlDGpMoo
+
 ## Tech Stack
 **Framework:** Next.js 16.2.6 (App Router, Turbopack), Typescript \
 **UI:** Tailwind CSS, shadcn/ui, Radix UI, base-ui \
